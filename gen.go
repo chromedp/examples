@@ -68,7 +68,7 @@ func main() {
 		if i == -1 {
 			log.Fatalf("could not find %q in doc comment for %s", descStart, fn)
 		}
-		comment = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(comment[i+len(descStart):]), descPrefix))
+		comment = strings.TrimSuffix(strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(comment[i+len(descStart):]), descPrefix)), ".")
 
 		examples = append(examples, ex{name, comment})
 	}
