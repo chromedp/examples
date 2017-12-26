@@ -63,7 +63,7 @@ func main() {
 		name := fmt.Sprintf("[%s](/%s)", n, n)
 
 		// clean comment
-		comment := strings.Replace(f.Doc.Text(), "\n", " ", -1)
+		comment := spaceRE.ReplaceAllString(f.Doc.Text(), " ")
 		i := strings.Index(comment, descStart)
 		if i == -1 {
 			log.Fatalf("could not find %q in doc comment for %s", descStart, fn)
