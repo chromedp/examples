@@ -1,3 +1,5 @@
+// Command standalone is a chromedp example demonstrating how to use chromedp
+// with a standalone (ie, a "pre-existing" / manually started) chrome instance.
 package main
 
 import (

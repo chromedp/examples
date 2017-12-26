@@ -1,3 +1,5 @@
+// Command text is a chromedp example demonstrating how to extract text from a
+// specific element.
 package main
 
 import (

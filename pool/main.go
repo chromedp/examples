@@ -1,3 +1,4 @@
+// Command pool is a chromedp example demonstrating how to use chromedp pool.
 package main
 
 import (

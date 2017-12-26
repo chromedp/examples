@@ -1,3 +1,5 @@
+// Command cookie is a chromedp example demonstrating how to set a HTTP cookie
+// on requests.
 package main
 
 import (

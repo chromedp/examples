@@ -1,3 +1,5 @@
+// Command keys is a chromedp example demonstrating how to send key events to
+// an element.
 package main
 
 import (

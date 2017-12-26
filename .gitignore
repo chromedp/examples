@@ -1,0 +1,16 @@
+/click/click
+/cookie/cookie
+/eval/eval
+/keys/keys
+/logic/logic
+/pool/pool
+/screenshot/screenshot
+/simple/simple
+/standalone/standalone
+/submit/submit
+/text/text
+/upload/upload
+/visible/visible
+
+*.png
+*.exe

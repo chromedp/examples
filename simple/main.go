@@ -1,4 +1,5 @@
-// examples/simple/main.go
+// Command simple is a chromedp example demonstrating how to do a simple google
+// search.
 package main
 
 import (

@@ -1,4 +1,5 @@
-// examples/logic/main.go
+// Command logic is a chromedp example demonstrating more complex logic beyond
+// simple actions.
 package main
 
 import (

@@ -1,3 +1,5 @@
+// Command upload is a chromedp example demonstrating how to upload a file on a
+// form.
 package main
 
 import (

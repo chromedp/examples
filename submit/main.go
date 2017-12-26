@@ -1,3 +1,5 @@
+// Command submit is a chromedp example demonstrating how to fill out and
+// submit a form.
 package main
 
 import (
