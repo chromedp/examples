@@ -54,4 +54,4 @@ welcomed!  The `chromedp` project always needs new examples, and needs talented
 developers (such as yourself!) to submit fixes for the existing examples when
 they break (for example, when a website's layout/HTML changes).
 
-[1]: https://github.com/chromedp/chromedp
+[1]: https://github.com/knq/chromedp
