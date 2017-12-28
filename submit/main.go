@@ -6,7 +6,7 @@ import (
 	"context"
 	"log"
 
-	cdp "github.com/knq/chromedp"
+	"github.com/chromedp/chromedp"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 	defer cancel()
 
 	// create chrome instance
-	c, err := cdp.New(ctxt, cdp.WithLog(log.Printf))
+	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,13 +44,13 @@ func main() {
 	log.Printf("got: `%s`", res)
 }
 
-func submit(urlstr, sel, q string, res *string) cdp.Tasks {
-	return cdp.Tasks{
-		cdp.Navigate(urlstr),
-		cdp.WaitVisible(sel),
-		cdp.SendKeys(sel, q),
-		cdp.Submit(sel),
-		cdp.WaitNotPresent(`//*[@id="code_search"]/h2/svg`),
-		cdp.Text(`//*[@id="js-pjax-container"]/div[2]/div/div[2]/ul/li/p`, res),
+func submit(urlstr, sel, q string, res *string) chromedp.Tasks {
+	return chromedp.Tasks{
+		chromedp.Navigate(urlstr),
+		chromedp.WaitVisible(sel),
+		chromedp.SendKeys(sel, q),
+		chromedp.Submit(sel),
+		chromedp.WaitNotPresent(`//*[@id="code_search"]/h2/svg`),
+		chromedp.Text(`//*[@id="js-pjax-container"]/div[2]/div/div[2]/ul/li/p`, res),
 	}
 }

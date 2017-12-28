@@ -9,9 +9,9 @@ import (
 	"log"
 	"time"
 
-	cdp "github.com/knq/chromedp"
-	cdptypes "github.com/knq/chromedp/cdp"
-	"github.com/knq/chromedp/client"
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/client"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 	defer cancel()
 
 	// create chrome
-	c, err := cdp.New(ctxt, cdp.WithTargets(client.New().WatchPageTargets(ctxt)), cdp.WithLog(log.Printf))
+	c, err := chromedp.New(ctxt, chromedp.WithTargets(client.New().WatchPageTargets(ctxt)), chromedp.WithLog(log.Printf))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,23 +37,23 @@ func main() {
 	log.Printf("saved screenshot of #testimonials from search result listing `%s` (%s)", res, site)
 }
 
-func googleSearch(q, text string, site, res *string) cdp.Tasks {
+func googleSearch(q, text string, site, res *string) chromedp.Tasks {
 	var buf []byte
 	sel := fmt.Sprintf(`//a[text()[contains(., '%s')]]`, text)
-	return cdp.Tasks{
-		cdp.Navigate(`https://www.google.com`),
-		cdp.Sleep(2 * time.Second),
-		cdp.WaitVisible(`#hplogo`, cdp.ByID),
-		cdp.SendKeys(`#lst-ib`, q+"\n", cdp.ByID),
-		cdp.WaitVisible(`#res`, cdp.ByID),
-		cdp.Text(sel, res),
-		cdp.Click(sel),
-		cdp.Sleep(2 * time.Second),
-		cdp.WaitVisible(`#footer`, cdp.ByQuery),
-		cdp.WaitNotVisible(`div.v-middle > div.la-ball-clip-rotate`, cdp.ByQuery),
-		cdp.Location(site),
-		cdp.Screenshot(`#testimonials`, &buf, cdp.ByID),
-		cdp.ActionFunc(func(context.Context, cdptypes.Handler) error {
+	return chromedp.Tasks{
+		chromedp.Navigate(`https://www.google.com`),
+		chromedp.Sleep(2 * time.Second),
+		chromedp.WaitVisible(`#hplogo`, chromedp.ByID),
+		chromedp.SendKeys(`#lst-ib`, q+"\n", chromedp.ByID),
+		chromedp.WaitVisible(`#res`, chromedp.ByID),
+		chromedp.Text(sel, res),
+		chromedp.Click(sel),
+		chromedp.Sleep(2 * time.Second),
+		chromedp.WaitVisible(`#footer`, chromedp.ByQuery),
+		chromedp.WaitNotVisible(`div.v-middle > div.la-ball-clip-rotate`, chromedp.ByQuery),
+		chromedp.Location(site),
+		chromedp.Screenshot(`#testimonials`, &buf, chromedp.ByID),
+		chromedp.ActionFunc(func(context.Context, cdp.Executor) error {
 			return ioutil.WriteFile("testimonials.png", buf, 0644)
 		}),
 	}

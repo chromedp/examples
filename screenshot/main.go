@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	cdp "github.com/knq/chromedp"
+	"github.com/chromedp/chromedp"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 	defer cancel()
 
 	// create chrome instance
-	c, err := cdp.New(ctxt, cdp.WithLog(log.Printf))
+	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,12 +49,12 @@ func main() {
 	}
 }
 
-func screenshot(urlstr, sel string, res *[]byte) cdp.Tasks {
-	return cdp.Tasks{
-		cdp.Navigate(urlstr),
-		cdp.Sleep(2 * time.Second),
-		cdp.WaitVisible(sel, cdp.ByID),
-		cdp.WaitNotVisible(`div.v-middle > div.la-ball-clip-rotate`, cdp.ByQuery),
-		cdp.Screenshot(sel, res, cdp.NodeVisible, cdp.ByID),
+func screenshot(urlstr, sel string, res *[]byte) chromedp.Tasks {
+	return chromedp.Tasks{
+		chromedp.Navigate(urlstr),
+		chromedp.Sleep(2 * time.Second),
+		chromedp.WaitVisible(sel, chromedp.ByID),
+		chromedp.WaitNotVisible(`div.v-middle > div.la-ball-clip-rotate`, chromedp.ByQuery),
+		chromedp.Screenshot(sel, res, chromedp.NodeVisible, chromedp.ByID),
 	}
 }

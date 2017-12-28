@@ -9,9 +9,9 @@ import (
 	"os"
 	"time"
 
-	cdp "github.com/knq/chromedp"
-	cdptypes "github.com/knq/chromedp/cdp"
-	rundom "github.com/knq/chromedp/cdp/runtime"
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/cdproto/runtime"
+	"github.com/chromedp/chromedp"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 	defer cancel()
 
 	// create chrome instance
-	c, err := cdp.New(ctxt, cdp.WithLog(log.Printf))
+	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,26 +46,26 @@ func main() {
 	}
 }
 
-func visible() cdp.Tasks {
-	var res *rundom.RemoteObject
-	return cdp.Tasks{
-		cdp.Navigate("file:" + os.Getenv("GOPATH") + "/src/github.com/knq/chromedp/testdata/visible.html"),
-		cdp.Evaluate(makeVisibleScript, &res),
-		cdp.ActionFunc(func(context.Context, cdptypes.Handler) error {
+func visible() chromedp.Tasks {
+	var res *runtime.RemoteObject
+	return chromedp.Tasks{
+		chromedp.Navigate("file:" + os.Getenv("GOPATH") + "/src/github.com/chromedp/chromedp/testdata/visible.html"),
+		chromedp.Evaluate(makeVisibleScript, &res),
+		chromedp.ActionFunc(func(context.Context, cdp.Executor) error {
 			log.Printf(">>> res: %+v", res)
 			return nil
 		}),
-		cdp.WaitVisible(`#box1`),
-		cdp.ActionFunc(func(context.Context, cdptypes.Handler) error {
+		chromedp.WaitVisible(`#box1`),
+		chromedp.ActionFunc(func(context.Context, cdp.Executor) error {
 			log.Printf(">>>>>>>>>>>>>>>>>>>> BOX1 IS VISIBLE")
 			return nil
 		}),
-		cdp.WaitVisible(`#box2`),
-		cdp.ActionFunc(func(context.Context, cdptypes.Handler) error {
+		chromedp.WaitVisible(`#box2`),
+		chromedp.ActionFunc(func(context.Context, cdp.Executor) error {
 			log.Printf(">>>>>>>>>>>>>>>>>>>> BOX2 IS VISIBLE")
 			return nil
 		}),
-		cdp.ActionFunc(func(context.Context, cdptypes.Handler) error {
+		chromedp.ActionFunc(func(context.Context, cdp.Executor) error {
 			log.Printf(">>>>>>>>>>>>>>>>>>>> WAITING TO EXIT")
 			time.Sleep(150 * time.Second)
 			return errors.New("exiting")

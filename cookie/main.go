@@ -12,9 +12,9 @@ import (
 	"net/http"
 	"time"
 
-	cdp "github.com/knq/chromedp"
-	cdptypes "github.com/knq/chromedp/cdp"
-	"github.com/knq/chromedp/cdp/network"
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/cdproto/network"
+	"github.com/chromedp/chromedp"
 )
 
 var (
@@ -43,7 +43,7 @@ func main() {
 	defer cancel()
 
 	// create chrome instance
-	c, err := cdp.New(ctxt, cdp.WithLog(log.Printf))
+	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,10 +70,10 @@ func main() {
 	log.Printf("passed cookies: %s", res)
 }
 
-func setcookies(host string, res *string) cdp.Tasks {
-	return cdp.Tasks{
-		cdp.ActionFunc(func(ctxt context.Context, h cdptypes.Handler) error {
-			expr := cdptypes.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
+func setcookies(host string, res *string) chromedp.Tasks {
+	return chromedp.Tasks{
+		chromedp.ActionFunc(func(ctxt context.Context, h cdp.Executor) error {
+			expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
 			success, err := network.SetCookie("cookiename", "cookievalue").
 				WithExpires(&expr).
 				WithDomain("localhost").
@@ -87,9 +87,9 @@ func setcookies(host string, res *string) cdp.Tasks {
 			}
 			return nil
 		}),
-		cdp.Navigate(host),
-		cdp.Text(`#result`, res, cdp.ByID, cdp.NodeVisible),
-		cdp.ActionFunc(func(ctxt context.Context, h cdptypes.Handler) error {
+		chromedp.Navigate(host),
+		chromedp.Text(`#result`, res, chromedp.ByID, chromedp.NodeVisible),
+		chromedp.ActionFunc(func(ctxt context.Context, h cdp.Executor) error {
 			cookies, err := network.GetAllCookies().Do(ctxt, h)
 			if err != nil {
 				return err

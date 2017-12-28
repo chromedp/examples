@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	cdp "github.com/knq/chromedp"
+	"github.com/chromedp/chromedp"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 	defer cancel()
 
 	// create chrome instance
-	c, err := cdp.New(ctxt, cdp.WithLog(log.Printf))
+	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,11 +42,11 @@ func main() {
 	}
 }
 
-func click() cdp.Tasks {
-	return cdp.Tasks{
-		cdp.Navigate(`https://golang.org/pkg/time/`),
-		cdp.WaitVisible(`#footer`),
-		cdp.Click(`#pkg-overview`, cdp.NodeVisible),
-		cdp.Sleep(150 * time.Second),
+func click() chromedp.Tasks {
+	return chromedp.Tasks{
+		chromedp.Navigate(`https://golang.org/pkg/time/`),
+		chromedp.WaitVisible(`#footer`),
+		chromedp.Click(`#pkg-overview`, chromedp.NodeVisible),
+		chromedp.Sleep(150 * time.Second),
 	}
 }

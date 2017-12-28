@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	cdp "github.com/knq/chromedp"
-	cdptypes "github.com/knq/chromedp/cdp"
-	"github.com/knq/chromedp/cdp/page"
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/chromedp"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 	defer cancel()
 
 	// create pool
-	pool, err := cdp.NewPool( /*cdp.PoolLog(log.Printf, log.Printf, log.Printf)*/ )
+	pool, err := chromedp.NewPool( /*chromedp.PoolLog(log.Printf, log.Printf, log.Printf)*/ )
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func main() {
 	}
 }
 
-func takeScreenshot(ctxt context.Context, wg *sync.WaitGroup, pool *cdp.Pool, id int, urlstr string) {
+func takeScreenshot(ctxt context.Context, wg *sync.WaitGroup, pool *chromedp.Pool, id int, urlstr string) {
 	defer wg.Done()
 
 	// allocate
@@ -75,12 +75,12 @@ func takeScreenshot(ctxt context.Context, wg *sync.WaitGroup, pool *cdp.Pool, id
 	}
 }
 
-func screenshot(urlstr string, picbuf *[]byte) cdp.Action {
-	return cdp.Tasks{
-		cdp.Navigate(urlstr),
-		cdp.Sleep(2 * time.Second),
-		cdp.WaitVisible(`#navbar-nav-main`),
-		cdp.ActionFunc(func(ctxt context.Context, h cdptypes.Handler) error {
+func screenshot(urlstr string, picbuf *[]byte) chromedp.Action {
+	return chromedp.Tasks{
+		chromedp.Navigate(urlstr),
+		chromedp.Sleep(2 * time.Second),
+		chromedp.WaitVisible(`#navbar-nav-main`),
+		chromedp.ActionFunc(func(ctxt context.Context, h cdp.Executor) error {
 			buf, err := page.CaptureScreenshot().Do(ctxt, h)
 			if err != nil {
 				return err

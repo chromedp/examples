@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	cdp "github.com/knq/chromedp"
-	cdptypes "github.com/knq/chromedp/cdp"
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/chromedp"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	defer cancel()
 
 	// create chrome instance
-	c, err := cdp.New(ctxt, cdp.WithLog(log.Printf))
+	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,7 +58,7 @@ type ud struct {
 // listAwesomeGoProjects is the highest level logic for browsing to the
 // awesome-go page, finding the specified section sect, and retrieving the
 // associated projects from the page.
-func listAwesomeGoProjects(ctxt context.Context, c *cdp.CDP, sect string) (map[string]ud, error) {
+func listAwesomeGoProjects(ctxt context.Context, c *chromedp.CDP, sect string) (map[string]ud, error) {
 	// force max timeout of 15 seconds for retrieving and processing the data
 	var cancel func()
 	ctxt, cancel = context.WithTimeout(ctxt, 25*time.Second)
@@ -67,26 +67,26 @@ func listAwesomeGoProjects(ctxt context.Context, c *cdp.CDP, sect string) (map[s
 	sel := fmt.Sprintf(`//p[text()[contains(., '%s')]]`, sect)
 
 	// navigate
-	if err := c.Run(ctxt, cdp.Navigate(`https://github.com/avelino/awesome-go`)); err != nil {
+	if err := c.Run(ctxt, chromedp.Navigate(`https://github.com/avelino/awesome-go`)); err != nil {
 		return nil, fmt.Errorf("could not navigate to github: %v", err)
 	}
 
 	// wait visible
-	if err := c.Run(ctxt, cdp.WaitVisible(sel)); err != nil {
+	if err := c.Run(ctxt, chromedp.WaitVisible(sel)); err != nil {
 		return nil, fmt.Errorf("could not get section: %v", err)
 	}
 
 	sib := sel + `/following-sibling::ul/li`
 
 	// get project link text
-	var projects []*cdptypes.Node
-	if err := c.Run(ctxt, cdp.Nodes(sib+`/child::a/text()`, &projects)); err != nil {
+	var projects []*cdp.Node
+	if err := c.Run(ctxt, chromedp.Nodes(sib+`/child::a/text()`, &projects)); err != nil {
 		return nil, fmt.Errorf("could not get projects: %v", err)
 	}
 
 	// get links and description text
-	var linksAndDescriptions []*cdptypes.Node
-	if err := c.Run(ctxt, cdp.Nodes(sib+`/child::node()`, &linksAndDescriptions)); err != nil {
+	var linksAndDescriptions []*cdp.Node
+	if err := c.Run(ctxt, chromedp.Nodes(sib+`/child::node()`, &linksAndDescriptions)); err != nil {
 		return nil, fmt.Errorf("could not get links and descriptions: %v", err)
 	}
 

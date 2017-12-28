@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"os"
 
-	cdp "github.com/knq/chromedp"
+	"github.com/chromedp/chromedp"
 )
 
 var (
@@ -55,7 +55,7 @@ func main() {
 	defer cancel()
 
 	// create chrome instance
-	c, err := cdp.New(ctxt, cdp.WithLog(log.Printf))
+	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -96,12 +96,12 @@ func main() {
 	log.Printf("original size: %d, upload size: %d", fi.Size(), <-result)
 }
 
-func upload(filepath string, sz *string) cdp.Tasks {
-	return cdp.Tasks{
-		cdp.Navigate(fmt.Sprintf("http://localhost:%d", *flagPort)),
-		cdp.SendKeys(`input[name="upload"]`, filepath, cdp.NodeVisible),
-		cdp.Click(`input[name="submit"]`),
-		cdp.Text(`#result`, sz, cdp.ByID, cdp.NodeVisible),
+func upload(filepath string, sz *string) chromedp.Tasks {
+	return chromedp.Tasks{
+		chromedp.Navigate(fmt.Sprintf("http://localhost:%d", *flagPort)),
+		chromedp.SendKeys(`input[name="upload"]`, filepath, chromedp.NodeVisible),
+		chromedp.Click(`input[name="submit"]`),
+		chromedp.Text(`#result`, sz, chromedp.ByID, chromedp.NodeVisible),
 	}
 }
 
