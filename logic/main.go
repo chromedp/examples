@@ -61,7 +61,7 @@ type ud struct {
 func listAwesomeGoProjects(ctxt context.Context, c *chromedp.CDP, sect string) (map[string]ud, error) {
 	// force max timeout of 15 seconds for retrieving and processing the data
 	var cancel func()
-	ctxt, cancel = context.WithTimeout(ctxt, 25*time.Second)
+	ctxt, cancel = context.WithTimeout(ctxt, 15*time.Second)
 	defer cancel()
 
 	sel := fmt.Sprintf(`//p[text()[contains(., '%s')]]`, sect)
