@@ -1,13 +1,14 @@
 # About example standalone
 
-This is a version of the [`simple`][1] example but uses the `chromedp.WithTargets`
-option with `chromedp/client.WatchPageTargets` to connect to an existing Chrome
-instance (ie, no process will be launched).
+This is a version of the [`simple`](../simple) example but uses the
+`chromedp.WithTargets` option with `chromedp/client.WatchPageTargets` to
+connect to an existing Chrome instance (ie, no process will be launched).
 
 ## Manually Starting Chrome
 
-To use this example, please manually start a Chrome instance with the `--remote-debugging-port=9222`
-command-line option make the Chrome Debugging Protocol available to clients:
+To use this example, please manually start a Chrome instance with the
+`--remote-debugging-port=9222` command-line option make the Chrome Debugging
+Protocol available to clients:
 
 ```sh
 # start google-chrome
@@ -22,19 +23,16 @@ $ google-chrome-unstable --headless --remote-debugging-port=9222
 
 ### Docker Image
 
-A Docker image, [knqz/chrome-headless][2], provides a small ready-to-use
-`headless_shell` that can be used with this example:
+A Docker image, [chromedp/headless-shell][docker-hub], provides a small
+ready-to-use `headless_shell` that can be used with this example:
 
 ```sh
 # retrieve docker image
-$ docker pull knqz/chrome-headless
+$ docker pull chromedp/headless-shell
 
-# start chrome-headless
-$ docker run -d -p 9222:9222 --rm --name chrome-headless knqz/chrome-headless
+# start headless-shell
+$ docker run -d -p 9222:9222 --rm --name headless-shell chromedp/headless-shell
 ```
-
-[1]: ../simple
-[2]: https://hub.docker.com/r/knqz/chrome-headless/
 
 ## Building and Running
 
@@ -45,3 +43,5 @@ The `standalone` example can be run like any other Go code:
 $ cd $GOPATH/src/github.com/chromedp/examples/standalone
 $ go build && ./standalone
 ```
+
+[docker-hub]: https://hub.docker.com/r/chromedp/headless-shell/
