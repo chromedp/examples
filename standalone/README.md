@@ -1,14 +1,14 @@
 # About example standalone
 
-This is a version of the [`simple`](../simple) example but uses the
-`chromedp.WithTargets` option with `chromedp/client.WatchPageTargets` to
-connect to an existing Chrome instance (ie, no process will be launched).
+This is a version of the [`simple`](../simple) example but demonstrates how
+connect to a standalone (ie, existing) Chrome instance with `chromedp`.
 
 ## Manually Starting Chrome
 
-To use this example, please manually start a Chrome instance with the
-`--remote-debugging-port=9222` command-line option make the Chrome Debugging
-Protocol available to clients:
+To use this example, manually start a Chrome instance with the
+`--remote-debugging-port=9222` command-line option, in order to make the
+browser instance available via the Chrome DevTools Protocol on port `9222` to
+clients:
 
 ```sh
 # start google-chrome
