@@ -1,5 +1,3 @@
-// Command cookie is a chromedp example demonstrating how to set a HTTP cookie
-// on requests.
 package main
 
 import (
@@ -22,8 +20,6 @@ var (
 )
 
 func main() {
-	var err error
-
 	flag.Parse()
 
 	// setup http server
@@ -39,38 +35,22 @@ func main() {
 	go http.ListenAndServe(fmt.Sprintf(":%d", *flagPort), mux)
 
 	// create context
-	ctxt, cancel := context.WithCancel(context.Background())
+	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
-
-	// create chrome instance
-	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// run task list
 	var res string
-	err = c.Run(ctxt, setcookies(fmt.Sprintf("http://localhost:%d", *flagPort), &res))
-	if err != nil {
-		log.Fatal(err)
+	if err := chromedp.Run(ctx, setCookies(fmt.Sprintf("http://localhost:%d", *flagPort), &res)); err != nil {
+		panic(err)
 	}
 
-	// shutdown chrome
-	err = c.Shutdown(ctxt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// wait for chrome to finish
-	err = c.Wait()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	// wait for the resources to be cleaned up
+	cancel()
+	chromedp.FromContext(ctx).Allocator.Wait()
 	log.Printf("passed cookies: %s", res)
 }
 
-func setcookies(host string, res *string) chromedp.Tasks {
+func setCookies(host string, res *string) chromedp.Tasks {
 	return chromedp.Tasks{
 		chromedp.ActionFunc(func(ctxt context.Context, h cdp.Executor) error {
 			expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))

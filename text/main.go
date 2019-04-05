@@ -1,5 +1,3 @@
-// Command text is a chromedp example demonstrating how to extract text from a
-// specific element.
 package main
 
 import (
@@ -10,36 +8,19 @@ import (
 )
 
 func main() {
-	var err error
-
 	// create context
-	ctxt, cancel := context.WithCancel(context.Background())
+	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// create chrome instance
-	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// run task list
 	var res string
-	err = c.Run(ctxt, text(&res))
-	if err != nil {
-		log.Fatal(err)
+	// run task list
+	if err := chromedp.Run(ctx, text(&res)); err != nil {
+		panic(err)
 	}
 
-	// shutdown chrome
-	err = c.Shutdown(ctxt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// wait for chrome to finish
-	err = c.Wait()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// wait for the resources to be cleaned up
+	cancel()
+	chromedp.FromContext(ctx).Allocator.Wait()
 
 	log.Printf("overview: %s", res)
 }

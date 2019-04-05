@@ -1,5 +1,3 @@
-// Command upload is a chromedp example demonstrating how to upload a file on a
-// form.
 package main
 
 import (
@@ -50,15 +48,8 @@ func main() {
 
 	go http.ListenAndServe(fmt.Sprintf(":%d", *flagPort), mux)
 
-	// create context
-	ctxt, cancel := context.WithCancel(context.Background())
+	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
-
-	// create chrome instance
-	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// get wd
 	wd, err := os.Getwd()
@@ -74,25 +65,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// run task list
 	var sz string
-	err = c.Run(ctxt, upload(filepath, &sz))
-	if err != nil {
-		log.Fatal(err)
+	if err := chromedp.Run(ctx, upload(filepath, &sz)); err != nil {
+		panic(err)
 	}
 
-	// shutdown chrome
-	err = c.Shutdown(ctxt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// wait for chrome to finish
-	err = c.Wait()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	// wait for the resources to be cleaned up
+	cancel()
+	chromedp.FromContext(ctx).Allocator.Wait()
 	log.Printf("original size: %d, upload size: %d", fi.Size(), <-result)
 }
 
