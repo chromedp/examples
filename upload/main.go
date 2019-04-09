@@ -19,12 +19,51 @@ var (
 )
 
 func main() {
-	var err error
-
 	flag.Parse()
 
-	// create http server and result channel
+	// get wd
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	filepath := wd + "/main.go"
+
+	// get some info about the file
+	fi, err := os.Stat(filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// start upload server
 	result := make(chan int, 1)
+	go uploadServer(fmt.Sprintf(":%d", *flagPort), result)
+
+	// create context
+	ctx, cancel := chromedp.NewContext(context.Background())
+	defer cancel()
+
+	// run task list
+	var sz string
+	err = chromedp.Run(ctx, upload(filepath, &sz))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("original size: %d, upload size: %d", fi.Size(), <-result)
+}
+
+func upload(filepath string, sz *string) chromedp.Tasks {
+	return chromedp.Tasks{
+		chromedp.Navigate(fmt.Sprintf("http://localhost:%d", *flagPort)),
+		chromedp.SendKeys(`input[name="upload"]`, filepath, chromedp.NodeVisible),
+		chromedp.Click(`input[name="submit"]`),
+		chromedp.Text(`#result`, sz, chromedp.ByID, chromedp.NodeVisible),
+	}
+}
+
+func uploadServer(addr string, result chan int) error {
+	// create http server and result channel
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(res, uploadHTML)
@@ -47,62 +86,7 @@ func main() {
 
 		result <- len(buf)
 	})
-
-	go http.ListenAndServe(fmt.Sprintf(":%d", *flagPort), mux)
-
-	// create context
-	ctxt, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// create chrome instance
-	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// get wd
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	filepath := wd + "/main.go"
-
-	// get some info about the file
-	fi, err := os.Stat(filepath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// run task list
-	var sz string
-	err = c.Run(ctxt, upload(filepath, &sz))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// shutdown chrome
-	err = c.Shutdown(ctxt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// wait for chrome to finish
-	err = c.Wait()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("original size: %d, upload size: %d", fi.Size(), <-result)
-}
-
-func upload(filepath string, sz *string) chromedp.Tasks {
-	return chromedp.Tasks{
-		chromedp.Navigate(fmt.Sprintf("http://localhost:%d", *flagPort)),
-		chromedp.SendKeys(`input[name="upload"]`, filepath, chromedp.NodeVisible),
-		chromedp.Click(`input[name="submit"]`),
-		chromedp.Text(`#result`, sz, chromedp.ByID, chromedp.NodeVisible),
-	}
+	return http.ListenAndServe(addr, mux)
 }
 
 const (

@@ -30,22 +30,19 @@ The following examples are currently available:
 
 <!-- the following section is updated by running `go run gen.go` -->
 <!-- START EXAMPLES -->
-| Example                   | Description                                                                              |
-|---------------------------|------------------------------------------------------------------------------------------|
-| [click](/click)           | use a selector to click on an element                                                    |
-| [cookie](/cookie)         | set a HTTP cookie on requests                                                            |
-| [eval](/eval)             | evaluate javascript and retrieve the result                                              |
-| [headers](/headers)       | set a HTTP header on requests                                                            |
-| [keys](/keys)             | send key events to an element                                                            |
-| [logic](/logic)           | more complex logic beyond simple actions                                                 |
-| [pool](/pool)             | use chromedp pool                                                                        |
-| [screenshot](/screenshot) | take a screenshot of a specific element                                                  |
-| [simple](/simple)         | do a simple google search                                                                |
-| [standalone](/standalone) | use chromedp with a standalone (ie, a "pre-existing" / manually started) chrome instance |
-| [submit](/submit)         | fill out and submit a form                                                               |
-| [text](/text)             | extract text from a specific element                                                     |
-| [upload](/upload)         | upload a file on a form                                                                  |
-| [visible](/visible)       | wait until an element is visible                                                         |
+| Example                   | Description                                 |
+|---------------------------|---------------------------------------------|
+| [click](/click)           | use a selector to click on an element       |
+| [cookie](/cookie)         | set a HTTP cookie on requests               |
+| [eval](/eval)             | evaluate javascript and retrieve the result |
+| [headers](/headers)       | set a HTTP header on requests               |
+| [keys](/keys)             | send key events to an element               |
+| [logic](/logic)           | more complex logic beyond simple actions    |
+| [screenshot](/screenshot) | take a screenshot of a specific element     |
+| [submit](/submit)         | fill out and submit a form                  |
+| [text](/text)             | extract text from a specific element        |
+| [upload](/upload)         | upload a file on a form                     |
+| [visible](/visible)       | wait until an element is visible            |
 <!-- END EXAMPLES -->
 
 ## Contributing

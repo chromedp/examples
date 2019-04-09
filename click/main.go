@@ -11,42 +11,30 @@ import (
 )
 
 func main() {
-	var err error
-
-	// create context
-	ctxt, cancel := context.WithCancel(context.Background())
+	// create chrome instance
+	ctx, cancel := chromedp.NewContext(
+		context.Background(),
+		chromedp.WithLogf(log.Printf),
+	)
 	defer cancel()
 
-	// create chrome instance
-	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
-	if err != nil {
-		log.Fatal(err)
-	}
+	// create a timeout
+	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
 
-	// run task list
-	err = c.Run(ctxt, click())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// shutdown chrome
-	err = c.Shutdown(ctxt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// wait for chrome to finish
-	err = c.Wait()
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func click() chromedp.Tasks {
-	return chromedp.Tasks{
+	// navigate to a page, wait for an element, click
+	var example string
+	err := chromedp.Run(ctx,
 		chromedp.Navigate(`https://golang.org/pkg/time/`),
+		// wait for footer element is visible (ie, page is loaded)
 		chromedp.WaitVisible(`#footer`),
-		chromedp.Click(`#pkg-overview`, chromedp.NodeVisible),
-		chromedp.Sleep(150 * time.Second),
+		// find and click "Expand All" link
+		chromedp.Click(`#pkg-examples > div`, chromedp.NodeVisible),
+		// retrieve the value of the textarea
+		chromedp.Value(`#example_After .play .input textarea`, &example),
+	)
+	if err != nil {
+		log.Fatal(err)
 	}
+	log.Printf("Go's time.After example:\n%s", example)
 }

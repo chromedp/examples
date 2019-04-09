@@ -19,35 +19,18 @@ var (
 )
 
 func main() {
-	var err error
-
 	flag.Parse()
 
-	// setup http server
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
-		buf, err := json.MarshalIndent(req.Header, "", "  ")
-		if err != nil {
-			http.Error(res, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		fmt.Fprintf(res, indexHTML, string(buf))
-	})
-	go http.ListenAndServe(fmt.Sprintf(":%d", *flagPort), mux)
+	// run server
+	go headerServer(fmt.Sprintf(":%d", *flagPort))
 
 	// create context
-	ctxt, cancel := context.WithCancel(context.Background())
+	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
-
-	// create chrome instance
-	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// run task list
 	var res string
-	err = c.Run(ctxt, setheaders(
+	err := chromedp.Run(ctx, setheaders(
 		fmt.Sprintf("http://localhost:%d", *flagPort),
 		map[string]interface{}{
 			"X-Header": "my request header",
@@ -58,21 +41,24 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// shutdown chrome
-	err = c.Shutdown(ctxt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// wait for chrome to finish
-	err = c.Wait()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	log.Printf("received headers: %s", res)
 }
 
+// headerServer is a simple HTTP server that displays the passed headers in the html.
+func headerServer(addr string) error {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
+		buf, err := json.MarshalIndent(req.Header, "", "  ")
+		if err != nil {
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		fmt.Fprintf(res, indexHTML, string(buf))
+	})
+	return http.ListenAndServe(addr, mux)
+}
+
+// setheaders returns a task list that sets the passed headers.
 func setheaders(host string, headers map[string]interface{}, res *string) chromedp.Tasks {
 	return chromedp.Tasks{
 		network.Enable(),
@@ -82,11 +68,9 @@ func setheaders(host string, headers map[string]interface{}, res *string) chrome
 	}
 }
 
-const (
-	indexHTML = `<!doctype html>
+const indexHTML = `<!doctype html>
 <html>
 <body>
   <div id="result">%s</div>
 </body>
 </html>`
-)

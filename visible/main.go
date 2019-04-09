@@ -4,55 +4,44 @@ package main
 
 import (
 	"context"
-	"errors"
+	"flag"
+	"fmt"
 	"log"
-	"os"
-	"time"
+	"net/http"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
 
+var (
+	flagPort = flag.Int("port", 8544, "port")
+)
+
 func main() {
-	var err error
+	flag.Parse()
+
+	// run server
+	go testServer(fmt.Sprintf(":%d", *flagPort))
 
 	// create context
-	ctxt, cancel := context.WithCancel(context.Background())
+	ctxt, cancel := chromedp.NewContext(context.Background() /*chromedp.WithDebugf(log.Printf)*/)
 	defer cancel()
 
-	// create chrome instance
-	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// run task list
-	err = c.Run(ctxt, visible())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// shutdown chrome
-	err = c.Shutdown(ctxt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// wait for chrome to finish
-	err = c.Wait()
+	err := chromedp.Run(ctxt, visible(fmt.Sprintf("http://localhost:%d", *flagPort)))
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func visible() chromedp.Tasks {
+func visible(host string) chromedp.Tasks {
 	var res *runtime.RemoteObject
 	return chromedp.Tasks{
-		chromedp.Navigate("file:" + os.Getenv("GOPATH") + "/src/github.com/chromedp/chromedp/testdata/visible.html"),
+		chromedp.Navigate(host),
 		chromedp.Evaluate(makeVisibleScript, &res),
 		chromedp.ActionFunc(func(context.Context, cdp.Executor) error {
-			log.Printf(">>> res: %+v", res)
+			log.Printf("waiting 3s for box to become visible")
 			return nil
 		}),
 		chromedp.WaitVisible(`#box1`),
@@ -65,16 +54,49 @@ func visible() chromedp.Tasks {
 			log.Printf(">>>>>>>>>>>>>>>>>>>> BOX2 IS VISIBLE")
 			return nil
 		}),
-		chromedp.ActionFunc(func(context.Context, cdp.Executor) error {
-			log.Printf(">>>>>>>>>>>>>>>>>>>> WAITING TO EXIT")
-			time.Sleep(150 * time.Second)
-			return errors.New("exiting")
-		}),
 	}
 }
 
 const (
 	makeVisibleScript = `setTimeout(function() {
 	document.querySelector('#box1').style.display = '';
-}, 30000);`
+}, 3000);`
 )
+
+// testServer is a simple HTTP server that displays the passed headers in the html.
+func testServer(addr string) error {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(res http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(res, indexHTML)
+	})
+	return http.ListenAndServe(addr, mux)
+}
+
+const indexHTML = `<!doctype html>
+<html>
+<head>
+  <title>example</title>
+</head>
+<body>
+  <div id="box1" style="display:none">
+    <div id="box2">
+      <p>box2</p>
+    </div>
+  </div>
+  <div id="box3">
+    <h2>box3</h3>
+    <p id="box4">
+      box4 text
+      <input id="input1" value="some value"><br><br>
+      <textarea id="textarea1" style="width:500px;height:400px">textarea</textarea><br><br>
+      <input id="input2" type="submit" value="Next">
+      <select id="select1">
+        <option value="one">1</option>
+        <option value="two">2</option>
+        <option value="three">3</option>
+        <option value="four">4</option>
+      </select>
+    </p>
+  </div>
+</body>
+</html>`

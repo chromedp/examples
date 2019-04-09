@@ -5,7 +5,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -22,13 +21,37 @@ var (
 )
 
 func main() {
-	var err error
-
 	flag.Parse()
 
-	// setup http server
+	// start cookie server
+	go cookieServer(fmt.Sprintf(":%d", *flagPort))
+
+	// create context
+	ctx, cancel := chromedp.NewContext(context.Background())
+	defer cancel()
+
+	// run task list
+	var res string
+	err := chromedp.Run(ctx, setcookies(
+		fmt.Sprintf("http://localhost:%d", *flagPort), &res,
+		"cookie1", "value1",
+		"cookie2", "value2",
+	))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("chrome received cookies: %s", res)
+}
+
+// cookieServer creates a simple HTTP server that logs any passed cookies.
+func cookieServer(addr string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
+		cookies := req.Cookies()
+		for i, cookie := range cookies {
+			log.Printf("from %s, server received cookie %d: %v", req.RemoteAddr, i, cookie)
+		}
 		buf, err := json.MarshalIndent(req.Cookies(), "", "  ")
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
@@ -36,67 +59,48 @@ func main() {
 		}
 		fmt.Fprintf(res, indexHTML, string(buf))
 	})
-	go http.ListenAndServe(fmt.Sprintf(":%d", *flagPort), mux)
-
-	// create context
-	ctxt, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// create chrome instance
-	c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// run task list
-	var res string
-	err = c.Run(ctxt, setcookies(fmt.Sprintf("http://localhost:%d", *flagPort), &res))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// shutdown chrome
-	err = c.Shutdown(ctxt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// wait for chrome to finish
-	err = c.Wait()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("passed cookies: %s", res)
+	return http.ListenAndServe(addr, mux)
 }
 
-func setcookies(host string, res *string) chromedp.Tasks {
+// setcookies returns a task to navigate to a host with the passed cookies set
+// on the network request.
+func setcookies(host string, res *string, cookies ...string) chromedp.Tasks {
+	if len(cookies)%2 != 0 {
+		panic("length of cookies must be divisible by 2")
+	}
 	return chromedp.Tasks{
-		chromedp.ActionFunc(func(ctxt context.Context, h cdp.Executor) error {
+		chromedp.ActionFunc(func(ctx context.Context, h cdp.Executor) error {
+			// create cookie expiration
 			expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
-			success, err := network.SetCookie("cookiename", "cookievalue").
-				WithExpires(&expr).
-				WithDomain("localhost").
-				WithHTTPOnly(true).
-				Do(ctxt, h)
-			if err != nil {
-				return err
-			}
-			if !success {
-				return errors.New("could not set cookie")
+			// add cookies to chrome
+			for i := 0; i < len(cookies); i += 2 {
+				success, err := network.SetCookie(cookies[i], cookies[i+1]).
+					WithExpires(&expr).
+					WithDomain("localhost").
+					WithHTTPOnly(true).
+					Do(ctx, h)
+				if err != nil {
+					return err
+				}
+				if !success {
+					return fmt.Errorf("could not set cookie %q to %q", cookies[i], cookies[i+1])
+				}
 			}
 			return nil
 		}),
+		// navigate to site
 		chromedp.Navigate(host),
+		// read the returned values
 		chromedp.Text(`#result`, res, chromedp.ByID, chromedp.NodeVisible),
-		chromedp.ActionFunc(func(ctxt context.Context, h cdp.Executor) error {
-			cookies, err := network.GetAllCookies().Do(ctxt, h)
+		// read network values
+		chromedp.ActionFunc(func(ctx context.Context, h cdp.Executor) error {
+			cookies, err := network.GetAllCookies().Do(ctx, h)
 			if err != nil {
 				return err
 			}
 
 			for i, cookie := range cookies {
-				log.Printf("cookie %d: %+v", i, cookie)
+				log.Printf("chrome cookie %d: %+v", i, cookie)
 			}
 
 			return nil
