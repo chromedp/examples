@@ -69,7 +69,7 @@ func setcookies(host string, res *string, cookies ...string) chromedp.Tasks {
 		panic("length of cookies must be divisible by 2")
 	}
 	return chromedp.Tasks{
-		chromedp.ActionFunc(func(ctx context.Context, h cdp.Executor) error {
+		chromedp.ActionFunc(func(ctx context.Context) error {
 			// create cookie expiration
 			expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
 			// add cookies to chrome
@@ -78,7 +78,7 @@ func setcookies(host string, res *string, cookies ...string) chromedp.Tasks {
 					WithExpires(&expr).
 					WithDomain("localhost").
 					WithHTTPOnly(true).
-					Do(ctx, h)
+					Do(ctx)
 				if err != nil {
 					return err
 				}
@@ -93,8 +93,8 @@ func setcookies(host string, res *string, cookies ...string) chromedp.Tasks {
 		// read the returned values
 		chromedp.Text(`#result`, res, chromedp.ByID, chromedp.NodeVisible),
 		// read network values
-		chromedp.ActionFunc(func(ctx context.Context, h cdp.Executor) error {
-			cookies, err := network.GetAllCookies().Do(ctx, h)
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			cookies, err := network.GetAllCookies().Do(ctx)
 			if err != nil {
 				return err
 			}
