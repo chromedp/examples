@@ -7,8 +7,7 @@ written for specific websites, there is a good chance that the current
 selectors, etc break after the website they are written against changes.
 
 While every effort is made to ensure that these examples are kept up-to-date,
-it is expected that the examples made available here
-and working, As this is not a core part of the `chromedp` project,
+it is expected that the examples made available here may occassionally break.
 
 ## Building and Running an Example
 
