@@ -10,15 +10,13 @@ import (
 )
 
 func main() {
-	var err error
-
 	// create context
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
 	// run task list
 	var res []string
-	err = chromedp.Run(ctx,
+	err := chromedp.Run(ctx,
 		chromedp.Navigate(`https://www.google.com/`),
 		chromedp.WaitVisible(`#main`, chromedp.ByID),
 		chromedp.Evaluate(`Object.keys(window);`, &res),

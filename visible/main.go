@@ -24,11 +24,11 @@ func main() {
 	go testServer(fmt.Sprintf(":%d", *flagPort))
 
 	// create context
-	ctxt, cancel := chromedp.NewContext(context.Background() /*chromedp.WithDebugf(log.Printf)*/)
+	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
 	// run task list
-	err := chromedp.Run(ctxt, visible(fmt.Sprintf("http://localhost:%d", *flagPort)))
+	err := chromedp.Run(ctx, visible(fmt.Sprintf("http://localhost:%d", *flagPort)))
 	if err != nil {
 		log.Fatal(err)
 	}
