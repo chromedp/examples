@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
@@ -36,21 +35,29 @@ func main() {
 }
 
 func visible(host string) chromedp.Tasks {
-	var res *runtime.RemoteObject
 	return chromedp.Tasks{
 		chromedp.Navigate(host),
-		chromedp.Evaluate(makeVisibleScript, &res),
-		chromedp.ActionFunc(func(context.Context, cdp.Executor) error {
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			_, exp, err := runtime.Evaluate(makeVisibleScript).Do(ctx)
+			if err != nil {
+				return err
+			}
+			if exp != nil {
+				return exp
+			}
+			return nil
+		}),
+		chromedp.ActionFunc(func(context.Context) error {
 			log.Printf("waiting 3s for box to become visible")
 			return nil
 		}),
 		chromedp.WaitVisible(`#box1`),
-		chromedp.ActionFunc(func(context.Context, cdp.Executor) error {
+		chromedp.ActionFunc(func(context.Context) error {
 			log.Printf(">>>>>>>>>>>>>>>>>>>> BOX1 IS VISIBLE")
 			return nil
 		}),
 		chromedp.WaitVisible(`#box2`),
-		chromedp.ActionFunc(func(context.Context, cdp.Executor) error {
+		chromedp.ActionFunc(func(context.Context) error {
 			log.Printf(">>>>>>>>>>>>>>>>>>>> BOX2 IS VISIBLE")
 			return nil
 		}),
