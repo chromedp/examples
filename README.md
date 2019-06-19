@@ -33,6 +33,7 @@ The following examples are currently available:
 |---------------------------|---------------------------------------------|
 | [click](/click)           | use a selector to click on an element       |
 | [cookie](/cookie)         | set a HTTP cookie on requests               |
+| [emulate](/emulate)       | emulate a specific device                   |
 | [eval](/eval)             | evaluate javascript and retrieve the result |
 | [headers](/headers)       | set a HTTP header on requests               |
 | [keys](/keys)             | send key events to an element               |
