@@ -4,7 +4,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"io/ioutil"
 	"log"
 
@@ -13,8 +12,6 @@ import (
 )
 
 func main() {
-	flag.Parse()
-
 	// create context
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
