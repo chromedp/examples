@@ -40,6 +40,7 @@ The following examples are currently available:
 | [headers](/headers)       | set a HTTP header on requests                                              |
 | [keys](/keys)             | send key events to an element                                              |
 | [logic](/logic)           | more complex logic beyond simple actions                                   |
+| [remote](/remote)         | connect to an existing chromium instance using chromedp.NewRemoteAllocator |
 | [screenshot](/screenshot) | take a screenshot of a specific element and of the entire browser viewport |
 | [submit](/submit)         | fill out and submit a form                                                 |
 | [text](/text)             | extract text from a specific element                                       |
