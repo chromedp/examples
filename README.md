@@ -9,6 +9,8 @@ selectors, etc break after the website they are written against changes.
 While every effort is made to ensure that these examples are kept up-to-date,
 it is expected that the examples made available here may occassionally break.
 
+To file issues, use the [chromedp's issue tracker][2].
+
 ## Building and Running an Example
 
 You can build and run these examples in the usual Go way:
@@ -53,3 +55,4 @@ developers (such as yourself!) to submit fixes for the existing examples when
 they break (for example, when a website's layout/HTML changes).
 
 [1]: https://github.com/chromedp/chromedp
+[2]: https://github.com/chromedp/chromedp/issues
