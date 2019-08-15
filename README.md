@@ -1,15 +1,19 @@
 # About chromedp examples
 
 This folder contains a variety of code examples for working with
-[`chromedp`][1]. Please note that when the `chromedp` package is being
-rewritten, these examples may break. Additionally, since these examples are
-written for specific websites, there is a good chance that the current
-selectors, etc break after the website they are written against changes.
+[`chromedp`][1]. The godoc page contains a number of [simple examples][2] which
+are generally self-contained, while this repository holds more complex examples
+which tend to require internet access or external components.
+
+Please note that when the `chromedp` package is being rewritten, these examples
+may break. Additionally, since these examples are written for specific websites,
+there is a good chance that the current selectors, etc break after the website
+they are written against changes.
 
 While every effort is made to ensure that these examples are kept up-to-date,
 it is expected that the examples made available here may occassionally break.
 
-To file issues, use the [chromedp's issue tracker][2].
+To file issues, use the [chromedp's issue tracker][3].
 
 ## Building and Running an Example
 
@@ -56,4 +60,5 @@ developers (such as yourself!) to submit fixes for the existing examples when
 they break (for example, when a website's layout/HTML changes).
 
 [1]: https://github.com/chromedp/chromedp
-[2]: https://github.com/chromedp/chromedp/issues
+[2]: https://godoc.org/github.com/chromedp/chromedp#pkg-examples
+[3]: https://github.com/chromedp/chromedp/issues
