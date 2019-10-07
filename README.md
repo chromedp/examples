@@ -36,11 +36,12 @@ The following examples are currently available:
 <!-- the following section is updated by running `go run gen.go` -->
 <!-- START EXAMPLES -->
 | Example                   | Description                                                                |
-|---------------------------|----------------------------------------------------------------------------|
+| ------------------------- | -------------------------------------------------------------------------- |
 | [click](/click)           | use a selector to click on an element                                      |
 | [cookie](/cookie)         | set a HTTP cookie on requests                                              |
 | [emulate](/emulate)       | emulate a specific device                                                  |
 | [eval](/eval)             | evaluate javascript and retrieve the result                                |
+| [head](/head)             | use headless flag to display browser window                                |
 | [headers](/headers)       | set a HTTP header on requests                                              |
 | [keys](/keys)             | send key events to an element                                              |
 | [logic](/logic)           | more complex logic beyond simple actions                                   |
