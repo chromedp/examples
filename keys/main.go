@@ -13,9 +13,7 @@ import (
 	"github.com/chromedp/chromedp/kb"
 )
 
-var (
-	flagPort = flag.Int("port", 8544, "port")
-)
+var flagPort = flag.Int("port", 8544, "port")
 
 func main() {
 	flag.Parse()
@@ -40,7 +38,7 @@ func main() {
 	log.Printf("#select1 value: %s", val4)
 }
 
-// sendkeys sends
+// sendkeys sends keys to the server and extracts 4 values from the html page.
 func sendkeys(host string, val1, val2, val3, val4 *string) chromedp.Tasks {
 	return chromedp.Tasks{
 		chromedp.Navigate(host),

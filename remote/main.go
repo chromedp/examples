@@ -1,24 +1,32 @@
-// Command remote demonstrating how to connect to an existing chromium instance using chromedp.NewRemoteAllocator
+// Command remote is a chromedp example demonstrating how to connect to an
+// existing Chrome DevTools instance using a remote WebSocket URL.
 package main
 
 import (
 	"context"
 	"flag"
-	"github.com/chromedp/chromedp"
 	"log"
+
+	"github.com/chromedp/chromedp"
 )
 
+var flagDevToolWsUrl = flag.String("devtools-ws-url", "", "DevTools WebSsocket URL")
+
 func main() {
-	var devToolWsUrl string
-	flag.StringVar(&devToolWsUrl, "devtools-ws-url", "", "DevTools Websocket URL")
 	flag.Parse()
+	if *flagDevToolWsUrl == "" {
+		log.Fatal("must specify -devtools-ws-url")
+	}
 
-	actxt, cancelActxt := chromedp.NewRemoteAllocator(context.Background(), devToolWsUrl)
-	defer cancelActxt()
+	// create allocator context for use with creating a browser context later
+	allocatorContext, cancel := chromedp.NewRemoteAllocator(context.Background(), *flagDevToolWsUrl)
+	defer cancel()
 
-	ctxt, cancelCtxt := chromedp.NewContext(actxt) // create new tab
-	defer cancelCtxt()                             // close tab afterwards
+	// create context
+	ctxt, cancel := chromedp.NewContext(allocatorContext)
+	defer cancel()
 
+	// run task list
 	var body string
 	if err := chromedp.Run(ctxt,
 		chromedp.Navigate("https://duckduckgo.com"),

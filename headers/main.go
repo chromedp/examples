@@ -14,9 +14,7 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-var (
-	flagPort = flag.Int("port", 8544, "port")
-)
+var flagPort = flag.Int("port", 8544, "port")
 
 func main() {
 	flag.Parse()

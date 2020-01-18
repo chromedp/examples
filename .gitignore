@@ -13,6 +13,7 @@
 /text/text
 /upload/upload
 /visible/visible
+/remote/remote
 
 *.png
 *.exe

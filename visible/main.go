@@ -13,9 +13,7 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-var (
-	flagPort = flag.Int("port", 8544, "port")
-)
+var flagPort = flag.Int("port", 8544, "port")
 
 func main() {
 	flag.Parse()
@@ -70,7 +68,7 @@ const (
 }, 3000);`
 )
 
-// testServer is a simple HTTP server that displays the passed headers in the html.
+// testServer is a simple HTTP server that serves a static html page.
 func testServer(addr string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(res http.ResponseWriter, _ *http.Request) {

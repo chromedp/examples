@@ -35,21 +35,21 @@ The following examples are currently available:
 
 <!-- the following section is updated by running `go run gen.go` -->
 <!-- START EXAMPLES -->
-| Example                   | Description                                                                |
-|---------------------------|----------------------------------------------------------------------------|
-| [click](/click)           | use a selector to click on an element                                      |
-| [cookie](/cookie)         | set a HTTP cookie on requests                                              |
-| [emulate](/emulate)       | emulate a specific device                                                  |
-| [eval](/eval)             | evaluate javascript and retrieve the result                                |
-| [headers](/headers)       | set a HTTP header on requests                                              |
-| [keys](/keys)             | send key events to an element                                              |
-| [logic](/logic)           | more complex logic beyond simple actions                                   |
-| [remote](/remote)         | connect to an existing chromium instance using chromedp.NewRemoteAllocator |
-| [screenshot](/screenshot) | take a screenshot of a specific element and of the entire browser viewport |
-| [submit](/submit)         | fill out and submit a form                                                 |
-| [text](/text)             | extract text from a specific element                                       |
-| [upload](/upload)         | upload a file on a form                                                    |
-| [visible](/visible)       | wait until an element is visible                                           |
+| Example                   | Description                                                                  |
+|---------------------------|------------------------------------------------------------------------------|
+| [click](/click)           | use a selector to click on an element                                        |
+| [cookie](/cookie)         | set a HTTP cookie on requests                                                |
+| [emulate](/emulate)       | emulate a specific device such as an iPhone                                  |
+| [eval](/eval)             | evaluate javascript and retrieve the result                                  |
+| [headers](/headers)       | set a HTTP header on requests                                                |
+| [keys](/keys)             | send key events to an element                                                |
+| [logic](/logic)           | more complex logic beyond simple actions                                     |
+| [remote](/remote)         | connect to an existing Chrome DevTools instance using a remote WebSocket URL |
+| [screenshot](/screenshot) | take a screenshot of a specific element and of the entire browser viewport   |
+| [submit](/submit)         | fill out and submit a form                                                   |
+| [text](/text)             | extract text from a specific element                                         |
+| [upload](/upload)         | upload a file on a form                                                      |
+| [visible](/visible)       | wait until an element is visible                                             |
 <!-- END EXAMPLES -->
 
 ## Contributing
