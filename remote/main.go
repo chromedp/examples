@@ -10,16 +10,16 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-var flagDevToolWsUrl = flag.String("devtools-ws-url", "", "DevTools WebSsocket URL")
+var flagDevToolWsURL = flag.String("devtools-ws-url", "", "DevTools WebSsocket URL")
 
 func main() {
 	flag.Parse()
-	if *flagDevToolWsUrl == "" {
+	if *flagDevToolWsURL == "" {
 		log.Fatal("must specify -devtools-ws-url")
 	}
 
 	// create allocator context for use with creating a browser context later
-	allocatorContext, cancel := chromedp.NewRemoteAllocator(context.Background(), *flagDevToolWsUrl)
+	allocatorContext, cancel := chromedp.NewRemoteAllocator(context.Background(), *flagDevToolWsURL)
 	defer cancel()
 
 	// create context
