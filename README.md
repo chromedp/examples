@@ -44,6 +44,7 @@ The following examples are currently available:
 | [headers](/headers)       | set a HTTP header on requests                                                |
 | [keys](/keys)             | send key events to an element                                                |
 | [logic](/logic)           | more complex logic beyond simple actions                                     |
+| [pdf](/pdf)               | print a specific pdf page                                                    |
 | [remote](/remote)         | connect to an existing Chrome DevTools instance using a remote WebSocket URL |
 | [screenshot](/screenshot) | take a screenshot of a specific element and of the entire browser viewport   |
 | [submit](/submit)         | fill out and submit a form                                                   |
