@@ -16,7 +16,7 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// capture pdf of an page
+	// capture pdf
 	var buf []byte
 	if err := chromedp.Run(ctx, printToPDF(`https://www.google.com/`, &buf)); err != nil {
 		log.Fatal(err)
@@ -27,7 +27,7 @@ func main() {
 	}
 }
 
-// printToPDF takes a pdf of a specific page.
+// print a specific pdf page.
 func printToPDF(urlstr string, res *[]byte) chromedp.Tasks {
 	return chromedp.Tasks{
 		chromedp.Navigate(urlstr),
