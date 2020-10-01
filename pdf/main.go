@@ -1,0 +1,43 @@
+// Command printToPDF is a chromedp example demonstrating how to take a
+// printToPDF of a specific page.
+package main
+
+import (
+	"context"
+	"io/ioutil"
+	"log"
+
+	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/chromedp"
+)
+
+func main() {
+	// create context
+	ctx, cancel := chromedp.NewContext(context.Background())
+	defer cancel()
+
+	// capture pdf of an page
+	var buf []byte
+	if err := chromedp.Run(ctx, printToPDF(`https://www.google.com/`, &buf)); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := ioutil.WriteFile("sample.pdf", buf, 0644); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// printToPDF takes a pdf of a specific page.
+func printToPDF(urlstr string, res *[]byte) chromedp.Tasks {
+	return chromedp.Tasks{
+		chromedp.Navigate(urlstr),
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			buf, _, err := page.PrintToPDF().WithPrintBackground(false).Do(ctx)
+			if err != nil {
+				return err
+			}
+			*res = buf
+			return nil
+		}),
+	}
+}
