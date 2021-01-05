@@ -37,6 +37,7 @@ The following examples are currently available:
 <!-- START EXAMPLES -->
 | Example                   | Description                                                                  |
 |---------------------------|------------------------------------------------------------------------------|
+| [click2](/click2)         | use a selector to click on an element                                        |
 | [click](/click)           | use a selector to click on an element                                        |
 | [cookie](/cookie)         | set a HTTP cookie on requests                                                |
 | [emulate](/emulate)       | emulate a specific device such as an iPhone                                  |
@@ -47,6 +48,7 @@ The following examples are currently available:
 | [remote](/remote)         | connect to an existing Chrome DevTools instance using a remote WebSocket URL |
 | [screenshot](/screenshot) | take a screenshot of a specific element and of the entire browser viewport   |
 | [submit](/submit)         | fill out and submit a form                                                   |
+| [text2](/text2)           | extract text from a specific element                                         |
 | [text](/text)             | extract text from a specific element                                         |
 | [upload](/upload)         | upload a file on a form                                                      |
 | [visible](/visible)       | wait until an element is visible                                             |

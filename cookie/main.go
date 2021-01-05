@@ -72,16 +72,13 @@ func setcookies(host string, res *string, cookies ...string) chromedp.Tasks {
 			expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
 			// add cookies to chrome
 			for i := 0; i < len(cookies); i += 2 {
-				success, err := network.SetCookie(cookies[i], cookies[i+1]).
+				err := network.SetCookie(cookies[i], cookies[i+1]).
 					WithExpires(&expr).
 					WithDomain("localhost").
 					WithHTTPOnly(true).
 					Do(ctx)
 				if err != nil {
 					return err
-				}
-				if !success {
-					return fmt.Errorf("could not set cookie %q to %q", cookies[i], cookies[i+1])
 				}
 			}
 			return nil

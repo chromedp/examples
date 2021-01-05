@@ -35,10 +35,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := ioutil.WriteFile("screenshot1.png", b1, 0644); err != nil {
+	if err := ioutil.WriteFile("screenshot1.png", b1, 0o644); err != nil {
 		log.Fatal(err)
 	}
-	if err := ioutil.WriteFile("screenshot2.png", b2, 0644); err != nil {
+	if err := ioutil.WriteFile("screenshot2.png", b2, 0o644); err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("wrote screenshot1.png and screenshot2.png")
 }

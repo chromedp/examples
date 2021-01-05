@@ -23,7 +23,7 @@ func main() {
 	if err := chromedp.Run(ctx, elementScreenshot(`https://www.google.com/`, `#main`, &buf)); err != nil {
 		log.Fatal(err)
 	}
-	if err := ioutil.WriteFile("elementScreenshot.png", buf, 0644); err != nil {
+	if err := ioutil.WriteFile("elementScreenshot.png", buf, 0o644); err != nil {
 		log.Fatal(err)
 	}
 
@@ -31,9 +31,11 @@ func main() {
 	if err := chromedp.Run(ctx, fullScreenshot(`https://brank.as/`, 90, &buf)); err != nil {
 		log.Fatal(err)
 	}
-	if err := ioutil.WriteFile("fullScreenshot.png", buf, 0644); err != nil {
+	if err := ioutil.WriteFile("fullScreenshot.png", buf, 0o644); err != nil {
 		log.Fatal(err)
 	}
+
+	log.Printf("wrote elementScreenshot.png and fullScreenshot.png")
 }
 
 // elementScreenshot takes a screenshot of a specific element.
