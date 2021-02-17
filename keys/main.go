@@ -75,7 +75,7 @@ const indexHTML = `<!doctype html>
     </div>
   </div>
   <div id="box3">
-    <h2>box3</h3>
+    <h2>box3</h2>
     <p id="box4">
       box4 text
       <input id="input1" value="some value"><br><br>
