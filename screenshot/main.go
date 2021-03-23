@@ -15,12 +15,15 @@ import (
 
 func main() {
 	// create context
-	ctx, cancel := chromedp.NewContext(context.Background())
+	ctx, cancel := chromedp.NewContext(
+		context.Background(),
+		// chromedp.WithDebugf(log.Printf),
+	)
 	defer cancel()
 
 	// capture screenshot of an element
 	var buf []byte
-	if err := chromedp.Run(ctx, elementScreenshot(`https://www.google.com/`, `#main`, &buf)); err != nil {
+	if err := chromedp.Run(ctx, elementScreenshot(`https://pkg.go.dev/`, `img.Homepage-logo`, &buf)); err != nil {
 		log.Fatal(err)
 	}
 	if err := ioutil.WriteFile("elementScreenshot.png", buf, 0o644); err != nil {
@@ -42,8 +45,7 @@ func main() {
 func elementScreenshot(urlstr, sel string, res *[]byte) chromedp.Tasks {
 	return chromedp.Tasks{
 		chromedp.Navigate(urlstr),
-		chromedp.WaitVisible(sel, chromedp.ByID),
-		chromedp.Screenshot(sel, res, chromedp.NodeVisible, chromedp.ByID),
+		chromedp.Screenshot(sel, res, chromedp.NodeVisible),
 	}
 }
 
@@ -57,12 +59,12 @@ func fullScreenshot(urlstr string, quality int64, res *[]byte) chromedp.Tasks {
 		chromedp.Navigate(urlstr),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			// get layout metrics
-			_, _, contentSize, err := page.GetLayoutMetrics().Do(ctx)
+			_, _, cssContentSize, err := page.GetLayoutMetrics().Do(ctx)
 			if err != nil {
 				return err
 			}
 
-			width, height := int64(math.Ceil(contentSize.Width)), int64(math.Ceil(contentSize.Height))
+			width, height := int64(math.Ceil(cssContentSize.Width)), int64(math.Ceil(cssContentSize.Height))
 
 			// force viewport emulation
 			err = emulation.SetDeviceMetricsOverride(width, height, 1, false).
@@ -79,10 +81,10 @@ func fullScreenshot(urlstr string, quality int64, res *[]byte) chromedp.Tasks {
 			*res, err = page.CaptureScreenshot().
 				WithQuality(quality).
 				WithClip(&page.Viewport{
-					X:      contentSize.X,
-					Y:      contentSize.Y,
-					Width:  contentSize.Width,
-					Height: contentSize.Height,
+					X:      cssContentSize.X,
+					Y:      cssContentSize.Y,
+					Width:  cssContentSize.Width,
+					Height: cssContentSize.Height,
 					Scale:  1,
 				}).Do(ctx)
 			if err != nil {
