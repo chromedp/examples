@@ -1,5 +1,5 @@
-// Command printToPDF is a chromedp example demonstrating how to take a
-// printToPDF of a specific page.
+// Command pdf is a chromedp example demonstrating how to capture a pdf of a
+// page.
 package main
 
 import (
