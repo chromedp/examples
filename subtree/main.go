@@ -1,4 +1,5 @@
-// Command subtree is a chromedp example demonstrating how to travel a subtree of the DOM.
+// Command subtree is a chromedp example demonstrating how to populate and
+// travel a subtree of the DOM.
 package main
 
 import (
