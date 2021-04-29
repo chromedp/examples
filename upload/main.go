@@ -14,9 +14,8 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-var flagPort = flag.Int("port", 8544, "port")
-
 func main() {
+	port := flag.Int("port", 8544, "port")
 	flag.Parse()
 
 	// get wd
@@ -35,7 +34,7 @@ func main() {
 
 	// start upload server
 	result := make(chan int, 1)
-	go uploadServer(fmt.Sprintf(":%d", *flagPort), result)
+	go uploadServer(fmt.Sprintf(":%d", *port), result)
 
 	// create context
 	ctx, cancel := chromedp.NewContext(context.Background())
@@ -43,7 +42,7 @@ func main() {
 
 	// run task list
 	var sz string
-	err = chromedp.Run(ctx, upload(filepath, &sz))
+	err = chromedp.Run(ctx, upload(fmt.Sprintf("http://localhost:%d", *port), filepath, &sz))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,9 +50,9 @@ func main() {
 	log.Printf("original size: %d, upload size: %d", fi.Size(), <-result)
 }
 
-func upload(filepath string, sz *string) chromedp.Tasks {
+func upload(urlstr string, filepath string, sz *string) chromedp.Tasks {
 	return chromedp.Tasks{
-		chromedp.Navigate(fmt.Sprintf("http://localhost:%d", *flagPort)),
+		chromedp.Navigate(urlstr),
 		chromedp.SendKeys(`input[name="upload"]`, filepath, chromedp.NodeVisible),
 		chromedp.Click(`input[name="submit"]`),
 		chromedp.Text(`#result`, sz, chromedp.ByID, chromedp.NodeVisible),

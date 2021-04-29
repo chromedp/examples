@@ -18,7 +18,6 @@ func main() {
 	var res []string
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(`https://www.google.com/`),
-		chromedp.WaitVisible(`#main`, chromedp.ByID),
 		chromedp.Evaluate(`Object.keys(window);`, &res),
 	)
 	if err != nil {

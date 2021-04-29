@@ -16,13 +16,12 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-var flagPort = flag.Int("port", 8544, "port")
-
 func main() {
+	port := flag.Int("port", 8544, "port")
 	flag.Parse()
 
 	// start cookie server
-	go cookieServer(fmt.Sprintf(":%d", *flagPort))
+	go cookieServer(fmt.Sprintf(":%d", *port))
 
 	// create context
 	ctx, cancel := chromedp.NewContext(context.Background())
@@ -31,7 +30,7 @@ func main() {
 	// run task list
 	var res string
 	err := chromedp.Run(ctx, setcookies(
-		fmt.Sprintf("http://localhost:%d", *flagPort), &res,
+		fmt.Sprintf("http://localhost:%d", *port), &res,
 		"cookie1", "value1",
 		"cookie2", "value2",
 	))

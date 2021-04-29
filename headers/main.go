@@ -1,5 +1,5 @@
-// Command headers is a chromedp example demonstrating how to set a HTTP header
-// on requests.
+// Command headers is a chromedp example demonstrating how to add extra HTTP
+// headers to browser requests.
 package main
 
 import (
@@ -14,13 +14,12 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-var flagPort = flag.Int("port", 8544, "port")
-
 func main() {
+	port := flag.Int("port", 8544, "port")
 	flag.Parse()
 
 	// run server
-	go headerServer(fmt.Sprintf(":%d", *flagPort))
+	go headerServer(fmt.Sprintf(":%d", *port))
 
 	// create context
 	ctx, cancel := chromedp.NewContext(context.Background())
@@ -29,7 +28,7 @@ func main() {
 	// run task list
 	var res string
 	err := chromedp.Run(ctx, setheaders(
-		fmt.Sprintf("http://localhost:%d", *flagPort),
+		fmt.Sprintf("http://localhost:%d", *port),
 		map[string]interface{}{
 			"X-Header": "my request header",
 		},

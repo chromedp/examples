@@ -1,6 +1,10 @@
-// This example demonstrates how to perform a headless file download. Note that for this technique
-// to work, the file type must trigger the "Download / Save As" browser dialog. See the download_image
-// example for how to save a file which would load inside the browser window without triggering a download.
+// Command download_file is a chromedp example demonstrating how to do headless
+// file downloads.
+//
+// Note that for this technique to work, the file type must trigger the
+// "Download / Save As" browser dialog. See the download_image example for how
+// to save a file which would load inside the browser window without triggering
+// a download.
 package main
 
 import (
@@ -12,7 +16,6 @@ import (
 	"time"
 
 	"github.com/chromedp/cdproto/browser"
-	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 )
 
@@ -37,11 +40,11 @@ func main() {
 	// set up a listener to watch the download events and close the channel when complete
 	// this could be expanded to handle multiple downloads through creating a guid map,
 	// monitor download urls via EventDownloadWillBegin, etc
-	chromedp.ListenTarget(ctx, func(ev interface{}) {
-		if evt, ok := ev.(*page.EventDownloadProgress); ok {
-			fmt.Printf("current download state: %s\n", evt.State.String())
-			if evt.State == page.DownloadProgressStateCompleted {
-				downloadGUID = evt.GUID
+	chromedp.ListenTarget(ctx, func(v interface{}) {
+		if ev, ok := v.(*browser.EventDownloadProgress); ok {
+			fmt.Printf("current download state: %s\n", ev.State.String())
+			if ev.State == browser.DownloadProgressStateCompleted {
+				downloadGUID = ev.GUID
 				close(downloadComplete)
 			}
 		}

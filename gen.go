@@ -24,27 +24,24 @@ const (
 	descPrefix = "how to"
 )
 
-var (
-	flagReadme = flag.String("readme", "README.md", "file to update")
-	flagMask   = flag.String("mask", "*/main.go", "")
-
-	spaceRE = regexp.MustCompile(`\s+`)
-)
+var spaceRE = regexp.MustCompile(`\s+`)
 
 func main() {
+	readme := flag.String("readme", "README.md", "file to update")
+	mask := flag.String("mask", "*/main.go", "")
 	flag.Parse()
 
-	buf, err := ioutil.ReadFile(*flagReadme)
+	buf, err := ioutil.ReadFile(*readme)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	start, end := bytes.Index(buf, []byte(sectionStart)), bytes.Index(buf, []byte(sectionEnd))
 	if start == -1 || end == -1 {
-		log.Fatalf("could not find %s or %s in %s", sectionStart, sectionEnd, *flagReadme)
+		log.Fatalf("could not find %s or %s in %s", sectionStart, sectionEnd, *readme)
 	}
 
-	files, err := filepath.Glob(*flagMask)
+	files, err := filepath.Glob(*mask)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +65,12 @@ func main() {
 		if i == -1 {
 			log.Fatalf("could not find %q in doc comment for %s", descStart, fn)
 		}
-		comment = strings.TrimSuffix(strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(comment[i+len(descStart):]), descPrefix)), ".")
+		comment = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(comment[i+len(descStart):]), descPrefix))
+		i = strings.Index(comment, ".")
+		if i != -1 {
+			comment = comment[:i]
+		}
+		comment = strings.TrimSuffix(comment, ".")
 
 		examples = append(examples, ex{name, comment})
 	}
@@ -91,7 +93,7 @@ func main() {
 	out.Write(buf[end:])
 
 	// write
-	err = ioutil.WriteFile(*flagReadme, out.Bytes(), 0644)
+	err = ioutil.WriteFile(*readme, out.Bytes(), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

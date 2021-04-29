@@ -6,10 +6,7 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
-	"math"
 
-	"github.com/chromedp/cdproto/emulation"
-	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 )
 
@@ -51,46 +48,10 @@ func elementScreenshot(urlstr, sel string, res *[]byte) chromedp.Tasks {
 
 // fullScreenshot takes a screenshot of the entire browser viewport.
 //
-// Liberally copied from puppeteer's source.
-//
-// Note: this will override the viewport emulation settings.
-func fullScreenshot(urlstr string, quality int64, res *[]byte) chromedp.Tasks {
+// Note: chromedp.FullScreenshot overrides the device's emulation settings. Reset
+func fullScreenshot(urlstr string, quality int, res *[]byte) chromedp.Tasks {
 	return chromedp.Tasks{
 		chromedp.Navigate(urlstr),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			// get layout metrics
-			_, _, cssContentSize, err := page.GetLayoutMetrics().Do(ctx)
-			if err != nil {
-				return err
-			}
-
-			width, height := int64(math.Ceil(cssContentSize.Width)), int64(math.Ceil(cssContentSize.Height))
-
-			// force viewport emulation
-			err = emulation.SetDeviceMetricsOverride(width, height, 1, false).
-				WithScreenOrientation(&emulation.ScreenOrientation{
-					Type:  emulation.OrientationTypePortraitPrimary,
-					Angle: 0,
-				}).
-				Do(ctx)
-			if err != nil {
-				return err
-			}
-
-			// capture screenshot
-			*res, err = page.CaptureScreenshot().
-				WithQuality(quality).
-				WithClip(&page.Viewport{
-					X:      cssContentSize.X,
-					Y:      cssContentSize.Y,
-					Width:  cssContentSize.Width,
-					Height: cssContentSize.Height,
-					Scale:  1,
-				}).Do(ctx)
-			if err != nil {
-				return err
-			}
-			return nil
-		}),
+		chromedp.FullScreenshot(res, quality),
 	}
 }

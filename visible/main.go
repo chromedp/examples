@@ -13,20 +13,19 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-var flagPort = flag.Int("port", 8544, "port")
-
 func main() {
+	port := flag.Int("port", 8544, "port")
 	flag.Parse()
 
 	// run server
-	go testServer(fmt.Sprintf(":%d", *flagPort))
+	go testServer(fmt.Sprintf(":%d", *port))
 
 	// create context
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
 	// run task list
-	err := chromedp.Run(ctx, visible(fmt.Sprintf("http://localhost:%d", *flagPort)))
+	err := chromedp.Run(ctx, visible(fmt.Sprintf("http://localhost:%d", *port)))
 	if err != nil {
 		log.Fatal(err)
 	}

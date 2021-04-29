@@ -1,6 +1,10 @@
-// This example demonstrates how to perform a headless image download. Note that for this technique
-// to work, the file type must load inside the browser window without triggering a download. See the
-// download_file example for how to save a file that triggers the "Download / Save As" browser dialog.
+// Command download_image is a chromedp example demonstrating how to do
+// headless image downloads.
+//
+// Note that for this technique to work, the file type must load inside the
+// browser window without triggering a download. See the download_file example
+// for how to save a file that triggers the "Download / Save As" browser
+// dialog.
 package main
 
 import (
@@ -39,8 +43,8 @@ func main() {
 	// set up a listener to watch the network events and close the channel when complete
 	// the request id matching is important both to filter out unwanted network events
 	// and to reference the downloaded file later
-	chromedp.ListenTarget(ctx, func(ev interface{}) {
-		switch ev := ev.(type) {
+	chromedp.ListenTarget(ctx, func(v interface{}) {
+		switch ev := v.(type) {
 		case *network.EventRequestWillBeSent:
 			fmt.Printf("EventRequestWillBeSent: %v: %v\n", ev.RequestID, ev.Request.URL)
 			if ev.Request.URL == downloadURL {
