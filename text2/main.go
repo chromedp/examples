@@ -19,7 +19,7 @@ func main() {
 	var res string
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(`https://pkg.go.dev/time`),
-		chromedp.Text(`#section-documentation .Documentation-overview`, &res, chromedp.NodeVisible, chromedp.ByID),
+		chromedp.Text(`.Documentation-overview`, &res, chromedp.NodeVisible),
 	)
 	if err != nil {
 		log.Fatal(err)
