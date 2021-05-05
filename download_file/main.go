@@ -59,8 +59,12 @@ func main() {
 		// find and click "Code" button when ready
 		chromedp.Click(`//get-repo//summary`, chromedp.NodeReady),
 		// configure headless browser downloads. note that SetDownloadBehaviorBehaviorAllowAndName is
-		// preferred here over SetDownloadBehaviorBehaviorAllow so that the file will be named as the GUID
-		browser.SetDownloadBehavior(browser.SetDownloadBehaviorBehaviorAllowAndName).WithDownloadPath(os.TempDir()),
+		// preferred here over SetDownloadBehaviorBehaviorAllow so that the file will be named as the GUID.
+		// please note that it only works with 92.0.4498.0 or later due to issue 1204880,
+		// see https://bugs.chromium.org/p/chromium/issues/detail?id=1204880
+		browser.SetDownloadBehavior(browser.SetDownloadBehaviorBehaviorAllowAndName).
+			WithDownloadPath(os.TempDir()).
+			WithEventsEnabled(true),
 		// click the "Download Zip" link when visible
 		chromedp.Click(`//get-repo//a[contains(@data-ga-click, "download zip")]`, chromedp.NodeVisible),
 	); err != nil && !strings.Contains(err.Error(), "net::ERR_ABORTED") {
@@ -74,5 +78,5 @@ func main() {
 
 	// We can predict the exact file location and name here because of how we configured
 	// SetDownloadBehavior and WithDownloadPath
-	log.Printf("Download Complete: %v/%v", os.TempDir(), downloadGUID)
+	log.Printf("Download Complete: %v%v", os.TempDir(), downloadGUID)
 }
