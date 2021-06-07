@@ -48,6 +48,7 @@ The following examples are currently available:
 | [keys](/keys)                     | send key events to an element                                                |
 | [logic](/logic)                   | more complex logic beyond simple actions                                     |
 | [pdf](/pdf)                       | capture a pdf of a page                                                      |
+| [proxy](/proxy)                   | authenticate a proxy server which requires authentication                    |
 | [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL |
 | [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport   |
 | [submit](/submit)                 | fill out and submit a form                                                   |
