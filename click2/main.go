@@ -27,7 +27,7 @@ func main() {
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(`https://pkg.go.dev/time`),
 		// wait for footer element is visible (ie, page is loaded)
-		chromedp.WaitVisible(`body > footer`),
+		chromedp.WaitVisible(`body > div > footer`),
 		// find and click "Example" link
 		chromedp.Click(`#example-After`, chromedp.NodeVisible),
 		// retrieve the text of the textarea
