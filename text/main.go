@@ -18,8 +18,8 @@ func main() {
 	// run task list
 	var res string
 	err := chromedp.Run(ctx,
-		chromedp.Navigate(`https://golang.org/pkg/time/`),
-		chromedp.Text(`#pkg-overview`, &res, chromedp.NodeVisible, chromedp.ByID),
+		chromedp.Navigate(`https://pkg.go.dev/time`),
+		chromedp.Text(`.Documentation-overview`, &res, chromedp.NodeVisible),
 	)
 	if err != nil {
 		log.Fatal(err)

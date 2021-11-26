@@ -48,7 +48,8 @@ func elementScreenshot(urlstr, sel string, res *[]byte) chromedp.Tasks {
 
 // fullScreenshot takes a screenshot of the entire browser viewport.
 //
-// Note: chromedp.FullScreenshot overrides the device's emulation settings. Reset
+// Note: chromedp.FullScreenshot overrides the device's emulation settings. Use
+// device.Reset to reset the emulation and viewport settings.
 func fullScreenshot(urlstr string, quality int, res *[]byte) chromedp.Tasks {
 	return chromedp.Tasks{
 		chromedp.Navigate(urlstr),

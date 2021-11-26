@@ -14,7 +14,7 @@ func main() {
 	// create chrome instance
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
-		chromedp.WithLogf(log.Printf),
+		// chromedp.WithDebugf(log.Printf),
 	)
 	defer cancel()
 
@@ -25,13 +25,13 @@ func main() {
 	// navigate to a page, wait for an element, click
 	var example string
 	err := chromedp.Run(ctx,
-		chromedp.Navigate(`https://golang.org/pkg/time/`),
+		chromedp.Navigate(`https://pkg.go.dev/time`),
 		// wait for footer element is visible (ie, page is loaded)
 		chromedp.WaitVisible(`body > footer`),
-		// find and click "Expand All" link
-		chromedp.Click(`#pkg-examples > div`, chromedp.NodeVisible),
-		// retrieve the value of the textarea
-		chromedp.Value(`#example_After .play .input textarea`, &example),
+		// find and click "Example" link
+		chromedp.Click(`#example-After`, chromedp.NodeVisible),
+		// retrieve the text of the textarea
+		chromedp.Value(`#example-After textarea`, &example),
 	)
 	if err != nil {
 		log.Fatal(err)

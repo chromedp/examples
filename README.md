@@ -37,7 +37,6 @@ The following examples are currently available:
 <!-- START EXAMPLES -->
 | Example                           | Description                                                                  |
 |-----------------------------------|------------------------------------------------------------------------------|
-| [click2](/click2)                 | use a selector to click on an element                                        |
 | [click](/click)                   | use a selector to click on an element                                        |
 | [cookie](/cookie)                 | set a HTTP cookie on requests                                                |
 | [download_file](/download_file)   | do headless file downloads                                                   |
@@ -53,7 +52,6 @@ The following examples are currently available:
 | [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport   |
 | [submit](/submit)                 | fill out and submit a form                                                   |
 | [subtree](/subtree)               | populate and travel a subtree of the DOM                                     |
-| [text2](/text2)                   | extract text from a specific element                                         |
 | [text](/text)                     | extract text from a specific element                                         |
 | [upload](/upload)                 | upload a file on a form                                                      |
 | [visible](/visible)               | wait until an element is visible                                             |

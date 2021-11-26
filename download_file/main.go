@@ -78,5 +78,5 @@ func main() {
 
 	// We can predict the exact file location and name here because of how we configured
 	// SetDownloadBehavior and WithDownloadPath
-	log.Printf("Download Complete: %v%v", os.TempDir(), downloadGUID)
+	log.Printf("Download Complete: %v/%v", os.TempDir(), downloadGUID)
 }
