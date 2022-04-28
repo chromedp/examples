@@ -5,9 +5,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"time"
 
@@ -76,25 +78,30 @@ func travelSubtree(pageUrl, of string, opts ...chromedp.QueryOption) chromedp.Ta
 		// wait a little while for dom.EventSetChildNodes to be fired and handled
 		chromedp.Sleep(time.Second),
 		chromedp.ActionFunc(func(c context.Context) error {
-			printNodes(nodes, 0)
+			printNodes(os.Stdout, nodes, "", "  ")
 			return nil
 		}),
 	}
 }
 
-func printNodes(nodes []*cdp.Node, indent int) {
-	spaces := strings.Repeat(" ", indent)
+func printNodes(w io.Writer, nodes []*cdp.Node, padding, indent string) {
+	// This will block until the chromedp listener closes the channel
 	for _, node := range nodes {
-		fmt.Print(spaces)
-		var extra interface{}
-		if node.NodeName == "#text" {
-			extra = node.NodeValue
-		} else {
-			extra = node.Attributes
+		switch {
+		case node.NodeName == "#text":
+			fmt.Fprintf(w, "%s#text: %q\n", padding, node.NodeValue)
+		default:
+			fmt.Fprintf(w, "%s%s:\n", padding, strings.ToLower(node.NodeName))
+			if n := len(node.Attributes); n > 0 {
+				fmt.Fprintf(w, "%sattributes:\n", padding+indent)
+				for i := 0; i < n; i += 2 {
+					fmt.Fprintf(w, "%s%s: %q\n", padding+indent+indent, node.Attributes[i], node.Attributes[i+1])
+				}
+			}
 		}
-		fmt.Printf("%s: %q\n", node.NodeName, extra)
 		if node.ChildNodeCount > 0 {
-			printNodes(node.Children, indent+4)
+			fmt.Fprintf(w, "%schildren:\n", padding+indent)
+			printNodes(w, node.Children, padding+indent+indent, indent)
 		}
 	}
 }
