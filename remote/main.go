@@ -22,12 +22,12 @@ func main() {
 	defer cancel()
 
 	// create context
-	ctxt, cancel := chromedp.NewContext(allocatorContext)
+	ctx, cancel := chromedp.NewContext(allocatorContext)
 	defer cancel()
 
 	// run task list
 	var body string
-	if err := chromedp.Run(ctxt,
+	if err := chromedp.Run(ctx,
 		chromedp.Navigate("https://duckduckgo.com"),
 		chromedp.WaitVisible("#logo_homepage_link"),
 		chromedp.OuterHTML("html", &body),
