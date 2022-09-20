@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"log"
 
@@ -22,9 +23,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := ioutil.WriteFile("sample.pdf", buf, 0644); err != nil {
+	if err := ioutil.WriteFile("sample.pdf", buf, 0o644); err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("wrote sample.pdf")
 }
 
 // print a specific pdf page.

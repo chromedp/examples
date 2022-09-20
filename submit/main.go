@@ -31,7 +31,7 @@ func submit(urlstr, sel, q string, res *string) chromedp.Tasks {
 		chromedp.WaitVisible(sel),
 		chromedp.SendKeys(sel, q),
 		chromedp.Submit(sel),
-		chromedp.WaitNotPresent(`//*[@id="js-pjax-container"]//h2[contains(., 'Search more than')]`),
-		chromedp.Text(`(//*[@id="js-pjax-container"]//ul[contains(@class, "repo-list")]/li[1]//p)[1]`, res),
+		chromedp.WaitVisible(`//*[contains(., 'repository results')]`),
+		chromedp.Text(`(//*//ul[contains(@class, "repo-list")]/li[1]//p)[1]`, res),
 	}
 }
