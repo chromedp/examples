@@ -11,7 +11,7 @@ there is a good chance that the current selectors, etc break after the website
 they are written against changes.
 
 While every effort is made to ensure that these examples are kept up-to-date,
-it is expected that the examples made available here may occassionally break.
+it is expected that the examples made available here may occasionally break.
 
 To file issues, use the [chromedp's issue tracker][3].
 
