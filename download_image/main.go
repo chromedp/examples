@@ -29,11 +29,11 @@ func main() {
 	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	// set up a channel so we can block later while we monitor the download
+	// set up a channel, so we can block later while we monitor the download
 	// progress
 	done := make(chan bool)
 
-	// set the download url as the chromedp github user avatar
+	// set the download url as the chromedp GitHub user avatar
 	urlstr := "https://avatars.githubusercontent.com/u/33149672"
 
 	// this will be used to capture the request id for matching network events

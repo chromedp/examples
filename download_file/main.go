@@ -32,7 +32,7 @@ func main() {
 	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	// set up a channel so we can block later while we monitor the download
+	// set up a channel, so we can block later while we monitor the download
 	// progress
 	done := make(chan string, 1)
 	// set up a listener to watch the download events and close the channel
@@ -59,7 +59,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// download the zip of the chromedp/examples repo from github. we use a
+	// download the zip of the chromedp/examples repo from GitHub. We use a
 	// link click method here but this could also be done with a
 	// chromedp.Navigate task which points directly at the file we want to
 	// download, as long as you run browser.SetDownloadBehavior first
