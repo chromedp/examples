@@ -7,7 +7,7 @@ which tend to require internet access or external components.
 
 Please note that when the `chromedp` package is being rewritten, these examples
 may break. Additionally, since these examples are written for specific websites,
-there is a good chance that the current selectors, etc break after the website
+there is a good chance that the current selectors, etc. break after the website
 they are written against changes.
 
 While every effort is made to ensure that these examples are kept up-to-date,
