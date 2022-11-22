@@ -6,7 +6,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -73,7 +73,7 @@ func uploadServer(addr string, result chan int) error {
 		}
 		defer f.Close()
 
-		buf, err := ioutil.ReadAll(f)
+		buf, err := io.ReadAll(f)
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusBadRequest)
 			return

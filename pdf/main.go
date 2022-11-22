@@ -5,8 +5,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
@@ -23,7 +23,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := ioutil.WriteFile("sample.pdf", buf, 0o644); err != nil {
+	if err := os.WriteFile("sample.pdf", buf, 0o644); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("wrote sample.pdf")

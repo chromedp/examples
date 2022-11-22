@@ -4,8 +4,8 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/chromedp/chromedp"
 )
@@ -23,7 +23,7 @@ func main() {
 	if err := chromedp.Run(ctx, elementScreenshot(`https://pkg.go.dev/`, `img.Homepage-logo`, &buf)); err != nil {
 		log.Fatal(err)
 	}
-	if err := ioutil.WriteFile("elementScreenshot.png", buf, 0o644); err != nil {
+	if err := os.WriteFile("elementScreenshot.png", buf, 0o644); err != nil {
 		log.Fatal(err)
 	}
 
@@ -31,7 +31,7 @@ func main() {
 	if err := chromedp.Run(ctx, fullScreenshot(`https://brank.as/`, 90, &buf)); err != nil {
 		log.Fatal(err)
 	}
-	if err := ioutil.WriteFile("fullScreenshot.png", buf, 0o644); err != nil {
+	if err := os.WriteFile("fullScreenshot.png", buf, 0o644); err != nil {
 		log.Fatal(err)
 	}
 

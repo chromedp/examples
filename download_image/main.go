@@ -9,8 +9,8 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
 	"github.com/chromedp/cdproto/network"
@@ -78,7 +78,7 @@ func main() {
 
 	// write the file to disk - since we hold the bytes we dictate the name and
 	// location
-	if err := ioutil.WriteFile("download.png", buf, 0644); err != nil {
+	if err := os.WriteFile("download.png", buf, 0644); err != nil {
 		log.Fatal(err)
 	}
 	log.Print("wrote download.png")
