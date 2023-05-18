@@ -73,7 +73,8 @@ func main() {
 		// SetDownloadBehaviorBehaviorAllow so that the file will be named as
 		// the GUID. please note that it only works with 92.0.4498.0 or later
 		// due to issue 1204880, see https://bugs.chromium.org/p/chromium/issues/detail?id=1204880
-		browser.SetDownloadBehavior(browser.SetDownloadBehaviorBehaviorAllowAndName).
+		browser.
+			SetDownloadBehavior(browser.SetDownloadBehaviorBehaviorAllowAndName).
 			WithDownloadPath(wd).
 			WithEventsEnabled(true),
 		// click the "Download Zip" link when visible
@@ -90,5 +91,5 @@ func main() {
 
 	// We can predict the exact file location and name here because of how we
 	// configured SetDownloadBehavior and WithDownloadPath
-	log.Printf("wrote %s", filepath.Join(wd, guid))
+	log.Printf("wrote %s", filepath.Join(wd, guid+".zip"))
 }

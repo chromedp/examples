@@ -15,7 +15,7 @@
 /visible/visible
 /remote/remote
 
-*-*-*-*
+*.zip
 *.pdf
 *.png
 *.exe

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -31,7 +31,7 @@ func main() {
 	mask := flag.String("mask", "*/main.go", "")
 	flag.Parse()
 
-	buf, err := ioutil.ReadFile(*readme)
+	buf, err := os.ReadFile(*readme)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +93,7 @@ func main() {
 	out.Write(buf[end:])
 
 	// write
-	err = ioutil.WriteFile(*readme, out.Bytes(), 0644)
+	err = os.WriteFile(*readme, out.Bytes(), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
