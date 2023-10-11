@@ -91,5 +91,5 @@ func main() {
 
 	// We can predict the exact file location and name here because of how we
 	// configured SetDownloadBehavior and WithDownloadPath
-	log.Printf("wrote %s", filepath.Join(wd, guid+".zip"))
+	log.Printf("wrote %s", filepath.Join(wd, guid))
 }
