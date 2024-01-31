@@ -35,26 +35,27 @@ The following examples are currently available:
 
 <!-- the following section is updated by running `go run gen.go` -->
 <!-- START EXAMPLES -->
-| Example                           | Description                                                                  |
-|-----------------------------------|------------------------------------------------------------------------------|
-| [click](/click)                   | use a selector to click on an element                                        |
-| [cookie](/cookie)                 | set a HTTP cookie on requests                                                |
-| [download_file](/download_file)   | do headless file downloads                                                   |
-| [download_image](/download_image) | do headless image downloads                                                  |
-| [emulate](/emulate)               | emulate a specific device such as an iPhone                                  |
-| [eval](/eval)                     | evaluate javascript and retrieve the result                                  |
-| [headers](/headers)               | add extra HTTP headers to browser requests                                   |
-| [keys](/keys)                     | send key events to an element                                                |
-| [logic](/logic)                   | more complex logic beyond simple actions                                     |
-| [pdf](/pdf)                       | capture a pdf of a page                                                      |
-| [proxy](/proxy)                   | authenticate a proxy server which requires authentication                    |
-| [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL |
-| [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport   |
-| [submit](/submit)                 | fill out and submit a form                                                   |
-| [subtree](/subtree)               | populate and travel a subtree of the DOM                                     |
-| [text](/text)                     | extract text from a specific element                                         |
-| [upload](/upload)                 | upload a file on a form                                                      |
-| [visible](/visible)               | wait until an element is visible                                             |
+| Example                           | Description                                                                         |
+|-----------------------------------|-------------------------------------------------------------------------------------|
+| [click](/click)                   | use a selector to click on an element                                               |
+| [cookie](/cookie)                 | set a HTTP cookie on requests                                                       |
+| [download_file](/download_file)   | do headless file downloads                                                          |
+| [download_image](/download_image) | do headless image downloads                                                         |
+| [emulate](/emulate)               | emulate a specific device such as an iPhone                                         |
+| [eval](/eval)                     | evaluate javascript and retrieve the result                                         |
+| [headers](/headers)               | add extra HTTP headers to browser requests                                          |
+| [keys](/keys)                     | send key events to an element                                                       |
+| [latlon](/latlon)                 | retrieve the latitude/longitude from google maps, using the browser's target events |
+| [logic](/logic)                   | more complex logic beyond simple actions                                            |
+| [pdf](/pdf)                       | capture a pdf of a page                                                             |
+| [proxy](/proxy)                   | authenticate a proxy server which requires authentication                           |
+| [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL        |
+| [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport          |
+| [submit](/submit)                 | fill out and submit a form                                                          |
+| [subtree](/subtree)               | populate and travel a subtree of the DOM                                            |
+| [text](/text)                     | extract text from a specific element                                                |
+| [upload](/upload)                 | upload a file on a form                                                             |
+| [visible](/visible)               | wait until an element is visible                                                    |
 <!-- END EXAMPLES -->
 
 ## Contributing
