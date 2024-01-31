@@ -1,11 +1,13 @@
 /click/click
 /cookie/cookie
-/eval/eval
 /emulate/emulate
+/eval/eval
 /headers/headers
 /keys/keys
+/latlon/latlon
 /logic/logic
 /pool/pool
+/remote/remote
 /screenshot/screenshot
 /simple/simple
 /standalone/standalone
@@ -13,7 +15,6 @@
 /text/text
 /upload/upload
 /visible/visible
-/remote/remote
 
 *.zip
 *.pdf
