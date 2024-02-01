@@ -64,20 +64,20 @@ func main() {
 // Users get confused sometimes (why node.Children is empty while node.ChildNodeCount > 0?).
 // And some users want to travel a subtree of the DOM more easy.
 // So here comes the example.
-func travelSubtree(pageUrl, of string, opts ...chromedp.QueryOption) chromedp.Tasks {
+func travelSubtree(urlstr string, sel interface{}, opts ...chromedp.QueryOption) chromedp.Tasks {
 	var nodes []*cdp.Node
 	return chromedp.Tasks{
-		chromedp.Navigate(pageUrl),
-		chromedp.Nodes(of, &nodes, opts...),
+		chromedp.Navigate(urlstr),
+		chromedp.Nodes(sel, &nodes, opts...),
 		// ask chromedp to populate the subtree of a node
-		chromedp.ActionFunc(func(c context.Context) error {
+		chromedp.ActionFunc(func(ctx context.Context) error {
 			// depth -1 for the entire subtree
 			// do your best to limit the size of the subtree
-			return dom.RequestChildNodes(nodes[0].NodeID).WithDepth(-1).Do(c)
+			return dom.RequestChildNodes(nodes[0].NodeID).WithDepth(-1).Do(ctx)
 		}),
 		// wait a little while for dom.EventSetChildNodes to be fired and handled
 		chromedp.Sleep(time.Second),
-		chromedp.ActionFunc(func(c context.Context) error {
+		chromedp.ActionFunc(func(ctx context.Context) error {
 			printNodes(os.Stdout, nodes, "", "  ")
 			return nil
 		}),

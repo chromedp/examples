@@ -5,6 +5,8 @@ package main
 import (
 	"bytes"
 	"context"
+	_ "embed"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"image"
@@ -14,6 +16,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -21,29 +24,63 @@ import (
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
 	"github.com/kenshaw/rasterm"
+	"golang.org/x/exp/maps"
 )
 
 const dataSel = `div[data-ve-view]`
 
+const svgSel = `#wob_d svg path`
+
 func main() {
 	verbose := flag.Bool("v", false, "verbose")
 	timeout := flag.Duration("timeout", 1*time.Minute, "timeout")
-	query := flag.String("q", "", "query")
-	lang := flag.String("hl", "en", "language")
+	query := flag.String("q", "", "weather query")
+	lang := flag.String("hl", "", "language (see hl.json)")
 	unit := flag.String("unit", "", "temperature unit (C, F, or blank)")
+	typ := flag.String("type", "", "selection type (temp, rain, wind)")
+	day := flag.Int("day", 0, "day (0-7)")
 	scale := flag.Float64("scale", 1.5, "scale")
 	padding := flag.Int("padding", 20, "padding")
 	out := flag.String("out", "", "out file")
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *timeout, *query, *lang, *unit, *scale, *padding, *out); err != nil {
+	if err := run(context.Background(), *verbose, *timeout, *query, *lang, *unit, *typ, *day, *scale, *padding, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		if strings.HasPrefix(err.Error(), "invalid lang ") {
+			fmt.Fprint(os.Stderr, "\nvalid languages:\n")
+			keys := maps.Keys(langs)
+			sort.Strings(keys)
+			for _, key := range keys {
+				fmt.Fprintf(os.Stderr, " %s:\t%s\n", key, langs[key])
+			}
+		}
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, unit string, scale float64, padding int, out string) error {
+func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, unit, typ string, day int, scale float64, padding int, out string) error {
+	// check
+	lang = strings.ToLower(lang)
+	if _, ok := langs[lang]; !ok && lang != "" {
+		return fmt.Errorf("invalid lang %q", lang)
+	}
 	if unit = strings.ToUpper(unit); unit != "F" && unit != "C" && unit != "" {
 		return fmt.Errorf("invalid unit %q", unit)
+	}
+	switch typ = strings.ToLower(typ); typ {
+	case "temp":
+		typ = ""
+	case "", "rain", "wind":
+	default:
+		return fmt.Errorf("invalid type %q", typ)
+	}
+	if day < 0 || day > 7 {
+		return fmt.Errorf("invalid day %d", day)
+	}
+	if scale <= 0 {
+		return fmt.Errorf("invalid scale %f", scale)
+	}
+	if padding < 0 {
+		return fmt.Errorf("invalid padding %d", padding)
 	}
 
 	query = "weather " + query
@@ -72,20 +109,30 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate("https://www.google.com/search?"+v.Encode()),
 		chromedp.WaitVisible(dataSel, chromedp.ByQuery),
+		chromedp.WaitVisible(svgSel, chromedp.ByQuery),
 		chromedp.Nodes(dataSel, &nodes, chromedp.ByQuery, chromedp.NodeVisible),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			return dom.RequestChildNodes(nodes[0].NodeID).WithDepth(-1).Do(ctx)
 		}),
-		chromedp.Sleep(50*time.Millisecond),
 	); err != nil {
 		return err
 	}
 
+	// click on unit
 	if unit != "" {
-		// click on unit button if present
 		if node := findNode(`°`+unit, nodes); node != nil {
 			_ = chromedp.Run(ctx, chromedp.MouseClickNode(node))
 		}
+	}
+
+	// click on type
+	if typ != "" {
+		_ = chromedp.Run(ctx, chromedp.Click("wob_"+typ, chromedp.ByID))
+	}
+
+	// click on day
+	if day != 0 {
+		_ = chromedp.Run(ctx, chromedp.Click(fmt.Sprintf(`//*[@data-wob-di=%d]`, day)))
 	}
 
 	// capture screenshot
@@ -140,3 +187,14 @@ func findNode(val string, nodes []*cdp.Node) *cdp.Node {
 	}
 	return nil
 }
+
+var langs map[string]string
+
+func init() {
+	if err := json.Unmarshal(hlJSON, &langs); err != nil {
+		panic(err)
+	}
+}
+
+//go:embed hl.json
+var hlJSON []byte
