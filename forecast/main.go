@@ -22,12 +22,15 @@ import (
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/dom"
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/kenshaw/rasterm"
 	"golang.org/x/exp/maps"
 )
 
-const dataSel = `div[data-ve-view]`
+const hdrSel = `#taw`
+
+const dataSel = `#wob_wc`
 
 const svgSel = `#wob_d svg path`
 
@@ -67,9 +70,9 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 		return fmt.Errorf("invalid unit %q", unit)
 	}
 	switch typ = strings.ToLower(typ); typ {
-	case "temp":
-		typ = ""
-	case "", "rain", "wind":
+	case "":
+		typ = "temp"
+	case "temp", "rain", "wind":
 	default:
 		return fmt.Errorf("invalid type %q", typ)
 	}
@@ -104,15 +107,21 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	// get nodes
-	var nodes []*cdp.Node
+	// get
+	var nodes, dataNodes []*cdp.Node
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate("https://www.google.com/search?"+v.Encode()),
-		chromedp.WaitVisible(dataSel, chromedp.ByQuery),
-		chromedp.WaitVisible(svgSel, chromedp.ByQuery),
-		chromedp.Nodes(dataSel, &nodes, chromedp.ByQuery, chromedp.NodeVisible),
+		chromedp.QueryAfter(hdrSel, func(ctx context.Context, id runtime.ExecutionContextID, n ...*cdp.Node) error {
+			nodes = append(nodes, n[0])
+			return nil
+		}, chromedp.ByQuery, chromedp.NodeVisible),
+		chromedp.QueryAfter(dataSel, func(ctx context.Context, id runtime.ExecutionContextID, n ...*cdp.Node) error {
+			nodes = append(nodes, n[0])
+			return nil
+		}, chromedp.ByQuery, chromedp.NodeVisible),
+		chromedp.Nodes(dataSel, &dataNodes, chromedp.ByQuery, chromedp.NodeVisible),
 		chromedp.ActionFunc(func(ctx context.Context) error {
-			return dom.RequestChildNodes(nodes[0].NodeID).WithDepth(-1).Do(ctx)
+			return dom.RequestChildNodes(dataNodes[0].NodeID).WithDepth(-1).Do(ctx)
 		}),
 	); err != nil {
 		return err
@@ -120,15 +129,22 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 
 	// click on unit
 	if unit != "" {
-		if node := findNode(`°`+unit, nodes); node != nil {
+		if node := findNode(`°`+unit, dataNodes); node != nil {
 			_ = chromedp.Run(ctx, chromedp.MouseClickNode(node))
 		}
 	}
 
 	// click on type
-	if typ != "" {
+	if typ != "temp" {
 		_ = chromedp.Run(ctx, chromedp.Click("wob_"+typ, chromedp.ByID))
 	}
+	// hide other types
+	_ = chromedp.Run(ctx, chromedp.QueryAfter(`#wob_d > div:first-child > *:not(#wob_`+typ+`)`, func(ctx context.Context, id runtime.ExecutionContextID, nodes ...*cdp.Node) error {
+		for _, n := range nodes {
+			_ = dom.SetAttributeValue(n.NodeID, "style", "display:none;").Do(ctx)
+		}
+		return nil
+	}))
 
 	// click on day
 	if day != 0 {
@@ -137,7 +153,7 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 
 	// capture screenshot
 	var buf []byte
-	if err := chromedp.Run(ctx, chromedp.ScreenshotScale(dataSel, scale, &buf, chromedp.ByQuery)); err != nil {
+	if err := chromedp.Run(ctx, chromedp.ScreenshotNodes(nodes, scale, &buf)); err != nil {
 		return err
 	}
 	// decode png
