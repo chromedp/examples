@@ -30,7 +30,7 @@ func main() {
 	timeout := flag.Duration("timeout", 1*time.Minute, "timeout")
 	query := flag.String("q", "", "query")
 	lang := flag.String("hl", "en", "language")
-	unit := flag.String("unit", "F", "temperature unit (C or F)")
+	unit := flag.String("unit", "", "temperature unit (C, F, or blank)")
 	scale := flag.Float64("scale", 1.5, "scale")
 	padding := flag.Int("padding", 20, "padding")
 	out := flag.String("out", "", "out file")
@@ -42,7 +42,7 @@ func main() {
 }
 
 func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, unit string, scale float64, padding int, out string) error {
-	if unit != "F" && unit != "C" {
+	if unit = strings.ToUpper(unit); unit != "F" && unit != "C" && unit != "" {
 		return fmt.Errorf("invalid unit %q", unit)
 	}
 
@@ -76,14 +76,16 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			return dom.RequestChildNodes(nodes[0].NodeID).WithDepth(-1).Do(ctx)
 		}),
-		chromedp.Sleep(2*time.Second),
+		chromedp.Sleep(50*time.Millisecond),
 	); err != nil {
 		return err
 	}
 
-	// click on unit button if present
-	if node := findNode(`°`+unit, nodes); node != nil {
-		_ = chromedp.Run(ctx, chromedp.MouseClickNode(node))
+	if unit != "" {
+		// click on unit button if present
+		if node := findNode(`°`+unit, nodes); node != nil {
+			_ = chromedp.Run(ctx, chromedp.MouseClickNode(node))
+		}
 	}
 
 	// capture screenshot
