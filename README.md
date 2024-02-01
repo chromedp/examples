@@ -43,6 +43,7 @@ The following examples are currently available:
 | [download_image](/download_image) | do headless image downloads                                                         |
 | [emulate](/emulate)               | emulate a specific device such as an iPhone                                         |
 | [eval](/eval)                     | evaluate javascript and retrieve the result                                         |
+| [forecast](/forecast)             | extract and render data from a page                                                 |
 | [headers](/headers)               | add extra HTTP headers to browser requests                                          |
 | [keys](/keys)                     | send key events to an element                                                       |
 | [latlon](/latlon)                 | retrieve the latitude/longitude from google maps, using the browser's target events |
