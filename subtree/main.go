@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
-	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
 )
 
@@ -65,18 +64,17 @@ func main() {
 // And some users want to travel a subtree of the DOM more easy.
 // So here comes the example.
 func travelSubtree(urlstr string, sel interface{}, opts ...chromedp.QueryOption) chromedp.Tasks {
+	// add populate option to the passed opts
+	opts = append(opts, chromedp.Populate(-1, true, chromedp.PopulateWait(1*time.Second)))
+
+	// retrieve the nodes
 	var nodes []*cdp.Node
 	return chromedp.Tasks{
 		chromedp.Navigate(urlstr),
+		// since the [chromedp.Populate] option has been added to opts, the
+		// [chromedp.Nodes] action will wait until after the [chromedp.PopulateWait]
+		// timeout has passed
 		chromedp.Nodes(sel, &nodes, opts...),
-		// ask chromedp to populate the subtree of a node
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			// depth -1 for the entire subtree
-			// do your best to limit the size of the subtree
-			return dom.RequestChildNodes(nodes[0].NodeID).WithDepth(-1).Do(ctx)
-		}),
-		// wait a little while for dom.EventSetChildNodes to be fired and handled
-		chromedp.Sleep(time.Second),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			printNodes(os.Stdout, nodes, "", "  ")
 			return nil
@@ -84,6 +82,10 @@ func travelSubtree(urlstr string, sel interface{}, opts ...chromedp.QueryOption)
 	}
 }
 
+// printNodes recurses the node tree and prints the nodes as a tree.
+//
+// Note that this same functionality is available in the chromedp package as
+// [chromedp.Dump] / [chromedp.DumpTo].
 func printNodes(w io.Writer, nodes []*cdp.Node, padding, indent string) {
 	// This will block until the chromedp listener closes the channel
 	for _, node := range nodes {
