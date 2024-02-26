@@ -5,10 +5,10 @@ go 1.21
 toolchain go1.21.6
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20240202021202-6d0b6a386732
+	github.com/chromedp/cdproto v0.0.0-20240226204813-532e667d868f
 	github.com/chromedp/chromedp v0.9.5
-	github.com/kenshaw/rasterm v0.1.8
-	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a
+	github.com/kenshaw/rasterm v0.1.10
+	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225
 )
 
 require (
@@ -20,6 +20,6 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-sixel v0.0.5 // indirect
 	github.com/soniakeys/quant v1.0.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
-	golang.org/x/term v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/term v0.17.0 // indirect
 )
