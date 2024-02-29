@@ -4,6 +4,7 @@
 /eval/eval
 /fast/fast
 /forecast/forecast
+/geoip/geoip
 /headers/headers
 /keys/keys
 /latlon/latlon
