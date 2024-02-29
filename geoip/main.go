@@ -101,7 +101,6 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, lang string, 
 }
 
 func getMap(ctx context.Context, timeout time.Duration, lat, lng, zoom, scale float64) (image.Image, error) {
-	// create a timeout
 	var address string
 	var buf []byte
 	if err := chromedp.Run(ctx,
