@@ -48,6 +48,10 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, lang string, 
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()
 
+	// create timeout
+	ctx, cancel = context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	for i, ipstr := range args {
 		if i != 0 {
 			fmt.Fprintln(os.Stdout)
@@ -98,8 +102,6 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, lang string, 
 
 func getMap(ctx context.Context, timeout time.Duration, lat, lng, zoom, scale float64) (image.Image, error) {
 	// create a timeout
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
 	var address string
 	var buf []byte
 	if err := chromedp.Run(ctx,
