@@ -3,38 +3,63 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"flag"
+	"fmt"
+	"image/png"
 	"log"
+	"os"
+	"time"
 
 	"github.com/chromedp/chromedp"
+	"github.com/kenshaw/rasterm"
 )
 
 func main() {
-	devtoolsWsURL := flag.String("devtools-ws-url", "", "DevTools WebSsocket URL")
+	verbose := flag.Bool("v", false, "verbose")
+	urlstr := flag.String("url", "ws://127.0.0.1:9222", "devtools url")
 	flag.Parse()
-	if *devtoolsWsURL == "" {
-		log.Fatal("must specify -devtools-ws-url")
+	if err := run(context.Background(), *verbose, *urlstr); err != nil {
+		log.Fatal("error: %v", err)
 	}
+}
 
+func run(ctx context.Context, verbose bool, urlstr string) error {
+	if urlstr == "" {
+		return errors.New("invalid remote devtools url")
+	}
 	// create allocator context for use with creating a browser context later
-	allocatorContext, cancel := chromedp.NewRemoteAllocator(context.Background(), *devtoolsWsURL)
+	allocatorContext, cancel := chromedp.NewRemoteAllocator(context.Background(), urlstr)
 	defer cancel()
 
+	// build context options
+	var opts []chromedp.ContextOption
+	if verbose {
+		opts = append(opts, chromedp.WithDebugf(log.Printf))
+	}
+
 	// create context
-	ctx, cancel := chromedp.NewContext(allocatorContext)
+	ctx, cancel = chromedp.NewContext(allocatorContext, opts...)
 	defer cancel()
 
 	// run task list
 	var body string
+	var buf []byte
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate("https://duckduckgo.com"),
-		chromedp.WaitVisible("#logo_homepage_link"),
+		chromedp.Sleep(1*time.Second),
 		chromedp.OuterHTML("html", &body),
+		chromedp.CaptureScreenshot(&buf),
 	); err != nil {
-		log.Fatalf("Failed getting body of duckduckgo.com: %v", err)
+		return fmt.Errorf("Failed getting body of duckduckgo.com: %v", err)
 	}
-
-	log.Println("Body of duckduckgo.com starts with:")
-	log.Println(body[0:100])
+	fmt.Println("Body of duckduckgo.com starts with:")
+	fmt.Println(body[0:100])
+	img, err := png.Decode(bytes.NewReader(buf))
+	if err != nil {
+		return err
+	}
+	return rasterm.Encode(os.Stdout, img)
 }
