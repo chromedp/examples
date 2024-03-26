@@ -22,7 +22,8 @@ func main() {
 	urlstr := flag.String("url", "ws://127.0.0.1:9222", "devtools url")
 	flag.Parse()
 	if err := run(context.Background(), *verbose, *urlstr); err != nil {
-		log.Fatal("error: %v", err)
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
 	}
 }
 
