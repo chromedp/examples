@@ -20,20 +20,22 @@ import (
 func main() {
 	verbose := flag.Bool("v", false, "verbose")
 	urlstr := flag.String("url", "ws://127.0.0.1:9222", "devtools url")
+	nav := flag.String("nav", "https://www.duckduckgo.com/", "nav")
+	d := flag.Duration("d", 1*time.Second, "wait duration")
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *urlstr); err != nil {
+	if err := run(context.Background(), *verbose, *urlstr, *nav, *d); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, verbose bool, urlstr string) error {
+func run(ctx context.Context, verbose bool, urlstr, nav string, d time.Duration) error {
 	if urlstr == "" {
 		return errors.New("invalid remote devtools url")
 	}
 	// create allocator context for use with creating a browser context later
-	allocatorContext, cancel := chromedp.NewRemoteAllocator(context.Background(), urlstr)
-	defer cancel()
+	allocatorContext, _ := chromedp.NewRemoteAllocator(context.Background(), urlstr)
+	// defer cancel()
 
 	// build context options
 	var opts []chromedp.ContextOption
@@ -42,21 +44,21 @@ func run(ctx context.Context, verbose bool, urlstr string) error {
 	}
 
 	// create context
-	ctx, cancel = chromedp.NewContext(allocatorContext, opts...)
-	defer cancel()
+	ctx, _ = chromedp.NewContext(allocatorContext, opts...)
+	// defer cancel()
 
 	// run task list
 	var body string
 	var buf []byte
 	if err := chromedp.Run(ctx,
-		chromedp.Navigate("https://duckduckgo.com"),
-		chromedp.Sleep(1*time.Second),
+		chromedp.Navigate(nav),
+		chromedp.Sleep(d),
 		chromedp.OuterHTML("html", &body),
 		chromedp.CaptureScreenshot(&buf),
 	); err != nil {
-		return fmt.Errorf("Failed getting body of duckduckgo.com: %v", err)
+		return fmt.Errorf("Failed getting body of %s: %v", nav, err)
 	}
-	fmt.Println("Body of duckduckgo.com starts with:")
+	fmt.Printf("Body of %s starts with:\n", nav)
 	fmt.Println(body[0:100])
 	img, err := png.Decode(bytes.NewReader(buf))
 	if err != nil {
