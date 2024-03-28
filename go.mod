@@ -22,6 +22,7 @@ require (
 	github.com/mattn/go-sixel v0.0.5 // indirect
 	github.com/oschwald/maxminddb-golang v1.11.0 // indirect
 	github.com/soniakeys/quant v1.0.0 // indirect
+	github.com/yookoala/realpath v1.0.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/term v0.17.0 // indirect
 )

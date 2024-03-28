@@ -9,6 +9,7 @@
 /keys/keys
 /latlon/latlon
 /logic/logic
+/multi/multi
 /pool/pool
 /remote/remote
 /screenshot/screenshot
@@ -18,6 +19,8 @@
 /text/text
 /upload/upload
 /visible/visible
+
+/out
 
 *.zip
 *.pdf

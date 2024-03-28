@@ -51,6 +51,7 @@ The following examples are currently available:
 | [keys](/keys)                     | send key events to an element                                                       |
 | [latlon](/latlon)                 | retrieve the latitude/longitude from google maps, using the browser's target events |
 | [logic](/logic)                   | more complex logic beyond simple actions                                            |
+| [multi](/multi)                   | use headless-shell and a container (Docker, Podman, other)                          |
 | [pdf](/pdf)                       | capture a pdf of a page                                                             |
 | [proxy](/proxy)                   | authenticate a proxy server which requires authentication                           |
 | [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL        |
