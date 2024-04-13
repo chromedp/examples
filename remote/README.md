@@ -11,7 +11,7 @@ $ podman run --rm --detach --publish 9222:9222 docker.io/chromedp/headless-shell
 Alternately, using Google Chrome:
 
 ```sh
-$ google-chrome-stable --remote-debugging-protocol=9222
+$ google-chrome-stable --remote-debugging-port=9222
 ```
 
 Then, execute the script:
