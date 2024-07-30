@@ -3,7 +3,7 @@ module github.com/chromedp/examples
 go 1.22
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20240626232640-f933b107c653
+	github.com/chromedp/cdproto v0.0.0-20240721024200-dac8efcb39ce
 	github.com/chromedp/chromedp v0.9.5
 	github.com/kenshaw/rasterm v0.1.10
 	github.com/oschwald/geoip2-golang v1.11.0
@@ -21,6 +21,6 @@ require (
 	github.com/mattn/go-sixel v0.0.5 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.0 // indirect
 	github.com/soniakeys/quant v1.0.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
-	golang.org/x/term v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/term v0.22.0 // indirect
 )
