@@ -137,12 +137,16 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 		_ = chromedp.Run(ctx, chromedp.Click("wob_"+typ, chromedp.ByID))
 	}
 	// hide other types
-	_ = chromedp.Run(ctx, chromedp.QueryAfter(`#wob_d > div:first-child > *:not(#wob_`+typ+`)`, func(ctx context.Context, id runtime.ExecutionContextID, nodes ...*cdp.Node) error {
-		for _, n := range nodes {
-			_ = dom.SetAttributeValue(n.NodeID, "style", "display:none;").Do(ctx)
-		}
-		return nil
-	}))
+	_ = chromedp.Run(ctx,
+		chromedp.QueryAfter(`#wob_d > div:first-child > *:not(#wob_`+typ+`)`,
+			func(ctx context.Context, id runtime.ExecutionContextID, nodes ...*cdp.Node) error {
+				for _, n := range nodes {
+					_ = dom.SetAttributeValue(n.NodeID, "style", "display:none;").Do(ctx)
+				}
+				return nil
+			},
+		),
+	)
 
 	// click on day
 	if day != 0 {
