@@ -14,9 +14,10 @@ import (
 	"image/draw"
 	"image/png"
 	"log"
+	"maps"
 	"net/url"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -25,14 +26,13 @@ import (
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/kenshaw/rasterm"
-	"golang.org/x/exp/maps"
 )
 
-const hdrSel = `#taw`
-
-const dataSel = `#wob_wc`
-
-const svgSel = `#wob_d svg path`
+const (
+	hdrSel  = `#taw`
+	dataSel = `#wob_wc`
+	svgSel  = `#wob_d svg path`
+)
 
 func main() {
 	verbose := flag.Bool("v", false, "verbose")
@@ -50,9 +50,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		if strings.HasPrefix(err.Error(), "invalid lang ") {
 			fmt.Fprint(os.Stderr, "\nvalid languages:\n")
-			keys := maps.Keys(langs)
-			sort.Strings(keys)
-			for _, key := range keys {
+			for _, key := range slices.Sorted(maps.Keys(langs)) {
 				fmt.Fprintf(os.Stderr, " %s:\t%s\n", key, langs[key])
 			}
 		}
