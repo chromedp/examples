@@ -19,7 +19,7 @@ func main() {
 	defer cancel()
 
 	// list awesome go projects for the "Selenium and browser control tools."
-	res, err := listAwesomeGoProjects(ctx, "Selenium and browser control tools.")
+	res, err := listAwesomeGoProjects(ctx, "Selenium and browser control tools")
 	if err != nil {
 		log.Fatalf("could not list awesome go projects: %v", err)
 	}
@@ -44,7 +44,7 @@ func listAwesomeGoProjects(ctx context.Context, sect string) (map[string]project
 	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	sel := fmt.Sprintf(`//p[text()[contains(., '%s')]]`, sect)
+	sel := fmt.Sprintf(`//h3[text()[contains(., '%s')]]`, sect)
 
 	// navigate
 	if err := chromedp.Run(ctx, chromedp.Navigate(`https://github.com/avelino/awesome-go`)); err != nil {
@@ -56,7 +56,7 @@ func listAwesomeGoProjects(ctx context.Context, sect string) (map[string]project
 		return nil, fmt.Errorf("could not get section: %v", err)
 	}
 
-	sib := sel + `/following-sibling::ul/li`
+	sib := sel + `/parent::div/following-sibling::ul[1]/li`
 
 	// get project link text
 	var projects []*cdp.Node
