@@ -1,4 +1,4 @@
-FROM golang:latest AS builder
+FROM docker.io/library/golang:latest AS builder
 WORKDIR /app
 COPY go.mod go.sum /app/
 COPY multi/main.go /app
