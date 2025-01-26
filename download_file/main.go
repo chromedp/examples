@@ -86,10 +86,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// This will block until the chromedp listener closes the channel
-	guid := <-done
-
-	// We can predict the exact file location and name here because of how we
-	// configured SetDownloadBehavior and WithDownloadPath
-	log.Printf("wrote %s", filepath.Join(wd, guid))
+	select {
+	case <-ctx.Done(): // Webiste unresponsive or could not download file within the specified timeout. Return error to unblock execution.
+		log.Fatalf("context timed out: %v", ctx.Err())
+	case guid := <-done: // This will block until the chromedp listener closes the channel
+		// We can predict the exact file location and name here because of how we
+		// configured SetDownloadBehavior and WithDownloadPath
+		log.Printf("wrote %s", filepath.Join(wd, guid))
+	}
 }
