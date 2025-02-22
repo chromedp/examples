@@ -24,7 +24,7 @@ func main() {
 	// create context
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
-		chromedp.WithLogf(log.Printf),
+		chromedp.WithDebugf(log.Printf),
 	)
 	defer cancel()
 
@@ -67,7 +67,7 @@ func main() {
 		// navigate to the page
 		chromedp.Navigate(`https://github.com/chromedp/examples`),
 		// find and click "Code" button when ready
-		chromedp.Click(`//get-repo//summary`, chromedp.NodeReady),
+		chromedp.Click(`//button//span[text()="Code"]`, chromedp.NodeReady),
 		// configure headless browser downloads. note that
 		// SetDownloadBehaviorBehaviorAllowAndName is preferred here over
 		// SetDownloadBehaviorBehaviorAllow so that the file will be named as
@@ -78,7 +78,7 @@ func main() {
 			WithDownloadPath(wd).
 			WithEventsEnabled(true),
 		// click the "Download Zip" link when visible
-		chromedp.Click(`//get-repo//a[contains(@data-ga-click, "download zip")]`, chromedp.NodeVisible),
+		chromedp.Click(`//span[text()="Download ZIP"]`, chromedp.NodeVisible),
 	); err != nil && !strings.Contains(err.Error(), "net::ERR_ABORTED") {
 		// Note: Ignoring the net::ERR_ABORTED page error is essential here
 		// since downloads will cause this error to be emitted, although the
