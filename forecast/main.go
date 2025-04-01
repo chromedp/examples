@@ -44,9 +44,10 @@ func main() {
 	day := flag.Int("day", 0, "day (0-7)")
 	scale := flag.Float64("scale", 1.5, "scale")
 	padding := flag.Int("padding", 20, "padding")
+	remote := flag.String("remote", "", "remote")
 	out := flag.String("out", "", "out file")
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *timeout, *query, *lang, *unit, *typ, *day, *scale, *padding, *out); err != nil {
+	if err := run(context.Background(), *verbose, *timeout, *query, *lang, *unit, *typ, *day, *scale, *padding, *remote, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		if strings.HasPrefix(err.Error(), "invalid lang ") {
 			fmt.Fprint(os.Stderr, "\nvalid languages:\n")
@@ -58,7 +59,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, unit, typ string, day int, scale float64, padding int, out string) error {
+func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, unit, typ string, day int, scale float64, padding int, remote, out string) error {
 	// check
 	lang = strings.ToLower(lang)
 	if _, ok := langs[lang]; !ok && lang != "" {
@@ -84,13 +85,18 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 		return fmt.Errorf("invalid padding %d", padding)
 	}
 
-	query = "weather " + query
+	query = "weather forecast " + query
 
 	// build search params
 	v := make(url.Values)
 	v.Set("q", strings.TrimSpace(query))
 	if lang != "" {
 		v.Set("hl", lang)
+	}
+
+	// use remote allocator context if specified
+	if remote != "" {
+		ctx, _ = chromedp.NewRemoteAllocator(ctx, remote)
 	}
 
 	// create chrome instance
