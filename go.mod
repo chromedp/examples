@@ -3,8 +3,8 @@ module github.com/chromedp/examples
 go 1.26
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20260320225252-cf654f46fc63
-	github.com/chromedp/chromedp v0.15.0
+	github.com/chromedp/cdproto v0.0.0-20260321001828-e3e3800016bc
+	github.com/chromedp/chromedp v0.15.1
 	github.com/kenshaw/rasterm v0.1.16
 	github.com/oschwald/geoip2-golang v1.13.0
 	github.com/yookoala/realpath v1.0.0
