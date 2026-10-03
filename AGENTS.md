@@ -1,0 +1,171 @@
+# chromedp examples
+
+This repository holds 23 example programs for `chromedp`, a Go package that
+drives Chrome through the Chrome DevTools Protocol. The programs are larger
+than the examples in the package documentation. They show how to solve a task
+with `chromedp`: click an element, download a file, emulate a device, use a
+proxy and more. The module is `github.com/chromedp/examples`.
+
+The programs use the new typed API of `chromedp`. The API is a proposal and the
+maintainer has not approved it. See
+`docs/decisions/2026-10-03-the-programs-use-the-new-typed-api.md`.
+
+## Standing rules
+
+These hold in every `chromedp` repository, for every coding agent.
+
+1. Stage changes for review. Commit and push only when the maintainer says so.
+2. Load the `simple-english` skill before you write text that a person reads.
+   Examples are a document, a code comment, an error message and a commit
+   message. Follow the skill for that text.
+3. Load the `go-pedantry` skill before you write or review Go code. Follow it
+   where it does not conflict with a rule in this file. A rule here wins.
+
+Questions and feature ideas go to GitHub Discussions of `chromedp/chromedp`,
+and bugs go to issues. Do not open an issue for a question.
+
+`CLAUDE.md` holds one line that imports this file, so that Claude Code and
+every other agent read the same rules. Edit this file, not that one.
+
+## Which document to read
+
+`docs/decisions/README.md` is the index of every decision. A decision is one
+file named by its date and a short title. Read the status of a decision before
+you trust it, because a later decision can amend or replace it.
+
+| If you are | Read |
+| --- | --- |
+| looking for what the repository is, and how to build and run a program | `README.md` |
+| asking which program needs the internet and which runs offline | the verification table in `README.md` |
+| changing a program for the typed API | `docs/API.md` and `docs/MIGRATION.md` in the `chromedp` repository |
+| asking why the programs use the typed API | `docs/decisions/2026-10-03-the-programs-use-the-new-typed-api.md` |
+| asking why something is the way it is | the index in `docs/decisions/README.md` |
+| recording a decision | `docs/decisions/README.md`, and the section Writing documentation in this file |
+| preparing a change as a person | `CONTRIBUTING.md` |
+| adding or changing a program | the sections Hard rules and Before you commit in this file |
+| running a program against its expected output | the section Verify an offline program in this file |
+
+## Hard rules
+
+1. Each program is one folder with one `main.go`. The folder can also hold a
+   data file or a `README.md` that the program needs.
+2. A program uses only the public API of `chromedp` and the packages of
+   `cdproto`. Do not copy code from the `chromedp` repository into a program.
+3. Keep a program small and readable. A reader must follow it from the top.
+   Prefer a plain loop and a plain call over a clever helper.
+4. Keep the flags of a program. Do not rename a flag, remove it or change its
+   default without asking the maintainer.
+5. Start the doc comment above `package main` with `Command <name> is a
+   chromedp example demonstrating how to`. Name the task in that first
+   sentence. `gen.go` reads it for the table in `README.md`. The sentence must
+   not hold a period before its end.
+6. A program that reads a live site says in its doc comment which site it
+   needs. A program that needs a service or a file says so too.
+7. A program that runs offline serves its own page from a local server. Do not
+   make it read the internet.
+8. Wrap every error with `%w`. Write error messages in lower case, and do not
+   start them with "failed to".
+9. After you change a doc comment, run `go run gen.go` and commit the new table
+   in `README.md`.
+10. Do not run a program in a session that has no browser. Run `go build ./...`,
+    `go vet ./...` and `go test ./docs/` only.
+11. Never put a password, a key or a token in a file or in a message.
+
+## Layout
+
+| Path | Holds |
+| --- | --- |
+| `<name>/main.go` | one example program, for each of the 23 programs |
+| `forecast/hl.json` | the language codes that `forecast` embeds |
+| `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
+| `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
+| `multi/Dockerfile` | the container image of `multi` |
+| `gen.go` | writes the table of the programs in `README.md`. Run `go run gen.go` |
+| `docs/decisions/` | the decisions and their index |
+| `docs/docs_test.go` | the test of the documents and the Go comments |
+| `.agents/skills/` and `.claude/skills/` | the two agent skills, as copies |
+| `skills-lock.json` | the source of each skill |
+| `go.mod`, `go.sum` | the module, which needs Go 1.27 |
+
+The root of the repository holds `README.md`, `AGENTS.md`, `CLAUDE.md`,
+`CONTRIBUTING.md` and `LICENSE` as text documents. Every other document goes in
+`docs/`.
+
+## Build and run
+
+Run these commands in the repository root.
+
+```sh
+go build ./...
+go vet ./...
+go run ./<name>
+```
+
+The typed API is not in a released version of `chromedp`. `go.mod` names the
+released versions, so a build needs a `go.work` file that git ignores. It uses
+the branch `typed-api` of `../chromedp` and the typed `cdproto` in
+`../cdproto-typed`. `README.md` shows the file. Use the default workspace mode.
+
+A program that needs a browser starts it. If Chrome is not on the `PATH` under
+the name `google-chrome`, `chromium` or `chrome`, link it there:
+
+```sh
+TMP=$(mktemp -d); ln -s /opt/google/chrome/chrome $TMP/google-chrome
+PATH=$TMP:$PATH go run ./<name>
+```
+
+## Verify an offline program
+
+The offline programs are `cookie`, `headers`, `keys`, `multi`, `proxy`,
+`subtree`, `upload` and `visible`. Run one with the command above and a time
+limit, for example `timeout 90 go run ./cookie`. It must finish with exit code
+0. Compare the output with the table that follows. Timestamps, ports and the
+paths of temporary files differ on each run.
+
+| Program | Expected output |
+| --- | --- |
+| `cookie` | the log lines `server received cookie 0: cookie1=value1` and `cookie 1: cookie2=value2`, then two `chrome cookie` lines and `chrome received cookies` |
+| `headers` | one log line `received headers:` that lists the headers, with `X-Header` and the value `my request header` |
+| `keys` | the values of `#input1`, `#textarea1`, `#input2` and `#select1`, which are `test4`, a text that starts with `textar`, `test3` and `three` |
+| `multi` | run it with `-out <dir> data:text/html,<h1>hello</h1>`. It prints `image 0 (...) width: 780 height: 437` and writes `<dir>/0.png` |
+| `proxy` | no stdout. The log shows `proxy: not authorized` for the first request, then the requests with `Proxy-Authorization: Basic dTpw` |
+| `subtree` | the tree of the element `h1`, with its attributes and its children `a`, `span` and a text |
+| `upload` | run it in its folder. It logs `original size: N, upload size: N` with the same number twice |
+| `visible` | the log lines `waiting 3s for box to become visible`, `BOX1 IS VISIBLE` and `BOX2 IS VISIBLE`, after about 4 seconds |
+
+A live program has no fixed output, because the site changes. The verification
+table in `README.md` says what each program did on the last test.
+
+## Before you commit
+
+```sh
+gofmt -l .
+go build ./...
+go vet ./...
+go test ./docs/
+```
+
+`gofmt -l .` must print nothing. `go test ./docs/` needs no browser. It tests
+the links, the decision index, the document tables and the skill copies. It
+also tests the table of the programs in `README.md`. It applies the prose rules
+to the documents and to the Go comments.
+
+## Writing documentation
+
+Follow the `simple-english` skill for every word. Write sentences of 20 words
+or fewer for a procedure, and 25 words or fewer for a description.
+
+A new document goes in `docs/`. Add it to the tables in `README.md` and in this
+file, and `go test ./docs/` fails if you do not.
+
+Record a decision in a file in `docs/decisions/`. Name it
+`YYYY-MM-DD-short-slug.md` with the date of the decision. Open it with
+`# <Title>`, a blank line and `Status: Decided.`. Use `Proposed.`, `Open.`,
+`Amends <file>.` or `Superseded by <file>.` when that is the status. Refer to a
+decision by its file name, never by a number. State an amendment in both files.
+Add a row to `docs/decisions/README.md`. The test prints the row for you.
+
+The skills live in `.agents/skills` and `.claude/skills` as identical copies.
+Never replace a copy with a symbolic link. `skills-lock.json` names the source
+of each skill. The Claude Code permissions of one person go in
+`.claude/settings.local.json`, which `.gitignore` lists.

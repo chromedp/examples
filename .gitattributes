@@ -1,0 +1,2 @@
+# Every text file is LF on every checkout, including a checkout on Windows.
+* text=auto eol=lf

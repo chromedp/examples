@@ -1,5 +1,7 @@
 /click/click
 /cookie/cookie
+/download_file/download_file
+/download_image/download_image
 /emulate/emulate
 /eval/eval
 /fast/fast
@@ -10,12 +12,12 @@
 /latlon/latlon
 /logic/logic
 /multi/multi
-/pool/pool
+/pdf/pdf
+/proxy/proxy
 /remote/remote
 /screenshot/screenshot
-/simple/simple
-/standalone/standalone
 /submit/submit
+/subtree/subtree
 /text/text
 /upload/upload
 /visible/visible
@@ -26,3 +28,8 @@
 *.pdf
 *.png
 *.exe
+
+# The Claude Code permissions of one person, and the local workspace file.
+/.claude/settings.local.json
+go.work
+go.work.sum
