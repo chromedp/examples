@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 )
@@ -18,8 +19,8 @@ func main() {
 	defer cancel()
 
 	// capture pdf
-	var buf []byte
-	if err := chromedp.Run(ctx, printToPDF(`https://www.google.com/`, &buf)); err != nil {
+	buf, err := printToPDF(ctx, `https://www.google.com/`)
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -30,16 +31,12 @@ func main() {
 }
 
 // print a specific pdf page.
-func printToPDF(urlstr string, res *[]byte) chromedp.Tasks {
-	return chromedp.Tasks{
-		chromedp.Navigate(urlstr),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			buf, _, err := page.PrintToPDF().WithPrintBackground(false).Do(ctx)
-			if err != nil {
-				return err
-			}
-			*res = buf
-			return nil
-		}),
+func printToPDF(ctx context.Context, urlstr string) ([]byte, error) {
+	if err := chromedp.Do(ctx, chromedp.Navigate(urlstr)); err != nil {
+		return nil, err
 	}
+	return chromedp.Run(ctx, func(ctx context.Context, t *chromedp.Target) ([]byte, error) {
+		res, err := cdp.Call(ctx, t, page.PrintToPDF, page.PrintToPDFParams{PrintBackground: new(false)})
+		return res.Data, err
+	})
 }
