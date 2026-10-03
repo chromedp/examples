@@ -9,10 +9,12 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"log"
 	"os"
 	"time"
 
+	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 )
@@ -29,50 +31,57 @@ func main() {
 	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	// set up a channel, so we can block later while we monitor the download
-	// progress
-	done := make(chan bool)
-
 	// set the download url as the chromedp GitHub user avatar
 	urlstr := "https://avatars.githubusercontent.com/u/33149672"
 
-	// this will be used to capture the request id for matching network events
-	var requestID network.RequestID
-
-	// set up a listener to watch the network events and close the channel when
-	// complete the request id matching is important both to filter out
+	// subscribe to the network events, so we can watch them after the
+	// navigation. the request id matching is important both to filter out
 	// unwanted network events and to reference the downloaded file later
-	chromedp.ListenTarget(ctx, func(v interface{}) {
-		switch ev := v.(type) {
-		case *network.EventRequestWillBeSent:
-			log.Printf("EventRequestWillBeSent: %v: %v", ev.RequestID, ev.Request.URL)
-			if ev.Request.URL == urlstr {
-				requestID = ev.RequestID
-			}
-		case *network.EventLoadingFinished:
-			log.Printf("EventLoadingFinished: %v", ev.RequestID)
-			if ev.RequestID == requestID {
-				close(done)
-			}
-		}
-	})
+	requests := chromedp.Events(ctx, network.RequestWillBeSent)
+	finished := chromedp.Events(ctx, network.LoadingFinished)
 
 	// all we need to do here is navigate to the download url
-	if err := chromedp.Run(ctx,
-		chromedp.Navigate(urlstr),
-	); err != nil {
+	if err := chromedp.Do(ctx, chromedp.Navigate(urlstr)); err != nil {
 		log.Fatal(err)
 	}
 
-	// This will block until the chromedp listener closes the channel
-	<-done
+	// this will be used to capture the request id for matching network events
+	var requestID network.RequestID
+	for ev, err := range requests {
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("EventRequestWillBeSent: %v: %v", ev.RequestID, ev.Request.URL)
+		if ev.Request.URL == urlstr {
+			requestID = ev.RequestID
+			break
+		}
+	}
+
+	// This will block until the request with the request id is finished
+	for ev, err := range finished {
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("EventLoadingFinished: %v", ev.RequestID)
+		if ev.RequestID == requestID {
+			break
+		}
+	}
+
 	// get the downloaded bytes for the request id
-	var buf []byte
-	if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
-		var err error
-		buf, err = network.GetResponseBody(requestID).Do(ctx)
-		return err
-	})); err != nil {
+	buf, err := chromedp.Run(ctx, func(ctx context.Context, t *chromedp.Target) ([]byte, error) {
+		res, err := cdp.Call(ctx, t, network.GetResponseBody, network.GetResponseBodyParams{RequestID: requestID})
+		if err != nil {
+			return nil, err
+		}
+		// the typed cdproto does not decode the body for us
+		if res.Base64encoded {
+			return base64.StdEncoding.DecodeString(res.Body)
+		}
+		return []byte(res.Body), nil
+	})
+	if err != nil {
 		log.Fatal(err)
 	}
 
