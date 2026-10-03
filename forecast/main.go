@@ -23,7 +23,6 @@ import (
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/dom"
-	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/kenshaw/rasterm"
 )
@@ -112,56 +111,67 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 	defer cancel()
 
 	// get
-	var nodes, dataNodes []*cdp.Node
-	if err := chromedp.Run(ctx,
-		chromedp.Navigate("https://www.google.com/search?"+v.Encode()),
-		chromedp.QueryAfter(hdrSel, func(ctx context.Context, id runtime.ExecutionContextID, n ...*cdp.Node) error {
-			nodes = append(nodes, n[0])
-			return nil
-		}, chromedp.ByQuery, chromedp.NodeVisible),
-		chromedp.QueryAfter(dataSel, func(ctx context.Context, id runtime.ExecutionContextID, n ...*cdp.Node) error {
-			nodes = append(nodes, n[0])
-			return nil
-		}, chromedp.ByQuery, chromedp.NodeVisible),
-		chromedp.Nodes(dataSel, &dataNodes, chromedp.ByQuery, chromedp.NodeVisible),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			return dom.RequestChildNodes(dataNodes[0].NodeID).WithDepth(-1).Do(ctx)
-		}),
-	); err != nil {
+	if err := chromedp.Do(ctx, chromedp.Navigate("https://www.google.com/search?"+v.Encode())); err != nil {
+		return err
+	}
+	first := func(ctx context.Context, t *chromedp.Target, n []*chromedp.Node) (*chromedp.Node, error) {
+		return n[0], nil
+	}
+	hdrNode, err := chromedp.Run(ctx, chromedp.QueryAfter(chromedp.CSS(hdrSel), first, chromedp.NodeVisible))
+	if err != nil {
+		return err
+	}
+	dataNode, err := chromedp.Run(ctx, chromedp.QueryAfter(chromedp.CSS(dataSel), first, chromedp.NodeVisible))
+	if err != nil {
+		return err
+	}
+	nodes := []*chromedp.Node{hdrNode, dataNode}
+	dataNodes, err := chromedp.Run(ctx, chromedp.Nodes(chromedp.CSS(dataSel), chromedp.NodeVisible))
+	if err != nil {
+		return err
+	}
+	if err := chromedp.Do(ctx, chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
+		_, err := cdp.Call(ctx, t, dom.RequestChildNodes, dom.RequestChildNodesParams{NodeID: dataNodes[0].NodeID, Depth: -1})
+		return err
+	})); err != nil {
 		return err
 	}
 
 	// click on unit
 	if unit != "" {
 		if node := findNode(`°`+unit, dataNodes); node != nil {
-			_ = chromedp.Run(ctx, chromedp.MouseClickNode(node))
+			_ = chromedp.Do(ctx, chromedp.MouseClickNode(node))
 		}
 	}
 
 	// click on type
 	if typ != "temp" {
-		_ = chromedp.Run(ctx, chromedp.Click("wob_"+typ, chromedp.ByID))
+		_ = chromedp.Do(ctx, chromedp.Click(chromedp.ID("wob_"+typ)))
 	}
 	// hide other types
-	_ = chromedp.Run(ctx,
+	_, _ = chromedp.Run(ctx,
 		chromedp.QueryAfter(`#wob_d > div:first-child > *:not(#wob_`+typ+`)`,
-			func(ctx context.Context, id runtime.ExecutionContextID, nodes ...*cdp.Node) error {
+			func(ctx context.Context, t *chromedp.Target, nodes []*chromedp.Node) (chromedp.Void, error) {
 				for _, n := range nodes {
-					_ = dom.SetAttributeValue(n.NodeID, "style", "display:none;").Do(ctx)
+					_, _ = cdp.Call(ctx, t, dom.SetAttributeValue, dom.SetAttributeValueParams{
+						NodeID: n.NodeID,
+						Name:   "style",
+						Value:  "display:none;",
+					})
 				}
-				return nil
+				return chromedp.Void{}, nil
 			},
 		),
 	)
 
 	// click on day
 	if day != 0 {
-		_ = chromedp.Run(ctx, chromedp.Click(fmt.Sprintf(`//*[@data-wob-di=%d]`, day)))
+		_ = chromedp.Do(ctx, chromedp.Click(fmt.Sprintf(`//*[@data-wob-di=%d]`, day)))
 	}
 
 	// capture screenshot
-	var buf []byte
-	if err := chromedp.Run(ctx, chromedp.ScreenshotNodes(nodes, scale, &buf)); err != nil {
+	buf, err := chromedp.Run(ctx, chromedp.ScreenshotNodes(nodes, scale))
+	if err != nil {
 		return err
 	}
 	// decode png
@@ -195,7 +205,7 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 	return rasterm.Encode(os.Stdout, img)
 }
 
-func findNode(val string, nodes []*cdp.Node) *cdp.Node {
+func findNode(val string, nodes []*chromedp.Node) *chromedp.Node {
 	for _, node := range nodes {
 		if node.Parent == nil || node.Parent.Parent == nil {
 			continue
