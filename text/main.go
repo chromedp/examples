@@ -15,12 +15,11 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run task list
-	var res string
-	err := chromedp.Run(ctx,
-		chromedp.Navigate(`https://pkg.go.dev/time`),
-		chromedp.Text(`.Documentation-overview`, &res, chromedp.NodeVisible),
-	)
+	// run the steps
+	if err := chromedp.Do(ctx, chromedp.Navigate(`https://pkg.go.dev/time`)); err != nil {
+		log.Fatal(err)
+	}
+	res, err := chromedp.Run(ctx, chromedp.Text(`.Documentation-overview`, chromedp.NodeVisible))
 	if err != nil {
 		log.Fatal(err)
 	}
