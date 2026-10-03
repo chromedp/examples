@@ -1,18 +1,21 @@
 # The programs use the new typed API
 
-Status: Proposed.
+Status: Decided.
 
 The maintainer asked on 2026-10-03 for the programs of this repository to use
-the new typed API of `chromedp`. The API is a proposal and nobody has approved
-it. See `2026-10-03-generic-iterator-api-instead-of-action.md` in the `chromedp`
-repository. This decision is Proposed for the same reason. If the maintainer
-does not approve the API, the port goes back.
+the new typed API of `chromedp`. See
+`2026-10-03-generic-iterator-api-instead-of-action.md` in the `chromedp`
+repository. The maintainer approved the API and this port, and the work was
+merged on 2026-10-04. The programs use `chromedp` v0.17.0 and `cdproto`
+v0.157.2.
 
 ## What changed
 
-All 23 programs moved from the old API to the typed API on the branch
-`typed-api` of `chromedp`. There is one commit for each program, named "Port
-the <name> example to the typed API". The old code used `Tasks`, `ActionFunc`,
+All 23 programs moved from the old API to the typed API. The work was done on a
+branch with one commit for each program, named "Port the <name> example to the
+typed API". The branch `typed-api` of `chromedp` held the typed API for the
+port. The maintainer merged the work into `main` on 2026-10-04, and the branch
+no longer exists. The old code used `Tasks`, `ActionFunc`,
 `ListenTarget`, the `By` options and a pointer for each result. The new code
 uses `chromedp.Do` and `chromedp.Run`, which return the value of an action. It
 reads events with `chromedp.Events` and `chromedp.WaitEvent`. It sends a raw
@@ -25,15 +28,17 @@ that the typed `network.GetResponseBody` result already decodes.
 Other commits set the `go` line of `go.mod` to 1.27, rewrote the comments, and
 updated the documents.
 
-No program changed its flags, its output or its logic. `go.mod` still names the
-released versions of `chromedp` and `cdproto`, so a build needs a `go.work`
-file that points at the local copies. Git ignores that file.
+A later commit added the flag `-v` to every program, and the flag `-visible` to
+every program except `remote`. It also changed `submit` to search Wikipedia.
+No other program changed its logic.
 
 ## How it was verified
 
 Each program ran twice with Chrome 154 on Linux. The first run used the old
 code on the branch `main` with `chromedp` v0.16.0. The second run used the new
-code. The table in `README.md` has the result for each program.
+code. The table in `README.md` has the result for each program of the new code.
+On 2026-10-04 the offline programs ran again, and they all finished with exit
+code 0.
 
 - The offline programs `cookie`, `headers`, `keys`, `subtree`, `upload` and
   `visible` printed the same output as before. `multi` wrote the same files,
@@ -51,7 +56,4 @@ code. The table in `README.md` has the result for each program.
 
 ## What remains
 
-- The maintainer must approve or reject the API.
-- When `chromedp` and `cdproto` release the typed API, name those versions in
-  `go.mod`. The `go.work` file is then not needed.
 - The cause of the failure of `download_file` is not known.
