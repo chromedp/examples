@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 )
 
@@ -47,27 +46,27 @@ func listAwesomeGoProjects(ctx context.Context, sect string) (map[string]project
 	sel := fmt.Sprintf(`//h3[text()[contains(., '%s')]]`, sect)
 
 	// navigate
-	if err := chromedp.Run(ctx, chromedp.Navigate(`https://github.com/avelino/awesome-go`)); err != nil {
-		return nil, fmt.Errorf("could not navigate to github: %v", err)
+	if err := chromedp.Do(ctx, chromedp.Navigate(`https://github.com/avelino/awesome-go`)); err != nil {
+		return nil, fmt.Errorf("could not navigate to github: %w", err)
 	}
 
 	// wait visible
-	if err := chromedp.Run(ctx, chromedp.WaitVisible(sel)); err != nil {
-		return nil, fmt.Errorf("could not get section: %v", err)
+	if err := chromedp.Do(ctx, chromedp.WaitVisible(sel)); err != nil {
+		return nil, fmt.Errorf("could not get section: %w", err)
 	}
 
 	sib := sel + `/parent::div/following-sibling::ul[1]/li`
 
 	// get project link text
-	var projects []*cdp.Node
-	if err := chromedp.Run(ctx, chromedp.Nodes(sib+`/child::a/text()`, &projects)); err != nil {
-		return nil, fmt.Errorf("could not get projects: %v", err)
+	projects, err := chromedp.Run(ctx, chromedp.Nodes(sib+`/child::a/text()`))
+	if err != nil {
+		return nil, fmt.Errorf("could not get projects: %w", err)
 	}
 
 	// get links and description text
-	var linksAndDescriptions []*cdp.Node
-	if err := chromedp.Run(ctx, chromedp.Nodes(sib+`/child::node()`, &linksAndDescriptions)); err != nil {
-		return nil, fmt.Errorf("could not get links and descriptions: %v", err)
+	linksAndDescriptions, err := chromedp.Run(ctx, chromedp.Nodes(sib+`/child::node()`))
+	if err != nil {
+		return nil, fmt.Errorf("could not get links and descriptions: %w", err)
 	}
 
 	// check length
