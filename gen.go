@@ -1,5 +1,9 @@
 //go:build ignore
 
+// This program writes the table of the examples in README.md between the
+// markers START EXAMPLES and END EXAMPLES. It reads the doc comment of each
+// main.go, takes the text after "demonstrating how to", and cuts it at the first
+// period. Run it from the repository root with `go run gen.go`.
 package main
 
 import (
@@ -59,7 +63,7 @@ func main() {
 		n := filepath.Base(filepath.Dir(fn))
 		name := fmt.Sprintf("[%s](/%s)", n, n)
 
-		// clean comment
+		// get the description from the doc comment
 		comment := spaceRE.ReplaceAllString(f.Doc.Text(), " ")
 		i := strings.Index(comment, descStart)
 		if i == -1 {
@@ -76,13 +80,13 @@ func main() {
 	}
 	sort.Slice(examples, func(i, j int) bool { return strings.Compare(examples[i].name, examples[j].name) < 0 })
 
-	// determine max length
+	// find the width of each column
 	var namelen, desclen int
 	for _, e := range examples {
 		namelen, desclen = max(namelen, len(e.name)), max(desclen, len(e.desc))
 	}
 
-	// generate
+	// write the new table
 	out := new(bytes.Buffer)
 	out.Write(buf[:start+len(sectionStart)])
 	out.WriteString(fmt.Sprintf("\n| %s | %s |\n", pad("Example", " ", namelen), pad("Description", " ", desclen)))
@@ -92,7 +96,7 @@ func main() {
 	}
 	out.Write(buf[end:])
 
-	// write
+	// write the file
 	err = os.WriteFile(*readme, out.Bytes(), 0644)
 	if err != nil {
 		log.Fatal(err)
