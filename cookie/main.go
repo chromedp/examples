@@ -28,13 +28,12 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run task list
-	var res string
-	err := chromedp.Run(ctx, setcookies(
-		fmt.Sprintf("http://localhost:%d", *port), &res,
+	// run the steps
+	res, err := setcookies(
+		ctx, fmt.Sprintf("http://localhost:%d", *port),
 		"cookie1", "value1",
 		"cookie2", "value2",
-	))
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,23 +59,24 @@ func cookieServer(addr string) error {
 	return http.ListenAndServe(addr, mux)
 }
 
-// setcookies returns a task to navigate to a host with the passed cookies set
-// on the network request.
-func setcookies(host string, res *string, cookies ...string) chromedp.Tasks {
+// setcookies navigates to a host with the passed cookies set on the network
+// request. It returns the text that the page shows.
+func setcookies(ctx context.Context, host string, cookies ...string) (string, error) {
 	if len(cookies)%2 != 0 {
 		panic("length of cookies must be divisible by 2")
 	}
-	return chromedp.Tasks{
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			// create cookie expiration
-			expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
-			// add cookies to chrome
+	// add cookies to chrome
+	expires := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour).Unix())
+	if err := chromedp.Do(ctx,
+		chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
 			for i := 0; i < len(cookies); i += 2 {
-				err := network.SetCookie(cookies[i], cookies[i+1]).
-					WithExpires(&expr).
-					WithDomain("localhost").
-					WithHTTPOnly(true).
-					Do(ctx)
+				_, err := cdp.Call(ctx, t, network.SetCookie, network.SetCookieParams{
+					Name:     cookies[i],
+					Value:    cookies[i+1],
+					Expires:  expires,
+					Domain:   "localhost",
+					HTTPOnly: new(true),
+				})
 				if err != nil {
 					return err
 				}
@@ -85,22 +85,26 @@ func setcookies(host string, res *string, cookies ...string) chromedp.Tasks {
 		}),
 		// navigate to site
 		chromedp.Navigate(host),
-		// read the returned values
-		chromedp.Text(`#result`, res, chromedp.ByID, chromedp.NodeVisible),
-		// read network values
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			cookies, err := storage.GetCookies().Do(ctx)
-			if err != nil {
-				return err
-			}
-
-			for i, cookie := range cookies {
-				log.Printf("chrome cookie %d: %+v", i, cookie)
-			}
-
-			return nil
-		}),
+	); err != nil {
+		return "", err
 	}
+	// read the returned values
+	res, err := chromedp.Run(ctx, chromedp.Text(chromedp.ID("result"), chromedp.NodeVisible))
+	if err != nil {
+		return "", err
+	}
+	// read network values
+	got, err := chromedp.Run(ctx, func(ctx context.Context, t *chromedp.Target) ([]*network.Cookie, error) {
+		res, err := cdp.Call(ctx, t, storage.GetCookies, storage.GetCookiesParams{})
+		return res.Cookies, err
+	})
+	if err != nil {
+		return "", err
+	}
+	for i, cookie := range got {
+		log.Printf("chrome cookie %d: %+v", i, cookie)
+	}
+	return res, nil
 }
 
 const (
