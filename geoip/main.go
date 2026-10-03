@@ -20,7 +20,6 @@ import (
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/dom"
-	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/kenshaw/rasterm"
 	"github.com/oschwald/geoip2-golang"
@@ -101,33 +100,38 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, lang string, 
 }
 
 func getMap(ctx context.Context, timeout time.Duration, lat, lng, zoom, scale float64) (image.Image, error) {
-	var address string
-	var buf []byte
-	if err := chromedp.Run(ctx,
-		chromedp.Navigate(fmt.Sprintf(mapURL, lat, lng, zoom)),
-		chromedp.Text(`div[data-tooltip="Copy address"] > div:nth-child(2) > span > span`, &address, chromedp.ByQuery, chromedp.NodeVisible),
+	if err := chromedp.Do(ctx, chromedp.Navigate(fmt.Sprintf(mapURL, lat, lng, zoom))); err != nil {
+		return nil, err
+	}
+	address, err := chromedp.Run(ctx, chromedp.Text(chromedp.CSS(`div[data-tooltip="Copy address"] > div:nth-child(2) > span > span`), chromedp.NodeVisible))
+	if err != nil {
+		return nil, err
+	}
+	if err := chromedp.Do(ctx,
 		chromedp.WaitReady(`div:has(> [aria-label="Collapse side panel"])`,
 			chromedp.AtLeast(7),
-			chromedp.After(func(ctx context.Context, _ runtime.ExecutionContextID, nodes ...*cdp.Node) error {
+			chromedp.After(func(ctx context.Context, t *chromedp.Target, nodes []*chromedp.Node) error {
 				var id cdp.NodeID
 				for _, n := range nodes {
-					if _, err := dom.GetBoxModel().WithNodeID(n.NodeID).Do(ctx); err == nil {
+					if _, err := cdp.Call(ctx, t, dom.GetBoxModel, dom.GetBoxModelParams{NodeID: n.NodeID}); err == nil {
 						id = n.NodeID
 						break
 					}
 				}
-				if id == cdp.EmptyNodeID {
+				if id == chromedp.EmptyNodeID {
 					return errors.New("unable to find node")
 				}
-				return chromedp.Click([]cdp.NodeID{id}, chromedp.ByNodeID).Do(ctx)
+				_, err := chromedp.Click(chromedp.NodeIDs{id})(ctx, t)
+				return err
 			}),
 		),
-		chromedp.WaitReady(`div:has(+.onegoogle) > div > div`, chromedp.ByQuery,
+		chromedp.WaitReady(chromedp.CSS(`div:has(+.onegoogle) > div > div`),
 			chromedp.AtLeast(1),
-			chromedp.After(func(ctx context.Context, _ runtime.ExecutionContextID, nodes ...*cdp.Node) error {
-				script, visible := fmt.Sprintf(inViewportJS, nodes[0].FullXPath()), false
+			chromedp.After(func(ctx context.Context, t *chromedp.Target, nodes []*chromedp.Node) error {
+				script := fmt.Sprintf(inViewportJS, nodes[0].FullXPath())
 				for {
-					if err := chromedp.EvaluateAsDevTools(script, &visible).Do(ctx); err != nil {
+					visible, err := chromedp.EvaluateAsDevTools[bool](script)(ctx, t)
+					if err != nil {
 						return err
 					}
 					if !visible {
@@ -142,8 +146,11 @@ func getMap(ctx context.Context, timeout time.Duration, lat, lng, zoom, scale fl
 				}
 			}),
 		),
-		chromedp.ScreenshotScale(`#app-container`, scale, &buf, chromedp.ByQuery),
 	); err != nil {
+		return nil, err
+	}
+	buf, err := chromedp.Run(ctx, chromedp.ScreenshotScale(chromedp.CSS(`#app-container`), scale))
+	if err != nil {
 		return nil, err
 	}
 	fmt.Fprintf(os.Stdout, "  Address: %s\n", address)
