@@ -15,6 +15,7 @@ import (
 
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/remote"
 )
 
 func main() {
@@ -38,7 +39,7 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration) erro
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
 	}
 	if visible {
-		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+		opts = append(opts, chromedp.WithVisibleWindow(), remote.WithKeepOpen())
 	}
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()

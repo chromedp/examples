@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/remote"
 	"github.com/kenshaw/rasterm"
 )
 
@@ -38,7 +39,7 @@ func run(ctx context.Context, verbose bool, urlstr, nav string, d time.Duration)
 		return errors.New("invalid remote devtools url")
 	}
 	// create an allocator context, for the browser context below
-	allocatorContext, cancel := chromedp.NewRemoteAllocator(ctx, urlstr)
+	allocatorContext, cancel := remote.NewAllocator(ctx, urlstr)
 	defer cancel()
 
 	// build the context options

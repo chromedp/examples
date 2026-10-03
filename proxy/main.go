@@ -18,6 +18,7 @@ import (
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/fetch"
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/remote"
 )
 
 func main() {
@@ -47,7 +48,7 @@ func main() {
 		chromedp.Flag("proxy-bypass-list", "<-loopback>"),
 	)
 	if *visible {
-		opts = append(opts, chromedp.VisibleWindow, chromedp.KeepOpen)
+		opts = append(opts, chromedp.VisibleWindow, chromedp.KeepOpen, remote.WebSocket)
 	}
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()

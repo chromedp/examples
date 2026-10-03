@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/remote"
 	"github.com/yookoala/realpath"
 )
 
@@ -49,7 +50,7 @@ func run(ctx context.Context, verbose, visible bool, wait time.Duration, out str
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
 	}
 	if visible {
-		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+		opts = append(opts, chromedp.WithVisibleWindow(), remote.WithKeepOpen())
 	}
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()

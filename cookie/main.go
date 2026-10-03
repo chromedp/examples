@@ -18,6 +18,7 @@ import (
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/storage"
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/remote"
 )
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
 	}
 	if *visible {
-		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+		opts = append(opts, chromedp.WithVisibleWindow(), remote.WithKeepOpen())
 	}
 	ctx, cancel := chromedp.NewContext(context.Background(), opts...)
 	defer cancel()

@@ -24,6 +24,7 @@ import (
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/remote"
 	"github.com/kenshaw/rasterm"
 	"github.com/oschwald/geoip2-golang"
 )
@@ -49,7 +50,7 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, lang
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
 	}
 	if visible {
-		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+		opts = append(opts, chromedp.WithVisibleWindow(), remote.WithKeepOpen())
 	}
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()

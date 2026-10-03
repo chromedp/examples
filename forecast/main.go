@@ -27,6 +27,7 @@ import (
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/remote"
 	"github.com/kenshaw/rasterm"
 )
 
@@ -47,10 +48,10 @@ func main() {
 	day := flag.Int("day", 0, "day of the forecast (0 to 7)")
 	scale := flag.Float64("scale", 1.5, "scale of the screenshot")
 	padding := flag.Int("padding", 20, "white space around the image, in pixels")
-	remote := flag.String("remote", "", "WebSocket URL of a running browser to use")
+	remoteURL := flag.String("remote", "", "WebSocket URL of a running browser to use")
 	out := flag.String("out", "", "file to write the screenshot to")
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *visible, *timeout, *query, *lang, *unit, *typ, *day, *scale, *padding, *remote, *out); err != nil {
+	if err := run(context.Background(), *verbose, *visible, *timeout, *query, *lang, *unit, *typ, *day, *scale, *padding, *remoteURL, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		if strings.HasPrefix(err.Error(), "invalid lang ") {
 			fmt.Fprint(os.Stderr, "\nvalid languages:\n")
@@ -62,7 +63,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, verbose, visible bool, timeout time.Duration, query, lang, unit, typ string, day int, scale float64, padding int, remote, out string) error {
+func run(ctx context.Context, verbose, visible bool, timeout time.Duration, query, lang, unit, typ string, day int, scale float64, padding int, remoteURL, out string) error {
 	// make sure that the flag values are valid
 	lang = strings.ToLower(lang)
 	if _, ok := langs[lang]; !ok && lang != "" {
@@ -98,8 +99,8 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, quer
 	}
 
 	// if the flag -remote is set, use a remote browser
-	if remote != "" {
-		ctx, _ = chromedp.NewRemoteAllocator(ctx, remote)
+	if remoteURL != "" {
+		ctx, _ = remote.NewAllocator(ctx, remoteURL)
 	}
 
 	// create context
@@ -108,11 +109,11 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, quer
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
 	}
 	if visible {
-		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+		opts = append(opts, chromedp.WithVisibleWindow(), remote.WithKeepOpen())
 	}
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()
-	if visible && remote == "" {
+	if visible && remoteURL == "" {
 		defer func() {
 			wsURL, dir := chromedp.KeptOpen(ctx)
 			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
@@ -144,7 +145,7 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, quer
 		return err
 	}
 	if err := chromedp.Do(ctx, chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
-		_, err := cdp.Call(ctx, t, dom.RequestChildNodes, dom.RequestChildNodesParams{NodeID: dataNodes[0].NodeID, Depth: -1})
+		_, err := cdp.Call(ctx, t, dom.RequestChildNodes, dom.RequestChildNodesParams{NodeID: dataNodes[0].NodeID, Depth: new(int64(-1))})
 		return err
 	})); err != nil {
 		return err
