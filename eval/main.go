@@ -14,12 +14,11 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run task list
-	var res []string
-	err := chromedp.Run(ctx,
-		chromedp.Navigate(`https://www.google.com/`),
-		chromedp.Evaluate(`Object.keys(window);`, &res),
-	)
+	// run the steps
+	if err := chromedp.Do(ctx, chromedp.Navigate(`https://www.google.com/`)); err != nil {
+		log.Fatal(err)
+	}
+	res, err := chromedp.Run(ctx, chromedp.Evaluate[[]string](`Object.keys(window);`))
 	if err != nil {
 		log.Fatal(err)
 	}
