@@ -40,9 +40,8 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run task list
-	var sz string
-	err = chromedp.Run(ctx, upload(fmt.Sprintf("http://localhost:%d", *port), filepath, &sz))
+	// run the steps
+	_, err = upload(ctx, fmt.Sprintf("http://localhost:%d", *port), filepath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,13 +49,16 @@ func main() {
 	log.Printf("original size: %d, upload size: %d", fi.Size(), <-result)
 }
 
-func upload(urlstr string, filepath string, sz *string) chromedp.Tasks {
-	return chromedp.Tasks{
+// upload uploads the file on the form and returns the size that the page shows.
+func upload(ctx context.Context, urlstr string, filepath string) (string, error) {
+	if err := chromedp.Do(ctx,
 		chromedp.Navigate(urlstr),
 		chromedp.SendKeys(`input[name="upload"]`, filepath, chromedp.NodeVisible),
 		chromedp.Click(`input[name="submit"]`),
-		chromedp.Text(`#result`, sz, chromedp.ByID, chromedp.NodeVisible),
+	); err != nil {
+		return "", err
 	}
+	return chromedp.Run(ctx, chromedp.Text(chromedp.ID("result"), chromedp.NodeVisible))
 }
 
 func uploadServer(addr string, result chan int) error {
