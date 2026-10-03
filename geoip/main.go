@@ -1,6 +1,8 @@
 // Command geoip is a chromedp example demonstrating how to look up the location
 // of an IP address and show its map in the terminal. It reads
-// www.google.com/maps. Give one or more IP addresses as arguments.
+// www.google.com/maps. Give one or more IP addresses as arguments. Use -v to
+// print the protocol messages and -visible to show the browser window and leave
+// it open.
 package main
 
 import (
@@ -28,25 +30,35 @@ import (
 
 func main() {
 	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	timeout := flag.Duration("timeout", 1*time.Minute, "timeout")
 	lang := flag.String("l", "en", "language code")
 	zoom := flag.Float64("zoom", 12.5, "zoom level")
 	scale := flag.Float64("scale", 1.5, "scale")
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *timeout, *lang, *zoom, *scale, flag.Args()); err != nil {
+	if err := run(context.Background(), *verbose, *visible, *timeout, *lang, *zoom, *scale, flag.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, verbose bool, timeout time.Duration, lang string, zoom, scale float64, args []string) error {
+func run(ctx context.Context, verbose, visible bool, timeout time.Duration, lang string, zoom, scale float64, args []string) error {
 	// create context
 	var opts []chromedp.ContextOption
 	if verbose {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
 	}
+	if visible {
+		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+	}
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()
+	if visible {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// create a timeout
 	ctx, cancel = context.WithTimeout(ctx, timeout)

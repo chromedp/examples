@@ -1,7 +1,7 @@
 // Command remote is a chromedp example demonstrating how to connect to an
 // existing Chrome DevTools instance using a remote WebSocket URL. The flag -url
 // names the browser and the flag -nav names the page to read, which is on the
-// internet by default. See README.md.
+// internet by default. See README.md. Use -v to print the protocol messages.
 package main
 
 import (

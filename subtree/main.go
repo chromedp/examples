@@ -1,9 +1,12 @@
 // Command subtree is a chromedp example demonstrating how to populate and
 // travel a subtree of the DOM. It starts a local server and needs no internet.
+// Use -v to print the protocol messages and -visible to show the browser window
+// and leave it open.
 package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -17,6 +20,10 @@ import (
 )
 
 func main() {
+	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	flag.Parse()
+
 	// create a test server for the page
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprint(w, `
@@ -40,8 +47,21 @@ func main() {
 	defer ts.Close()
 
 	// create context
-	ctx, cancel := chromedp.NewContext(context.Background())
+	var opts []chromedp.ContextOption
+	if *verbose {
+		opts = append(opts, chromedp.WithDebugf(log.Printf))
+	}
+	if *visible {
+		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+	}
+	ctx, cancel := chromedp.NewContext(context.Background(), opts...)
 	defer cancel()
+	if *visible {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// run the actions
 	err := travelSubtree(ctx, ts.URL, chromedp.ID("title"))

@@ -1,11 +1,15 @@
 // Command logic is a chromedp example demonstrating how to combine actions and
-// Go code in a function that reads a list from a page. It reads github.com.
+// Go code in a function that reads a list from a page. It reads github.com. Use
+// -v to print the protocol messages and -visible to show the browser window and
+// leave it open.
 package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -13,9 +17,26 @@ import (
 )
 
 func main() {
+	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	flag.Parse()
+
 	// create context
-	ctx, cancel := chromedp.NewContext(context.Background())
+	var opts []chromedp.ContextOption
+	if *verbose {
+		opts = append(opts, chromedp.WithDebugf(log.Printf))
+	}
+	if *visible {
+		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+	}
+	ctx, cancel := chromedp.NewContext(context.Background(), opts...)
 	defer cancel()
+	if *visible {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// list the awesome go projects of the section "Selenium and browser
 	// control tools."

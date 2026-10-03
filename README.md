@@ -46,13 +46,28 @@ $ go run ./<prog>
 $ go build -o /tmp/<prog> ./<prog> && /tmp/<prog>
 ```
 
-Some programs need arguments or a different folder:
+Every program accepts the flag `-v`. It prints the protocol messages between
+the program and the browser. Without `-v`, a program prints only its own output.
+For example, `go run ./cookie -v` shows the protocol messages. Run
+`go run ./<prog> -h` to see all flags of a program.
+
+Every program except `remote` accepts the flag `-visible`. It shows the browser
+window instead of a headless browser, and it leaves the browser open when the
+program ends. The program prints the websocket address and the profile directory
+of the browser to the standard error. The browser stays running until you close
+its window, and the profile directory stays on disk until you delete it. To show
+the window with no flag, set the variable `CHROMEDP_VISIBLEWINDOW=1`. On Linux,
+a visible window needs `DISPLAY` or `WAYLAND_DISPLAY`. The `remote` program has
+no `-visible` flag, because it attaches to a browser that you started yourself.
+The flag `-visible` has no effect on the remote browser of `forecast -remote`.
+
+Some programs need arguments:
 
 - `forecast` needs the flag `-q`, for example `go run ./forecast -q Jakarta`.
 - `geoip` takes IP addresses, for example `go run ./geoip 8.8.8.8`.
 - `multi` takes URLs. See [multi/README.md](multi/README.md).
 - `remote` needs a running browser. See [remote/README.md](remote/README.md).
-- `upload` uploads its own file `main.go`, so run it with `cd upload && go run .`.
+- `upload` uploads its own source file, so you can run it from any folder.
 
 ## The programs
 
@@ -115,7 +130,7 @@ The table shows what happened when each program ran, with Chrome 154 on Linux.
 | proxy           | offline                          | works                                | works, same requests                 |
 | remote          | a Chrome with a debugging port   | works up to the terminal image       | same                                 |
 | screenshot      | internet (pkg.go.dev, brank.as)  | works                                | works, same files                    |
-| submit          | internet (github.com)            | fails, waits for a search result     | same                                 |
+| submit          | internet (wikipedia.org)         | not run                              | works                                |
 | subtree         | offline                          | works                                | works, same output                   |
 | text            | internet (pkg.go.dev)            | works                                | works, same output                   |
 | upload          | offline                          | works                                | works, same output                   |

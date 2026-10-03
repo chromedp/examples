@@ -1,16 +1,19 @@
 // Command proxy is a chromedp example demonstrating how to authenticate to a
 // proxy server that requires authentication. It starts a local proxy and a
-// local web server, and needs no internet.
+// local web server, and needs no internet. Use -v to print the protocol
+// messages and -visible to show the browser window and leave it open.
 package main
 
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
+	"os"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/fetch"
@@ -18,6 +21,10 @@ import (
 )
 
 func main() {
+	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	flag.Parse()
+
 	// create a simple proxy that requires authentication
 	p := httptest.NewServer(newProxy())
 	defer p.Close()
@@ -39,11 +46,24 @@ func main() {
 		// the proxy for localhost URLs.
 		chromedp.Flag("proxy-bypass-list", "<-loopback>"),
 	)
+	if *visible {
+		opts = append(opts, chromedp.VisibleWindow, chromedp.KeepOpen)
+	}
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
-	// log the protocol messages, to show how it works.
-	ctx, cancel = chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
+	// log the protocol messages with -v
+	var copts []chromedp.ContextOption
+	if *verbose {
+		copts = append(copts, chromedp.WithDebugf(log.Printf))
+	}
+	ctx, cancel = chromedp.NewContext(ctx, copts...)
 	defer cancel()
+	if *visible {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// 3) handle the Fetch.AuthRequired event, and give the user name and the
 	// password to the proxy. After the proxy accepts them, the code disables

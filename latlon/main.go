@@ -1,6 +1,7 @@
 // Command latlon is a chromedp example demonstrating how to retrieve the
-// latitude and the longitude from Google Maps with the navigation events of
-// the page. It reads www.google.com/maps.
+// latitude and the longitude from Google Maps with the navigation events of the
+// page. It reads www.google.com/maps. Use -v to print the protocol messages and
+// -visible to show the browser window and leave it open.
 package main
 
 import (
@@ -18,15 +19,16 @@ import (
 
 func main() {
 	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	timeout := flag.Duration("timeout", 1*time.Minute, "timeout")
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *timeout); err != nil {
+	if err := run(context.Background(), *verbose, *visible, *timeout); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, verbose bool, timeout time.Duration) error {
+func run(ctx context.Context, verbose, visible bool, timeout time.Duration) error {
 	// the regular expression that extracts the latitude and the longitude
 	latlonRE := regexp.MustCompile(`maps/@(-?\d+\.\d+,-?\d+\.\d+),`)
 
@@ -35,8 +37,17 @@ func run(ctx context.Context, verbose bool, timeout time.Duration) error {
 	if verbose {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
 	}
+	if visible {
+		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+	}
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()
+	if visible {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// create a timeout
 	ctx, cancel = context.WithTimeout(ctx, timeout)

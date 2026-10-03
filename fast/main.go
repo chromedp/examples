@@ -1,8 +1,8 @@
 // Command fast is a chromedp example demonstrating how to measure the speed of
 // the internet connection and show the result in the terminal. It reads
-// fast.com. Inspired by [adhocore/fast].
-//
-// [adhocore/fast]: https://github.com/adhocore/fast
+// fast.com. Inspired by [adhocore/fast]. Use -v to print the protocol messages
+// and -visible to show the browser window and leave it open.  [adhocore/fast]:
+// https://github.com/adhocore/fast
 package main
 
 import (
@@ -24,25 +24,35 @@ import (
 
 func main() {
 	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	timeout := flag.Duration("timeout", 2*time.Minute, "timeout")
 	scale := flag.Float64("scale", 1.5, "scale")
 	padding := flag.Int("padding", 0, "padding")
 	out := flag.String("out", "", "out")
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *timeout, *scale, *padding, *out); err != nil {
+	if err := run(context.Background(), *verbose, *visible, *timeout, *scale, *padding, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, verbose bool, timeout time.Duration, scale float64, padding int, out string) error {
+func run(ctx context.Context, verbose, visible bool, timeout time.Duration, scale float64, padding int, out string) error {
 	// create context
 	var opts []chromedp.ContextOption
 	if verbose {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
 	}
+	if visible {
+		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+	}
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()
+	if visible {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// create a timeout
 	ctx, cancel = context.WithTimeout(ctx, timeout)

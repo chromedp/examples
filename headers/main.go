@@ -1,5 +1,6 @@
 // Command headers is a chromedp example demonstrating how to add extra HTTP
-// headers to browser requests.
+// headers to browser requests. Use -v to print the protocol messages and
+// -visible to show the browser window and leave it open.
 package main
 
 import (
@@ -9,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
@@ -17,14 +19,29 @@ import (
 
 func main() {
 	port := flag.Int("port", 8544, "port")
+	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	flag.Parse()
 
 	// start the server
 	go headerServer(fmt.Sprintf(":%d", *port))
 
 	// create context
-	ctx, cancel := chromedp.NewContext(context.Background())
+	var opts []chromedp.ContextOption
+	if *verbose {
+		opts = append(opts, chromedp.WithDebugf(log.Printf))
+	}
+	if *visible {
+		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+	}
+	ctx, cancel := chromedp.NewContext(context.Background(), opts...)
 	defer cancel()
+	if *visible {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// run the actions
 	res, err := setheaders(

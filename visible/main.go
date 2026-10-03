@@ -1,5 +1,7 @@
 // Command visible is a chromedp example demonstrating how to wait until an
-// element is visible. It starts a local server and needs no internet.
+// element is visible. It starts a local server and needs no internet. Use -v to
+// print the protocol messages and -visible to show the browser window and leave
+// it open.
 package main
 
 import (
@@ -8,31 +10,47 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/chromedp/chromedp"
 )
 
 func main() {
 	port := flag.Int("port", 8544, "port")
+	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	flag.Parse()
 
 	// start the server
 	go testServer(fmt.Sprintf(":%d", *port))
 
 	// create context
-	ctx, cancel := chromedp.NewContext(context.Background())
+	var opts []chromedp.ContextOption
+	if *verbose {
+		opts = append(opts, chromedp.WithDebugf(log.Printf))
+	}
+	if *visible {
+		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+	}
+	ctx, cancel := chromedp.NewContext(context.Background(), opts...)
 	defer cancel()
+	if *visible {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// run the actions
-	err := visible(ctx, fmt.Sprintf("http://localhost:%d", *port))
+	err := waitBoxes(ctx, fmt.Sprintf("http://localhost:%d", *port))
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-// visible loads the page and waits for the elements box1 and box2. A script on
+// waitBoxes loads the page and waits for the elements box1 and box2. A script on
 // the page shows box1 after 3 seconds.
-func visible(ctx context.Context, host string) error {
+func waitBoxes(ctx context.Context, host string) error {
 	return chromedp.Do(ctx,
 		chromedp.Navigate(host),
 		chromedp.Evaluate[chromedp.Void](makeVisibleScript),

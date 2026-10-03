@@ -1,13 +1,14 @@
 // Command download_file is a chromedp example demonstrating how to do headless
-// file downloads. It reads github.com.
-//
-// For this technique to work, the file type must trigger the "Download / Save
-// As" browser dialog. See the download_image example for how to save a file
-// that the browser window loads without a download.
+// file downloads. It reads github.com. Use -v to print the protocol messages
+// and -visible to show the browser window and leave it open.  For this
+// technique to work, the file type must trigger the "Download / Save As"
+// browser dialog. See the download_image example for how to save a file that
+// the browser window loads without a download.
 package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -21,12 +22,26 @@ import (
 )
 
 func main() {
+	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	flag.Parse()
+
 	// create context
-	ctx, cancel := chromedp.NewContext(
-		context.Background(),
-		chromedp.WithDebugf(log.Printf),
-	)
+	var opts []chromedp.ContextOption
+	if *verbose {
+		opts = append(opts, chromedp.WithDebugf(log.Printf))
+	}
+	if *visible {
+		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+	}
+	ctx, cancel := chromedp.NewContext(context.Background(), opts...)
 	defer cancel()
+	if *visible {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// create a timeout, so that no wait loop can run forever
 	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)

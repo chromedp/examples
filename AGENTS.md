@@ -70,6 +70,17 @@ you trust it, because a later decision can amend or replace it.
 10. Do not run a program in a session that has no browser. Run `go build ./...`,
     `go vet ./...` and `go test ./docs/` only.
 11. Never put a password, a key or a token in a file or in a message.
+12. Every program has the flag `-v` and calls `flag.Parse()`. With `-v`, the
+    program adds `chromedp.WithDebugf(log.Printf)` to the options of
+    `chromedp.NewContext`. Without `-v`, it prints no protocol messages. Every
+    program except `remote` also has the flag `-visible`. With `-visible`, the
+    program adds `chromedp.WithVisibleWindow()` and `chromedp.WithKeepOpen()` to
+    the same options, and it prints `chromedp.KeptOpen(ctx)` to the standard
+    error. A program that builds its own allocator, such as `proxy`, adds
+    `chromedp.VisibleWindow` and `chromedp.KeepOpen` to the options of the
+    allocator instead. Say this in the doc comment, for example "Use -v to
+    print the protocol messages and -visible to show the browser window and
+    leave it open."
 
 ## Layout
 
@@ -100,6 +111,8 @@ go build ./...
 go vet ./...
 go run ./<name>
 ```
+
+Add `-v` to any program to print the protocol messages.
 
 The typed API is not in a released version of `chromedp`. `go.mod` names the
 released versions, so a build needs a `go.work` file that git ignores. It uses

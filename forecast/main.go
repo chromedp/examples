@@ -1,6 +1,7 @@
 // Command forecast is a chromedp example demonstrating how to render the
 // weather forecast of Google in the terminal. It reads www.google.com. Use the
-// flag -q to name the place, for example -q Jakarta.
+// flag -q to name the place, for example -q Jakarta. Use -v to print the
+// protocol messages and -visible to show the browser window and leave it open.
 package main
 
 import (
@@ -36,6 +37,7 @@ const (
 
 func main() {
 	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open (no effect with -remote)")
 	timeout := flag.Duration("timeout", 1*time.Minute, "timeout")
 	query := flag.String("q", "", "weather query")
 	lang := flag.String("hl", "", "language (see hl.json)")
@@ -47,7 +49,7 @@ func main() {
 	remote := flag.String("remote", "", "remote")
 	out := flag.String("out", "", "out file")
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *timeout, *query, *lang, *unit, *typ, *day, *scale, *padding, *remote, *out); err != nil {
+	if err := run(context.Background(), *verbose, *visible, *timeout, *query, *lang, *unit, *typ, *day, *scale, *padding, *remote, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		if strings.HasPrefix(err.Error(), "invalid lang ") {
 			fmt.Fprint(os.Stderr, "\nvalid languages:\n")
@@ -59,7 +61,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, unit, typ string, day int, scale float64, padding int, remote, out string) error {
+func run(ctx context.Context, verbose, visible bool, timeout time.Duration, query, lang, unit, typ string, day int, scale float64, padding int, remote, out string) error {
 	// make sure that the flag values are valid
 	lang = strings.ToLower(lang)
 	if _, ok := langs[lang]; !ok && lang != "" {
@@ -104,8 +106,17 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 	if verbose {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
 	}
+	if visible {
+		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+	}
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()
+	if visible && remote == "" {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// create a timeout
 	ctx, cancel = context.WithTimeout(ctx, timeout)

@@ -1,6 +1,7 @@
 // Command upload is a chromedp example demonstrating how to upload a file on a
 // form. It starts a local server and needs no internet. The program uploads its
-// own file main.go, so run it from its own directory.
+// own source file, so it works from any directory. Use -v to print the protocol
+// messages and -visible to show the browser window and leave it open.
 package main
 
 import (
@@ -11,21 +12,23 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 
 	"github.com/chromedp/chromedp"
 )
 
 func main() {
 	port := flag.Int("port", 8544, "port")
+	verbose := flag.Bool("v", false, "verbose")
+	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	flag.Parse()
 
-	// get the working directory
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
+	// find the source file of this program. The path comes from the build, so
+	// the program does not depend on the working directory
+	_, filepath, _, ok := runtime.Caller(0)
+	if !ok {
+		log.Fatal("could not find the source file")
 	}
-
-	filepath := wd + "/main.go"
 
 	// get some info about the file
 	fi, err := os.Stat(filepath)
@@ -38,8 +41,21 @@ func main() {
 	go uploadServer(fmt.Sprintf(":%d", *port), result)
 
 	// create context
-	ctx, cancel := chromedp.NewContext(context.Background())
+	var opts []chromedp.ContextOption
+	if *verbose {
+		opts = append(opts, chromedp.WithDebugf(log.Printf))
+	}
+	if *visible {
+		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+	}
+	ctx, cancel := chromedp.NewContext(context.Background(), opts...)
 	defer cancel()
+	if *visible {
+		defer func() {
+			wsURL, dir := chromedp.KeptOpen(ctx)
+			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
+		}()
+	}
 
 	// run the actions
 	_, err = upload(ctx, fmt.Sprintf("http://localhost:%d", *port), filepath)
