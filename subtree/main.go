@@ -1,5 +1,5 @@
 // Command subtree is a chromedp example demonstrating how to populate and
-// travel a subtree of the DOM.
+// travel a subtree of the DOM. It starts a local server and needs no internet.
 package main
 
 import (
@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	// create a test server to serve the page
+	// create a test server for the page
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprint(w, `
 <html lang="en">
@@ -43,35 +43,32 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run the steps
+	// run the actions
 	err := travelSubtree(ctx, ts.URL, chromedp.ID("title"))
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-// travelSubtree illustrates how to ask chromedp to populate a subtree of a node.
+// travelSubtree shows how to make chromedp populate the subtree of a node.
+//
+// Users ask why node.Children is empty while node.ChildNodeCount is greater
+// than 0. In the issue below, @mvdan explains that chromedp gets nodes from the
+// browser only on demand. A program that holds the whole DOM tree in memory
+// uses much more CPU and memory. chromedp.FromNode retrieves the child nodes.
+// This example shows an easier way to travel a subtree of the DOM.
 //
 // https://github.com/chromedp/chromedp/issues/632#issuecomment-654213589
-// @mvdan explains why node.Children is almost always empty:
-// Nodes are only obtained from the browser on an on-demand basis.
-// If we always held the entire DOM node tree in memory,
-// our CPU and memory usage in Go would be far higher.
-// And chromedp.FromNode can be used to retrieve the child nodes.
-//
-// Users get confused sometimes (why node.Children is empty while node.ChildNodeCount > 0?).
-// And some users want to travel a subtree of the DOM more easy.
-// So here comes the example.
 func travelSubtree[S chromedp.Selectable](ctx context.Context, urlstr string, sel S, opts ...chromedp.QueryOption) error {
-	// add populate option to the passed opts
+	// add the populate option to the passed opts
 	opts = append(opts, chromedp.Populate(-1, true, chromedp.PopulateWait(1*time.Second)))
 
 	if err := chromedp.Do(ctx, chromedp.Navigate(urlstr)); err != nil {
 		return err
 	}
-	// retrieve the nodes. Since the [chromedp.Populate] option has been
-	// added to opts, the [chromedp.Nodes] action will wait until after the
-	// [chromedp.PopulateWait] timeout has passed
+	// retrieve the nodes. The code added the [chromedp.Populate] option to
+	// opts, so the [chromedp.Nodes] action waits until the
+	// [chromedp.PopulateWait] timeout passes
 	nodes, err := chromedp.Run(ctx, chromedp.Nodes(sel, opts...))
 	if err != nil {
 		return err
@@ -80,12 +77,12 @@ func travelSubtree[S chromedp.Selectable](ctx context.Context, urlstr string, se
 	return nil
 }
 
-// printNodes recurses the node tree and prints the nodes as a tree.
+// printNodes prints the nodes as a tree. It calls itself for the children of
+// each node.
 //
-// Note that this same functionality is available in the chromedp package as
-// [chromedp.Dump] / [chromedp.DumpTo].
+// The chromedp package has the same function as [chromedp.Dump] and
+// [chromedp.DumpTo].
 func printNodes(w io.Writer, nodes []*chromedp.Node, padding, indent string) {
-	// This will block until the chromedp listener closes the channel
 	for _, node := range nodes {
 		switch {
 		case node.NodeName == "#text":

@@ -1,5 +1,6 @@
-// Command forecast is a chromedp example demonstrating how to extract and
-// render data from a page.
+// Command forecast is a chromedp example demonstrating how to render the
+// weather forecast of Google in the terminal. It reads www.google.com. Use the
+// flag -q to name the place, for example -q Jakarta.
 package main
 
 import (
@@ -59,7 +60,7 @@ func main() {
 }
 
 func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, unit, typ string, day int, scale float64, padding int, remote, out string) error {
-	// check
+	// make sure that the flag values are valid
 	lang = strings.ToLower(lang)
 	if _, ok := langs[lang]; !ok && lang != "" {
 		return fmt.Errorf("invalid lang %q", lang)
@@ -86,19 +87,19 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 
 	query = "weather forecast " + query
 
-	// build search params
+	// build the search parameters
 	v := make(url.Values)
 	v.Set("q", strings.TrimSpace(query))
 	if lang != "" {
 		v.Set("hl", lang)
 	}
 
-	// use remote allocator context if specified
+	// if the flag -remote is set, use a remote browser
 	if remote != "" {
 		ctx, _ = chromedp.NewRemoteAllocator(ctx, remote)
 	}
 
-	// create chrome instance
+	// create context
 	var opts []chromedp.ContextOption
 	if verbose {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
@@ -110,7 +111,7 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	// get
+	// open the search page, and find the nodes of the forecast
 	if err := chromedp.Do(ctx, chromedp.Navigate("https://www.google.com/search?"+v.Encode())); err != nil {
 		return err
 	}
@@ -148,7 +149,7 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 	if typ != "temp" {
 		_ = chromedp.Do(ctx, chromedp.Click(chromedp.ID("wob_"+typ)))
 	}
-	// hide other types
+	// hide the other types of the chart
 	_, _ = chromedp.Run(ctx,
 		chromedp.QueryAfter(`#wob_d > div:first-child > *:not(#wob_`+typ+`)`,
 			func(ctx context.Context, t *chromedp.Target, nodes []*chromedp.Node) (chromedp.Void, error) {
@@ -169,18 +170,18 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 		_ = chromedp.Do(ctx, chromedp.Click(fmt.Sprintf(`//*[@data-wob-di=%d]`, day)))
 	}
 
-	// capture screenshot
+	// capture the screenshot
 	buf, err := chromedp.Run(ctx, chromedp.ScreenshotNodes(nodes, scale))
 	if err != nil {
 		return err
 	}
-	// decode png
+	// decode the PNG
 	img, err := png.Decode(bytes.NewReader(buf))
 	if err != nil {
 		return err
 	}
 
-	// pad image
+	// add white padding around the image
 	if padding != 0 {
 		bounds := img.Bounds()
 		w, h := bounds.Dx(), bounds.Dy()
@@ -194,17 +195,19 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, query, lang, 
 		img = dst
 	}
 
-	// write to disk
+	// write the screenshot to disk if the flag -out is set
 	if out != "" {
 		if err := os.WriteFile(out, buf, 0o644); err != nil {
 			return err
 		}
 	}
 
-	// output
+	// show the image in the terminal
 	return rasterm.Encode(os.Stdout, img)
 }
 
+// findNode returns the link (an A node) that holds a span with the text val. It
+// searches nodes and their children, and returns nil if it finds none.
 func findNode(val string, nodes []*chromedp.Node) *chromedp.Node {
 	for _, node := range nodes {
 		if node.Parent == nil || node.Parent.Parent == nil {

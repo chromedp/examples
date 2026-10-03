@@ -1,5 +1,7 @@
 // Command multi is a chromedp example demonstrating how to use headless-shell
-// and a container (Docker, Podman, other). See README.md.
+// and a container (Docker, Podman, other). The program takes URLs as arguments,
+// takes a screenshot of each page and prints its size. The flag -out names a
+// directory for the PNG files. See README.md.
 package main
 
 import (
@@ -70,6 +72,7 @@ func run(ctx context.Context, verbose bool, wait time.Duration, out string, urls
 	return nil
 }
 
+// snapshot navigates to urlstr, waits, and returns a screenshot of the page.
 func snapshot(ctx context.Context, wait time.Duration, urlstr string) ([]byte, error) {
 	if err := chromedp.Do(ctx,
 		chromedp.Navigate(urlstr),

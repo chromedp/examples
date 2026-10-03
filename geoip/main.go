@@ -1,5 +1,6 @@
-// Command forecast is a chromedp example demonstrating how to extract and
-// render data from a page.
+// Command geoip is a chromedp example demonstrating how to look up the location
+// of an IP address and show a map of it in the terminal. It reads
+// www.google.com/maps. Give one or more IP addresses as arguments.
 package main
 
 import (
@@ -39,7 +40,7 @@ func main() {
 }
 
 func run(ctx context.Context, verbose bool, timeout time.Duration, lang string, zoom, scale float64, args []string) error {
-	// create chrome instance
+	// create context
 	var opts []chromedp.ContextOption
 	if verbose {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
@@ -47,7 +48,7 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, lang string, 
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()
 
-	// create timeout
+	// create a timeout
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
 
@@ -163,9 +164,8 @@ func emojiFlag(code string) string {
 
 const mapURL = `http://www.google.com/maps/place/%[1]f,%[2]f/@%[1]f,%[2]f,%[3]fz?hl=en`
 
-// inViewportJS is a JavaScript snippet that will get the specified node
-// position relative to the viewport and returns true if the specified node
-// is within the window's viewport.
+// inViewportJS is a JavaScript snippet. It returns true if the node with the
+// XPath expression is inside the viewport of the window.
 const inViewportJS = `(function(a) {
   var r = a[0].getBoundingClientRect();
   return r.top >= 0 && r.left >= 0 && r.bottom <= window.innerHeight && r.right <= window.innerWidth;

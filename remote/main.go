@@ -1,5 +1,7 @@
 // Command remote is a chromedp example demonstrating how to connect to an
-// existing Chrome DevTools instance using a remote WebSocket URL.
+// existing Chrome DevTools instance using a remote WebSocket URL. The flag -url
+// names the browser and the flag -nav names the page to read, which is on the
+// internet by default. See README.md.
 package main
 
 import (
@@ -33,11 +35,11 @@ func run(ctx context.Context, verbose bool, urlstr, nav string, d time.Duration)
 	if urlstr == "" {
 		return errors.New("invalid remote devtools url")
 	}
-	// create allocator context for use with creating a browser context later
+	// create an allocator context, for the browser context below
 	allocatorContext, _ := chromedp.NewRemoteAllocator(context.Background(), urlstr)
 	// defer cancel()
 
-	// build context options
+	// build the context options
 	var opts []chromedp.ContextOption
 	if verbose {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
@@ -47,7 +49,7 @@ func run(ctx context.Context, verbose bool, urlstr, nav string, d time.Duration)
 	ctx, _ = chromedp.NewContext(allocatorContext, opts...)
 	// defer cancel()
 
-	// run task list
+	// run the actions
 	if err := chromedp.Do(ctx,
 		chromedp.Navigate(nav),
 		chromedp.Sleep(d),

@@ -1,5 +1,6 @@
-// Command fast is a chromedp example demonstrating how to extract and
-// render data from a page. Inspired by [adhocore/fast].
+// Command fast is a chromedp example demonstrating how to measure the speed of
+// the internet connection and show the result in the terminal. It reads
+// fast.com. Inspired by [adhocore/fast].
 //
 // [adhocore/fast]: https://github.com/adhocore/fast
 package main
@@ -35,7 +36,7 @@ func main() {
 }
 
 func run(ctx context.Context, verbose bool, timeout time.Duration, scale float64, padding int, out string) error {
-	// create chrome instance
+	// create context
 	var opts []chromedp.ContextOption
 	if verbose {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
@@ -49,7 +50,7 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, scale float64
 
 	start := time.Now()
 
-	// capture screenshot
+	// run the speed test, and capture the result
 	if err := chromedp.Do(ctx,
 		chromedp.Navigate(`https://fast.com`),
 		chromedp.WaitVisible(`#speed-value.succeeded`),
@@ -65,13 +66,13 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, scale float64
 
 	end := time.Now()
 
-	// decode png
+	// decode the PNG
 	img, err := png.Decode(bytes.NewReader(buf))
 	if err != nil {
 		return err
 	}
 
-	// pad image
+	// add white padding around the image
 	if padding != 0 {
 		bounds := img.Bounds()
 		w, h := bounds.Dx(), bounds.Dy()
@@ -85,19 +86,19 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, scale float64
 		img = dst
 	}
 
-	// write to disk
+	// write the screenshot to disk if the flag -out is set
 	if out != "" {
 		if err := os.WriteFile(out, buf, 0o644); err != nil {
 			return err
 		}
 	}
 
-	// output
+	// show the image in the terminal
 	if err := rasterm.Encode(os.Stdout, img); err != nil {
 		return err
 	}
 
-	// metrics
+	// print the time of the test
 	_, err = fmt.Fprintf(os.Stdout, "time: %v\n", end.Sub(start))
 	return err
 }

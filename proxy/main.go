@@ -1,5 +1,6 @@
-// Command proxy is a chromedp example demonstrating how to authenticate a proxy
-// server which requires authentication.
+// Command proxy is a chromedp example demonstrating how to authenticate to a
+// proxy server that requires authentication. It starts a local proxy and a
+// local web server, and needs no internet.
 package main
 
 import (
@@ -29,27 +30,27 @@ func main() {
 
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		// 1) specify the proxy server.
-		// Note that the username/password is not provided here.
-		// Check the link below for the description of the proxy settings:
+		// The user name and the password are not set here.
+		// The link below describes the proxy settings:
 		// https://www.chromium.org/developers/design-documents/network-settings
 		chromedp.ProxyServer(p.URL),
-		// By default, Chrome will bypass localhost.
-		// The test server is bound to localhost, so we should add the
-		// following flag to use the proxy for localhost URLs.
+		// By default, Chrome bypasses the proxy for localhost.
+		// The test server listens on localhost, so this flag makes Chrome use
+		// the proxy for localhost URLs.
 		chromedp.Flag("proxy-bypass-list", "<-loopback>"),
 	)
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
-	// log the protocol messages to understand how it works.
+	// log the protocol messages, to show how it works.
 	ctx, cancel = chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
 	defer cancel()
 
-	// 3) handle the Fetch.AuthRequired event and provide the username/password to the proxy
-	// We will disable the fetch domain and cancel the event loops once the proxy is
-	// authenticated to reduce the overhead. If your project needs the fetch domain to be enabled,
-	// then you should change the code accordingly.
-	// Start the browser first. A browser that Events starts would live only
-	// as long as lctx, and lcancel would close it.
+	// 3) handle the Fetch.AuthRequired event, and give the user name and the
+	// password to the proxy. After the proxy accepts them, the code disables
+	// the fetch domain and stops the event loops, to reduce the overhead. If
+	// your project needs the fetch domain, change the code.
+	// Start the browser first. A browser that Events starts lives only as long
+	// as lctx, so lcancel closes it.
 	if err := chromedp.Do(ctx); err != nil {
 		log.Fatal(err)
 	}
@@ -81,11 +82,11 @@ func main() {
 					Password: "p",
 				},
 			})
-			// Chrome will remember the credential for the current instance,
-			// so we can disable the fetch domain once credential is provided.
-			// Please file an issue if Chrome does not work in this way.
+			// Chrome remembers the credentials for the current instance, so
+			// the code can disable the fetch domain after it gives them. If
+			// Chrome does not work this way, file an issue.
 			_, _ = chromedp.Call(ctx, fetch.Disable, cdp.Empty{})
-			// and stop the event loops too.
+			// stop the event loops too.
 			lcancel()
 			return
 		}
@@ -99,7 +100,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// to show that further requests (even in new tabs) are authenticated.
+	// navigate in a new tab, to show that the proxy accepts later requests
+	// from other tabs too.
 	tctx, cancel := chromedp.NewContext(ctx)
 	defer cancel()
 	if err := chromedp.Do(tctx, chromedp.Navigate(s.URL+"/tab")); err != nil {
@@ -114,7 +116,8 @@ func newProxy() *httputil.ReverseProxy {
 			if dump, err := httputil.DumpRequest(r, true); err == nil {
 				log.Printf("%s", dump)
 			}
-			// hardcode username/password "u:p" (base64 encoded: dTpw ) to make it simple
+			// the user name and the password are "u:p" (base64: dTpw), to keep the
+			// example simple
 			if auth := r.Header.Get("Proxy-Authorization"); auth != "Basic dTpw" {
 				r.Header.Set("X-Failed", "407")
 			}
@@ -132,6 +135,8 @@ func newProxy() *httputil.ReverseProxy {
 	}
 }
 
+// transport fails a request that has the header X-Failed. The proxy director
+// sets this header when the credentials are wrong.
 type transport struct {
 	http.RoundTripper
 }
