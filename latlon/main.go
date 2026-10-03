@@ -41,35 +41,20 @@ func run(ctx context.Context, verbose bool, timeout time.Duration) error {
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	// listen for the navigated event
-	ch, errch := make(chan string, 1), make(chan error, 1)
-	chromedp.ListenTarget(ctx, func(ev interface{}) {
-		if verbose {
-			log.Printf("%T: %+v\n", ev, ev)
-		}
-		switch event := ev.(type) {
-		case *page.EventNavigatedWithinDocument:
-			if m := latlonRE.FindStringSubmatch(event.URL); m != nil {
-				ch <- m[1]
+	// navigate, and wait for the navigated event with the coordinates. The
+	// event wait starts before the navigation, so no event is lost.
+	ev, err := chromedp.Run(ctx, chromedp.WaitEvent(page.NavigatedWithinDocument,
+		func(ev page.EventNavigatedWithinDocument) bool {
+			if verbose {
+				log.Printf("%T: %+v\n", ev, ev)
 			}
-		}
-	})
-
-	// run task
-	go func() {
-		if err := chromedp.Run(ctx, chromedp.Navigate("https://www.google.com/maps/?hl=en")); err != nil {
-			errch <- err
-		}
-	}()
-
-	// wait for context closed, an error, or the result
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case err := <-errch:
+			return latlonRE.MatchString(ev.URL)
+		},
+		chromedp.Navigate("https://www.google.com/maps/?hl=en"),
+	))
+	if err != nil {
 		return err
-	case res := <-ch:
-		fmt.Fprintln(os.Stdout, res)
 	}
+	fmt.Fprintln(os.Stdout, latlonRE.FindStringSubmatch(ev.URL)[1])
 	return nil
 }
