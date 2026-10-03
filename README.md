@@ -1,34 +1,37 @@
 # About chromedp examples
 
-This folder contains a variety of code examples for working with
-[`chromedp`][1]. The package documentation contains a number of [simple
-examples][2] which are self-contained, while this repository holds more complex
-examples which tend to require internet access or external components.
+This folder holds examples for [`chromedp`][1]. The package documentation has
+simple examples that are self-contained. These examples are larger. Many need
+internet access or an external component.
 
-Please note that these examples may break occassionally. Additionally, since
-these examples are written for specific websites, there is a good chance that
-the current selectors, etc. break after the website they are written against
-changes.
+These examples use the new typed API of `chromedp`. See the section "The new
+API" below.
 
-While every effort is made to ensure that these examples are kept up-to-date,
-it is expected that the examples made available here may occasionally break.
-
-To file issues, use the [chromedp's issue tracker][3].
+The examples can break. Most of them read live websites such as `pkg.go.dev`,
+`github.com` and `google.com`. When a site changes its HTML, the selectors of
+the example stop to match. To report a problem, use the [chromedp issue
+tracker][3].
 
 ## Building and Running an Example
 
-You can build and run these examples in the usual Go way:
+The module needs Go 1.27. The typed API is not in a released version of
+`chromedp` yet. The `go.mod` file still names the old versions, so a build
+needs a `go.work` file that points at local copies of `chromedp` and `cdproto`
+on the branch `typed-api`. The file is not part of the repository.
+
+If a program needs a browser, `chromedp` looks for `google-chrome`, `chromium`
+or `chrome` on the `PATH`. Run an example from the root of this repository:
 
 ```sh
-# retrieve examples
-$ go get -u -d github.com/chromedp/examples
-
 # run example <prog>
-$ go run $GOPATH/src/github.com/chromedp/examples/<prog>/main.go
+$ go run ./<prog>
 
 # build example <prog>
-$ go build -o <prog> github.com/chromedp/examples/<prog> && ./<prog>
+$ go build -o /tmp/<prog> ./<prog> && /tmp/<prog>
 ```
+
+The programs `upload` and `geoip` read files, so run `upload` from its own
+directory with `cd upload && go run .`.
 
 ### Available Examples
 
@@ -62,6 +65,75 @@ The following examples are currently available:
 | [upload](/upload)                 | upload a file on a form                                                             |
 | [visible](/visible)               | wait until an element is visible                                                    |
 <!-- END EXAMPLES -->
+
+## The new API
+
+The examples use the generic action API. An action returns its value, so no
+program passes a pointer to receive it. `chromedp.Do` runs actions that return
+nothing, and `chromedp.Run` runs one action and returns its value. A program
+reads events with the iterators `chromedp.Events` and `chromedp.WaitEvent`. A
+program sends a raw protocol command with `cdp.Call`. A selector is a string or
+a typed value such as `chromedp.CSS`, `chromedp.ID` and `chromedp.NodeIDs`.
+
+The file `docs/API.md` in the `chromedp` repository shows 13 examples of the old
+code and the new code side by side. The file `docs/MIGRATION.md` in the same
+directory lists every changed name.
+
+Three things are good to know when you read these examples:
+
+1. `network.Headers` has no fields in the typed `cdproto`. The `headers` example
+   sends the command `Network.setExtraHTTPHeaders` with `Target.Call` and a map.
+2. `network.GetResponseBody` does not decode the body. The `download_image`
+   example decodes the base64 text itself.
+3. `chromedp.Events` starts the browser if the context has none. A browser that
+   starts this way lives only as long as the context that you pass. The `proxy`
+   example calls `chromedp.Do(ctx)` first for this reason.
+
+## Verification
+
+The table below shows what happens when each program runs, with Chrome 154 on
+Linux. "Offline" means that the program needs no internet and no service. The
+column "Old" is the program at the `main` branch with `chromedp` v0.16.0. The
+column "New" is the program at this branch.
+
+| Example         | Needs                            | Old                                  | New                                  |
+|-----------------|----------------------------------|--------------------------------------|--------------------------------------|
+| click           | internet (pkg.go.dev)            | fails, timeout after 15 seconds      | same                                 |
+| cookie          | offline                          | works                                | works, same output                   |
+| download_file   | internet (github.com)            | fails, waits for a download event    | fails, times out after 60 seconds    |
+| download_image  | internet (githubusercontent.com) | works, 38371 bytes                   | works, 38371 bytes                   |
+| emulate         | internet (whatsmyua.info)        | works, same file sizes               | works, same file sizes               |
+| eval            | internet (google.com)            | works                                | works                                |
+| fast            | internet (fast.com), terminal    | fails at the end, no terminal image  | same                                 |
+| forecast        | internet (google.com)            | fails, timeout                       | same                                 |
+| geoip           | internet (google.com maps)       | lookup works, map times out          | same                                 |
+| headers         | offline                          | works                                | works, same output                   |
+| keys            | offline                          | works                                | works, same output                   |
+| latlon          | internet (google.com maps)       | works                                | works, same output                   |
+| logic           | internet (github.com)            | works                                | works, same output                   |
+| multi           | offline with a `data:` URL       | works                                | works, same files                    |
+| pdf             | internet (google.com)            | works                                | works                                |
+| proxy           | offline                          | works                                | works, same requests                 |
+| remote          | a Chrome with a debugging port   | works up to the terminal image       | same                                 |
+| screenshot      | internet (pkg.go.dev, brank.as)  | works                                | works, same files                    |
+| submit          | internet (github.com)            | fails, waits for a search result     | same                                 |
+| subtree         | offline                          | works                                | works, same output                   |
+| text            | internet (pkg.go.dev)            | works                                | works, same output                   |
+| upload          | offline                          | works                                | works, same output                   |
+| visible         | offline                          | works                                | works, same output                   |
+
+Notes:
+
+1. The programs `fast`, `geoip` and `remote` draw an image with `rasterm`. This
+   needs a terminal that can show images. In the test the output was not a
+   terminal, so the programs ended with the error `term graphics not available`
+   in the old and the new code.
+2. The program `geoip` needs the file `GeoLite2-City.mmdb`, and `forecast` needs
+   the file `hl.json`. Both are in the repository.
+3. The `remote` test used `chrome --headless --remote-debugging-port=9222` and a
+   local web server.
+4. The live sites can change at any time, so the results of the live programs
+   can differ on another day.
 
 ## Contributing
 
