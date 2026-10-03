@@ -9,7 +9,6 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"log"
 	"os"
 	"time"
@@ -75,11 +74,8 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-		// the typed cdproto does not decode the body for us
-		if res.Base64encoded {
-			return base64.StdEncoding.DecodeString(res.Body)
-		}
-		return []byte(res.Body), nil
+		// the result decodes the body by its base64 flag
+		return res.Body, nil
 	})
 	if err != nil {
 		log.Fatal(err)
