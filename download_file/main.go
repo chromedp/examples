@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/chromedp/cdproto/browser"
+	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 )
 
@@ -32,26 +33,11 @@ func main() {
 	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	// set up a channel, so we can block later while we monitor the download
-	// progress
-	done := make(chan string, 1)
-	// set up a listener to watch the download events and close the channel
-	// when complete this could be expanded to handle multiple downloads
+	// subscribe to the download events, so we can watch the download
+	// progress later. This could be expanded to handle multiple downloads
 	// through creating a guid map, monitor download urls via
-	// EventDownloadWillBegin, etc
-	chromedp.ListenTarget(ctx, func(v interface{}) {
-		if ev, ok := v.(*browser.EventDownloadProgress); ok {
-			completed := "(unknown)"
-			if ev.TotalBytes != 0 {
-				completed = fmt.Sprintf("%0.2f%%", ev.ReceivedBytes/ev.TotalBytes*100.0)
-			}
-			log.Printf("state: %s, completed: %s\n", ev.State.String(), completed)
-			if ev.State == browser.DownloadProgressStateCompleted {
-				done <- ev.GUID
-				close(done)
-			}
-		}
-	})
+	// browser.DownloadWillBegin, etc
+	progress := chromedp.Events(ctx, browser.DownloadProgress)
 
 	// get working directory
 	wd, err := os.Getwd()
@@ -63,7 +49,7 @@ func main() {
 	// link click method here but this could also be done with a
 	// chromedp.Navigate task which points directly at the file we want to
 	// download, as long as you run browser.SetDownloadBehavior first
-	if err := chromedp.Run(ctx,
+	if err := chromedp.Do(ctx,
 		// navigate to the page
 		chromedp.Navigate(`https://github.com/chromedp/examples`),
 		// find and click "Code" button when ready
@@ -73,10 +59,14 @@ func main() {
 		// SetDownloadBehaviorBehaviorAllow so that the file will be named as
 		// the GUID. please note that it only works with 92.0.4498.0 or later
 		// due to issue 1204880, see https://bugs.chromium.org/p/chromium/issues/detail?id=1204880
-		browser.
-			SetDownloadBehavior(browser.SetDownloadBehaviorBehaviorAllowAndName).
-			WithDownloadPath(wd).
-			WithEventsEnabled(true),
+		chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
+			_, err := cdp.Call(ctx, t, browser.SetDownloadBehavior, browser.SetDownloadBehaviorParams{
+				Behavior:      browser.SetDownloadBehaviorBehaviorAllowAndName,
+				DownloadPath:  wd,
+				EventsEnabled: new(true),
+			})
+			return err
+		}),
 		// click the "Download Zip" link when visible
 		chromedp.Click(`//span[text()="Download ZIP"]`, chromedp.NodeVisible),
 	); err != nil && !strings.Contains(err.Error(), "net::ERR_ABORTED") {
@@ -86,8 +76,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// This will block until the chromedp listener closes the channel
-	guid := <-done
+	// This will block until the download is complete
+	var guid string
+	for ev, err := range progress {
+		if err != nil {
+			log.Fatal(err)
+		}
+		completed := "(unknown)"
+		if ev.TotalBytes != 0 {
+			completed = fmt.Sprintf("%0.2f%%", ev.ReceivedBytes/ev.TotalBytes*100.0)
+		}
+		log.Printf("state: %s, completed: %s\n", ev.State.String(), completed)
+		if ev.State == browser.DownloadProgressStateCompleted {
+			guid = ev.GUID
+			break
+		}
+	}
 
 	// We can predict the exact file location and name here because of how we
 	// configured SetDownloadBehavior and WithDownloadPath
