@@ -1,6 +1,6 @@
 # About chromedp examples
 
-This repository holds 23 example programs for [`chromedp`][1], a Go package that
+This repository holds 24 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -84,6 +84,7 @@ only with its flag `-out`.
 | [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport                      |
 | [submit](/submit)                 | fill out and submit a form                                                                      |
 | [subtree](/subtree)               | populate and travel a subtree of the DOM                                                        |
+| [tabs](/tabs)                     | use several tabs of one browser                                                                 |
 | [text](/text)                     | extract text from a specific element                                                            |
 | [upload](/upload)                 | upload a file on a form                                                                         |
 | [visible](/visible)               | wait until an element is visible                                                                |
@@ -110,7 +111,7 @@ because they need a live site that can change. No program was run with the flag
 
 | Example         | Needs                            | Result with the current API                       | Checked           |
 |-----------------|----------------------------------|---------------------------------------------------|-------------------|
-| click           | internet (pkg.go.dev)            | fails, times out after 15 seconds                 | earlier test      |
+| click           | internet (pkg.go.dev)            | works                                             | run on 2026-10-04 |
 | cookie          | offline                          | works                                             | run on 2026-10-04 |
 | download_file   | internet (github.com)            | fails, times out after 60 seconds                 | earlier test      |
 | download_image  | internet (githubusercontent.com) | works, writes 38371 bytes                         | earlier test      |
@@ -130,6 +131,7 @@ because they need a live site that can change. No program was run with the flag
 | screenshot      | internet (pkg.go.dev, brank.as)  | works                                             | earlier test      |
 | submit          | internet (wikipedia.org)         | works                                             | earlier test      |
 | subtree         | offline                          | works                                             | run on 2026-10-04 |
+| tabs            | offline                          | works                                             | run on 2026-10-04 |
 | text            | internet (pkg.go.dev)            | works                                             | earlier test      |
 | upload          | offline                          | works                                             | run on 2026-10-04 |
 | visible         | offline                          | works                                             | run on 2026-10-04 |

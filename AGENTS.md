@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 23 example programs for `chromedp`, a Go package that
+This repository holds 24 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 23 programs |
+| `<name>/main.go` | one example program, for each of the 24 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
