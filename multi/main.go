@@ -46,8 +46,8 @@ func run(ctx context.Context, verbose bool, wait time.Duration, out string, urls
 	ctx, cancel := chromedp.NewContext(ctx, opts...)
 	defer cancel()
 	for i, urlstr := range urls {
-		var buf []byte
-		if err := chromedp.Run(ctx, snapshot(wait, urlstr, &buf)); err != nil {
+		buf, err := snapshot(ctx, wait, urlstr)
+		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: unable to snapshot %d (%s): %v\n", i, urlstr, err)
 			continue
 		}
@@ -70,10 +70,12 @@ func run(ctx context.Context, verbose bool, wait time.Duration, out string, urls
 	return nil
 }
 
-func snapshot(wait time.Duration, urlstr string, buf *[]byte) chromedp.Tasks {
-	return chromedp.Tasks{
+func snapshot(ctx context.Context, wait time.Duration, urlstr string) ([]byte, error) {
+	if err := chromedp.Do(ctx,
 		chromedp.Navigate(urlstr),
 		chromedp.Sleep(wait),
-		chromedp.CaptureScreenshot(buf),
+	); err != nil {
+		return nil, err
 	}
+	return chromedp.Run(ctx, chromedp.CaptureScreenshot())
 }
