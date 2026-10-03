@@ -1,5 +1,5 @@
 // Command submit is a chromedp example demonstrating how to fill out and
-// submit a form.
+// submit a form. It reads github.com.
 package main
 
 import (
@@ -15,7 +15,7 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background(), chromedp.WithDebugf(log.Printf))
 	defer cancel()
 
-	// run task list
+	// run the actions
 	res, err := submit(ctx, `https://github.com/search`, `//input[@name="q"]`, `chromedp`)
 	if err != nil {
 		log.Fatal(err)
@@ -24,6 +24,8 @@ func main() {
 	log.Printf("got: `%s`", strings.TrimSpace(res))
 }
 
+// submit searches GitHub for q. It types q in the input that sel selects, submits
+// the form, and returns the text of the first result.
 func submit(ctx context.Context, urlstr, sel, q string) (string, error) {
 	if err := chromedp.Do(ctx,
 		chromedp.Navigate(urlstr),

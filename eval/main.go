@@ -1,5 +1,5 @@
-// Command eval is a chromedp example demonstrating how to evaluate javascript
-// and retrieve the result.
+// Command eval is a chromedp example demonstrating how to evaluate JavaScript
+// and retrieve the result. It reads www.google.com.
 package main
 
 import (
@@ -14,7 +14,7 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run the steps
+	// run the actions
 	if err := chromedp.Do(ctx, chromedp.Navigate(`https://www.google.com/`)); err != nil {
 		log.Fatal(err)
 	}

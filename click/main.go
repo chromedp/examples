@@ -1,5 +1,5 @@
 // Command click is a chromedp example demonstrating how to use a selector to
-// click on an element.
+// click on an element. It reads pkg.go.dev.
 package main
 
 import (
@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	// create chrome instance
+	// create context
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
 		// chromedp.WithDebugf(log.Printf),
@@ -25,9 +25,9 @@ func main() {
 	// navigate to a page, wait for an element, click
 	err := chromedp.Do(ctx,
 		chromedp.Navigate(`https://pkg.go.dev/time`),
-		// wait for footer element is visible (ie, page is loaded)
+		// wait until the footer is visible. The page is then loaded
 		chromedp.WaitVisible(`body > footer`),
-		// find and click "Example" link
+		// find the link of the example, and click it
 		chromedp.Click(`#example-After`, chromedp.NodeVisible),
 	)
 	if err != nil {

@@ -1,5 +1,6 @@
 // Command screenshot is a chromedp example demonstrating how to take a
-// screenshot of a specific element and of the entire browser viewport.
+// screenshot of a specific element and of the entire browser viewport. It
+// reads pkg.go.dev and brank.as.
 package main
 
 import (
@@ -27,7 +28,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// capture entire browser viewport, returning png with quality=90
+	// capture the entire browser viewport with the quality 90
 	buf, err = fullScreenshot(ctx, `https://brank.as/`, 90)
 	if err != nil {
 		log.Fatal(err)
@@ -49,8 +50,8 @@ func elementScreenshot(ctx context.Context, urlstr, sel string) ([]byte, error) 
 
 // fullScreenshot takes a screenshot of the entire browser viewport.
 //
-// Note: chromedp.FullScreenshot overrides the device's emulation settings. Use
-// device.Reset to reset the emulation and viewport settings.
+// chromedp.FullScreenshot overrides the emulation settings of the device. To
+// restore the emulation and the viewport settings, use device.Reset.
 func fullScreenshot(ctx context.Context, urlstr string, quality int) ([]byte, error) {
 	if err := chromedp.Do(ctx, chromedp.Navigate(urlstr)); err != nil {
 		return nil, err

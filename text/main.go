@@ -1,5 +1,5 @@
 // Command text is a chromedp example demonstrating how to extract text from a
-// specific element.
+// specific element. It reads pkg.go.dev.
 package main
 
 import (
@@ -15,7 +15,7 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run the steps
+	// run the actions
 	if err := chromedp.Do(ctx, chromedp.Navigate(`https://pkg.go.dev/time`)); err != nil {
 		log.Fatal(err)
 	}

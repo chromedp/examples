@@ -1,5 +1,5 @@
-// Command pdf is a chromedp example demonstrating how to capture a pdf of a
-// page.
+// Command pdf is a chromedp example demonstrating how to capture a PDF of a
+// page. It reads www.google.com.
 package main
 
 import (
@@ -18,7 +18,7 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// capture pdf
+	// capture the PDF
 	buf, err := printToPDF(ctx, `https://www.google.com/`)
 	if err != nil {
 		log.Fatal(err)
@@ -30,7 +30,7 @@ func main() {
 	fmt.Println("wrote sample.pdf")
 }
 
-// print a specific pdf page.
+// printToPDF navigates to urlstr and returns the page as a PDF.
 func printToPDF(ctx context.Context, urlstr string) ([]byte, error) {
 	if err := chromedp.Do(ctx, chromedp.Navigate(urlstr)); err != nil {
 		return nil, err

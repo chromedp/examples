@@ -1,5 +1,5 @@
-// Command cookie is a chromedp example demonstrating how to set a HTTP cookie
-// on requests.
+// Command cookie is a chromedp example demonstrating how to set an HTTP
+// cookie on requests.
 package main
 
 import (
@@ -21,14 +21,14 @@ func main() {
 	port := flag.Int("port", 8544, "port")
 	flag.Parse()
 
-	// start cookie server
+	// start the cookie server
 	go cookieServer(fmt.Sprintf(":%d", *port))
 
 	// create context
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run the steps
+	// run the actions
 	res, err := setcookies(
 		ctx, fmt.Sprintf("http://localhost:%d", *port),
 		"cookie1", "value1",
@@ -41,7 +41,8 @@ func main() {
 	log.Printf("chrome received cookies: %s", res)
 }
 
-// cookieServer creates a simple HTTP server that logs any passed cookies.
+// cookieServer serves a page that shows the cookies of the request. It logs
+// each cookie too.
 func cookieServer(addr string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
@@ -65,7 +66,7 @@ func setcookies(ctx context.Context, host string, cookies ...string) (string, er
 	if len(cookies)%2 != 0 {
 		panic("length of cookies must be divisible by 2")
 	}
-	// add cookies to chrome
+	// set the cookies in the browser
 	expires := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour).Unix())
 	if err := chromedp.Do(ctx,
 		chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
@@ -83,17 +84,17 @@ func setcookies(ctx context.Context, host string, cookies ...string) (string, er
 			}
 			return nil
 		}),
-		// navigate to site
+		// navigate to the site
 		chromedp.Navigate(host),
 	); err != nil {
 		return "", err
 	}
-	// read the returned values
+	// read the text that the page shows
 	res, err := chromedp.Run(ctx, chromedp.Text(chromedp.ID("result"), chromedp.NodeVisible))
 	if err != nil {
 		return "", err
 	}
-	// read network values
+	// read the cookies of the browser
 	got, err := chromedp.Run(ctx, func(ctx context.Context, t *chromedp.Target) ([]*network.Cookie, error) {
 		res, err := cdp.Call(ctx, t, storage.GetCookies, storage.GetCookiesParams{})
 		return res.Cookies, err
