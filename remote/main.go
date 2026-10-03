@@ -48,14 +48,18 @@ func run(ctx context.Context, verbose bool, urlstr, nav string, d time.Duration)
 	// defer cancel()
 
 	// run task list
-	var body string
-	var buf []byte
-	if err := chromedp.Run(ctx,
+	if err := chromedp.Do(ctx,
 		chromedp.Navigate(nav),
 		chromedp.Sleep(d),
-		chromedp.OuterHTML("html", &body),
-		chromedp.CaptureScreenshot(&buf),
 	); err != nil {
+		return fmt.Errorf("Failed getting body of %s: %v", nav, err)
+	}
+	body, err := chromedp.Run(ctx, chromedp.OuterHTML("html"))
+	if err != nil {
+		return fmt.Errorf("Failed getting body of %s: %v", nav, err)
+	}
+	buf, err := chromedp.Run(ctx, chromedp.CaptureScreenshot())
+	if err != nil {
 		return fmt.Errorf("Failed getting body of %s: %v", nav, err)
 	}
 	fmt.Printf("Body of %s starts with:\n", nav)
