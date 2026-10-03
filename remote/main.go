@@ -38,8 +38,8 @@ func run(ctx context.Context, verbose bool, urlstr, nav string, d time.Duration)
 		return errors.New("invalid remote devtools url")
 	}
 	// create an allocator context, for the browser context below
-	allocatorContext, _ := chromedp.NewRemoteAllocator(context.Background(), urlstr)
-	// defer cancel()
+	allocatorContext, cancel := chromedp.NewRemoteAllocator(ctx, urlstr)
+	defer cancel()
 
 	// build the context options
 	var opts []chromedp.ContextOption
@@ -48,26 +48,26 @@ func run(ctx context.Context, verbose bool, urlstr, nav string, d time.Duration)
 	}
 
 	// create context
-	ctx, _ = chromedp.NewContext(allocatorContext, opts...)
-	// defer cancel()
+	ctx, cancel = chromedp.NewContext(allocatorContext, opts...)
+	defer cancel()
 
 	// run the actions
 	if err := chromedp.Do(ctx,
 		chromedp.Navigate(nav),
 		chromedp.Sleep(d),
 	); err != nil {
-		return fmt.Errorf("Failed getting body of %s: %v", nav, err)
+		return fmt.Errorf("navigating to %s: %w", nav, err)
 	}
 	body, err := chromedp.Run(ctx, chromedp.OuterHTML("html"))
 	if err != nil {
-		return fmt.Errorf("Failed getting body of %s: %v", nav, err)
+		return fmt.Errorf("reading the html of %s: %w", nav, err)
 	}
 	buf, err := chromedp.Run(ctx, chromedp.CaptureScreenshot())
 	if err != nil {
-		return fmt.Errorf("Failed getting body of %s: %v", nav, err)
+		return fmt.Errorf("taking a screenshot of %s: %w", nav, err)
 	}
 	fmt.Printf("Body of %s starts with:\n", nav)
-	fmt.Println(body[0:100])
+	fmt.Println(body[:min(len(body), 100)])
 	img, err := png.Decode(bytes.NewReader(buf))
 	if err != nil {
 		return err
