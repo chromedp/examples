@@ -1,8 +1,9 @@
 // Command tabs is a chromedp example demonstrating how to use several tabs of
 // one browser. It opens three tabs at the same time, and then shows that tabs
 // share cookies, unless a tab has its own browser context. It starts a local
-// server and needs no internet. Use -v to print the protocol messages and
-// -visible to show the browser window and leave it open.
+// server and needs no internet. Use -v to print the protocol messages. Use
+// -visible to show the browser window and keep every tab open until you close
+// the browser.
 package main
 
 import (
@@ -35,16 +36,13 @@ func main() {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
 	}
 	if *visible {
-		opts = append(opts, chromedp.WithVisibleWindow(), chromedp.WithKeepOpen())
+		// Closing a tab context closes the tab. This program keeps the
+		// tabs open, so it waits for the user to close the browser at the
+		// end, and it does not use WithKeepOpen.
+		opts = append(opts, chromedp.WithVisibleWindow())
 	}
 	ctx, cancel := chromedp.NewContext(context.Background(), opts...)
 	defer cancel()
-	if *visible {
-		defer func() {
-			wsURL, dir := chromedp.KeptOpen(ctx)
-			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
-		}()
-	}
 
 	// The first Run starts the browser, and uses the tab that it opens. A
 	// context that you create from this context with NewContext uses the same
@@ -53,17 +51,45 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := parallel(ctx, srv.URL); err != nil {
+	if err := parallel(ctx, srv.URL, *visible); err != nil {
 		log.Fatal(err)
 	}
-	if err := cookies(ctx, srv.URL); err != nil {
+	if err := cookies(ctx, srv.URL, *visible); err != nil {
 		log.Fatal(err)
 	}
+
+	// Wait until the user closes the browser. The tabs stay open until then.
+	if *visible {
+		infos, err := chromedp.Targets(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, info := range infos {
+			if info.Type == "page" {
+				log.Printf("open tab: %s", info.URL)
+			}
+		}
+		fmt.Fprintln(os.Stderr, "close the browser window to stop the program")
+		if err := chromedp.WaitClosed(ctx); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+// newTab creates a context for a new tab of the browser of ctx. Canceling the
+// context closes the tab, so the cancel function does nothing when keep is
+// true.
+func newTab(ctx context.Context, keep bool, opts ...chromedp.ContextOption) (context.Context, context.CancelFunc) {
+	tab, cancel := chromedp.NewContext(ctx, opts...)
+	if keep {
+		return tab, func() {}
+	}
+	return tab, cancel
 }
 
 // parallel opens one tab for each page, at the same time. Each page waits for
 // 500 ms on the server, so the total time is close to 500 ms, not to 1500 ms.
-func parallel(ctx context.Context, host string) error {
+func parallel(ctx context.Context, host string, keep bool) error {
 	names := []string{"one", "two", "three"}
 	titles := make([]string, len(names))
 	errs := make([]error, len(names))
@@ -74,7 +100,7 @@ func parallel(ctx context.Context, host string) error {
 		wg.Go(func() {
 			// A new context from the context of the browser is a new tab.
 			// Cancel closes the tab.
-			tab, cancel := chromedp.NewContext(ctx)
+			tab, cancel := newTab(ctx, keep)
 			defer cancel()
 			url := host + "/page?delay=500&name=" + name
 			if errs[i] = chromedp.Do(tab, chromedp.Navigate(url)); errs[i] != nil {
@@ -96,14 +122,14 @@ func parallel(ctx context.Context, host string) error {
 // cookies sets a cookie in one tab, and reads it in a second tab and in a third
 // tab. The second tab shares the cookies of the browser. The third tab has its
 // own browser context, like a private window, and does not see the cookie.
-func cookies(ctx context.Context, host string) error {
-	tab1, cancel := chromedp.NewContext(ctx)
+func cookies(ctx context.Context, host string, keep bool) error {
+	tab1, cancel := newTab(ctx, keep)
 	defer cancel()
 	if err := chromedp.Do(tab1, chromedp.Navigate(host+"/login")); err != nil {
 		return err
 	}
 
-	tab2, cancel := chromedp.NewContext(ctx)
+	tab2, cancel := newTab(ctx, keep)
 	defer cancel()
 	shared, err := whoami(tab2, host)
 	if err != nil {
@@ -111,7 +137,7 @@ func cookies(ctx context.Context, host string) error {
 	}
 	log.Printf("a tab in the same browser context sees: %s", shared)
 
-	tab3, cancel := chromedp.NewContext(ctx, chromedp.WithNewBrowserContext())
+	tab3, cancel := newTab(ctx, keep, chromedp.WithNewBrowserContext())
 	defer cancel()
 	private, err := whoami(tab3, host)
 	if err != nil {
