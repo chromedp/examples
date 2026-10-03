@@ -50,14 +50,16 @@ func run(ctx context.Context, verbose bool, timeout time.Duration, scale float64
 	start := time.Now()
 
 	// capture screenshot
-	var buf []byte
-	if err := chromedp.Run(ctx,
+	if err := chromedp.Do(ctx,
 		chromedp.Navigate(`https://fast.com`),
 		chromedp.WaitVisible(`#speed-value.succeeded`),
 		chromedp.Click(`#show-more-details-link`),
 		chromedp.WaitVisible(`#upload-value.succeeded`),
-		chromedp.ScreenshotScale(`.speed-controls-container`, scale, &buf),
 	); err != nil {
+		return err
+	}
+	buf, err := chromedp.Run(ctx, chromedp.ScreenshotScale(`.speed-controls-container`, scale))
+	if err != nil {
 		return err
 	}
 
