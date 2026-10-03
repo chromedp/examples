@@ -1,5 +1,6 @@
 // Command upload is a chromedp example demonstrating how to upload a file on a
-// form.
+// form. It starts a local server and needs no internet. The program uploads its
+// own file main.go, so run it from its own directory.
 package main
 
 import (
@@ -18,7 +19,7 @@ func main() {
 	port := flag.Int("port", 8544, "port")
 	flag.Parse()
 
-	// get wd
+	// get the working directory
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
@@ -32,7 +33,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// start upload server
+	// start the upload server
 	result := make(chan int, 1)
 	go uploadServer(fmt.Sprintf(":%d", *port), result)
 
@@ -40,7 +41,7 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run the steps
+	// run the actions
 	_, err = upload(ctx, fmt.Sprintf("http://localhost:%d", *port), filepath)
 	if err != nil {
 		log.Fatal(err)
@@ -49,7 +50,8 @@ func main() {
 	log.Printf("original size: %d, upload size: %d", fi.Size(), <-result)
 }
 
-// upload uploads the file on the form and returns the size that the page shows.
+// upload sends the file with the form of the page and returns the size that
+// the page shows.
 func upload(ctx context.Context, urlstr string, filepath string) (string, error) {
 	if err := chromedp.Do(ctx,
 		chromedp.Navigate(urlstr),
@@ -61,8 +63,10 @@ func upload(ctx context.Context, urlstr string, filepath string) (string, error)
 	return chromedp.Run(ctx, chromedp.Text(chromedp.ID("result"), chromedp.NodeVisible))
 }
 
+// uploadServer serves the upload form. It sends the size of the uploaded file to
+// result.
 func uploadServer(addr string, result chan int) error {
-	// create http server and result channel
+	// create the HTTP server
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(res, uploadHTML)

@@ -1,5 +1,5 @@
 // Command visible is a chromedp example demonstrating how to wait until an
-// element is visible.
+// element is visible. It starts a local server and needs no internet.
 package main
 
 import (
@@ -16,20 +16,22 @@ func main() {
 	port := flag.Int("port", 8544, "port")
 	flag.Parse()
 
-	// run server
+	// start the server
 	go testServer(fmt.Sprintf(":%d", *port))
 
 	// create context
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run the steps
+	// run the actions
 	err := visible(ctx, fmt.Sprintf("http://localhost:%d", *port))
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
+// visible loads the page and waits for the elements box1 and box2. A script on
+// the page shows box1 after 3 seconds.
 func visible(ctx context.Context, host string) error {
 	return chromedp.Do(ctx,
 		chromedp.Navigate(host),
@@ -57,7 +59,7 @@ const (
 }, 3000);`
 )
 
-// testServer is a simple HTTP server that serves a static html page.
+// testServer serves a static HTML page.
 func testServer(addr string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(res http.ResponseWriter, _ *http.Request) {

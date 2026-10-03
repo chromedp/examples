@@ -1,10 +1,9 @@
 // Command download_file is a chromedp example demonstrating how to do headless
-// file downloads.
+// file downloads. It reads github.com.
 //
-// Note that for this technique to work, the file type must trigger the
-// "Download / Save As" browser dialog. See the download_image example for how
-// to save a file which would load inside the browser window without triggering
-// a download.
+// For this technique to work, the file type must trigger the "Download / Save
+// As" browser dialog. See the download_image example for how to save a file
+// that the browser window loads without a download.
 package main
 
 import (
@@ -29,14 +28,13 @@ func main() {
 	)
 	defer cancel()
 
-	// create a timeout as a safety net to prevent any infinite wait loops
+	// create a timeout, so that no wait loop can run forever
 	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	// subscribe to the download events, so we can watch the download
-	// progress later. This could be expanded to handle multiple downloads
-	// through creating a guid map, monitor download urls via
-	// browser.DownloadWillBegin, etc
+	// subscribe to the download events, so that the program can watch the
+	// download progress later. To handle many downloads, a program can keep a
+	// map of the GUID values and read the URLs from browser.DownloadWillBegin
 	progress := chromedp.Events(ctx, browser.DownloadProgress)
 
 	// get working directory
@@ -45,20 +43,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// download the zip of the chromedp/examples repo from GitHub. We use a
-	// link click method here but this could also be done with a
-	// chromedp.Navigate task which points directly at the file we want to
-	// download, as long as you run browser.SetDownloadBehavior first
+	// download the zip of the chromedp/examples repository from GitHub. This
+	// program clicks a link. A program can also navigate to the file, if it
+	// runs browser.SetDownloadBehavior first
 	if err := chromedp.Do(ctx,
 		// navigate to the page
 		chromedp.Navigate(`https://github.com/chromedp/examples`),
-		// find and click "Code" button when ready
+		// find the "Code" button, and click it when it is ready
 		chromedp.Click(`//button//span[text()="Code"]`, chromedp.NodeReady),
-		// configure headless browser downloads. note that
-		// SetDownloadBehaviorBehaviorAllowAndName is preferred here over
-		// SetDownloadBehaviorBehaviorAllow so that the file will be named as
-		// the GUID. please note that it only works with 92.0.4498.0 or later
-		// due to issue 1204880, see https://bugs.chromium.org/p/chromium/issues/detail?id=1204880
+		// configure headless browser downloads. Use
+		// SetDownloadBehaviorBehaviorAllowAndName and not
+		// SetDownloadBehaviorBehaviorAllow, so that Chrome names the file with
+		// its GUID. It works only with Chrome 92.0.4498.0 or later, because of
+		// issue 1204880, see https://bugs.chromium.org/p/chromium/issues/detail?id=1204880
 		chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
 			_, err := cdp.Call(ctx, t, browser.SetDownloadBehavior, browser.SetDownloadBehaviorParams{
 				Behavior:      browser.SetDownloadBehaviorBehaviorAllowAndName,
@@ -67,16 +64,15 @@ func main() {
 			})
 			return err
 		}),
-		// click the "Download Zip" link when visible
+		// click the "Download Zip" link when it is visible
 		chromedp.Click(`//span[text()="Download ZIP"]`, chromedp.NodeVisible),
 	); err != nil && !strings.Contains(err.Error(), "net::ERR_ABORTED") {
-		// Note: Ignoring the net::ERR_ABORTED page error is essential here
-		// since downloads will cause this error to be emitted, although the
-		// download will still succeed.
+		// Ignore the net::ERR_ABORTED page error. A download causes this
+		// error, but the download still succeeds.
 		log.Fatal(err)
 	}
 
-	// This will block until the download is complete
+	// wait until the download is complete
 	var guid string
 	for ev, err := range progress {
 		if err != nil {
@@ -93,7 +89,7 @@ func main() {
 		}
 	}
 
-	// We can predict the exact file location and name here because of how we
-	// configured SetDownloadBehavior and WithDownloadPath
+	// the location and the name of the file are known, because of the download
+	// path and the behavior that the program set with SetDownloadBehavior
 	log.Printf("wrote %s", filepath.Join(wd, guid))
 }

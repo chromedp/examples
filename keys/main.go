@@ -17,14 +17,14 @@ func main() {
 	port := flag.Int("port", 8544, "port")
 	flag.Parse()
 
-	// run server
+	// start the server
 	go testServer(fmt.Sprintf(":%d", *port))
 
 	// create context
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run the steps
+	// run the actions
 	val1, val2, val3, val4, err := sendkeys(ctx, fmt.Sprintf("http://localhost:%d", *port))
 	if err != nil {
 		log.Fatal(err)
@@ -36,7 +36,8 @@ func main() {
 	log.Printf("#select1 value: %s", val4)
 }
 
-// sendkeys sends keys to the server and extracts 4 values from the html page.
+// sendkeys sends keys to the page of the server and returns four values from
+// the page.
 func sendkeys(ctx context.Context, host string) (val1, val2, val3, val4 string, err error) {
 	if err = chromedp.Do(ctx,
 		chromedp.Navigate(host),
@@ -67,7 +68,7 @@ func sendkeys(ctx context.Context, host string) (val1, val2, val3, val4 string, 
 	return val1, val2, val3, val4, nil
 }
 
-// testServer is a simple HTTP server that displays the passed headers in the html.
+// testServer serves a static HTML page.
 func testServer(addr string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(res http.ResponseWriter, _ *http.Request) {

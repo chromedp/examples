@@ -1,5 +1,5 @@
-// Command logic is a chromedp example demonstrating more complex logic beyond
-// simple actions.
+// Command logic is a chromedp example demonstrating how to combine actions and
+// Go code in a function that reads a list from a page. It reads github.com.
 package main
 
 import (
@@ -17,28 +17,28 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// list awesome go projects for the "Selenium and browser control tools."
+	// list the awesome go projects of the section "Selenium and browser
+	// control tools."
 	res, err := listAwesomeGoProjects(ctx, "Selenium and browser control tools")
 	if err != nil {
 		log.Fatalf("could not list awesome go projects: %v", err)
 	}
 
-	// output the values
+	// print the values
 	for k, v := range res {
 		log.Printf("project %s (%s): '%s'", k, v.URL, v.Description)
 	}
 }
 
-// projectDesc contains a url, description for a project.
+// projectDesc holds the URL and the description of a project.
 type projectDesc struct {
 	URL, Description string
 }
 
-// listAwesomeGoProjects is the highest level logic for browsing to the
-// awesome-go page, finding the specified section sect, and retrieving the
-// associated projects from the page.
+// listAwesomeGoProjects opens the awesome-go page, finds the section sect, and
+// returns the projects of that section.
 func listAwesomeGoProjects(ctx context.Context, sect string) (map[string]projectDesc, error) {
-	// force max timeout of 15 seconds for retrieving and processing the data
+	// limit the retrieval and the processing of the data to 15 seconds
 	var cancel func()
 	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
@@ -50,7 +50,7 @@ func listAwesomeGoProjects(ctx context.Context, sect string) (map[string]project
 		return nil, fmt.Errorf("could not navigate to github: %w", err)
 	}
 
-	// wait visible
+	// wait until the section is visible
 	if err := chromedp.Do(ctx, chromedp.WaitVisible(sel)); err != nil {
 		return nil, fmt.Errorf("could not get section: %w", err)
 	}
@@ -69,7 +69,7 @@ func listAwesomeGoProjects(ctx context.Context, sect string) (map[string]project
 		return nil, fmt.Errorf("could not get links and descriptions: %w", err)
 	}
 
-	// check length
+	// the links and the descriptions must be twice the number of the projects
 	if 2*len(projects) != len(linksAndDescriptions) {
 		return nil, fmt.Errorf("projects and links and descriptions lengths do not match (2*%d != %d)", len(projects), len(linksAndDescriptions))
 	}

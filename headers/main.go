@@ -19,14 +19,14 @@ func main() {
 	port := flag.Int("port", 8544, "port")
 	flag.Parse()
 
-	// run server
+	// start the server
 	go headerServer(fmt.Sprintf(":%d", *port))
 
 	// create context
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run the steps
+	// run the actions
 	res, err := setheaders(
 		ctx,
 		fmt.Sprintf("http://localhost:%d", *port),
@@ -41,7 +41,7 @@ func main() {
 	log.Printf("received headers: %s", res)
 }
 
-// headerServer is a simple HTTP server that displays the passed headers in the html.
+// headerServer serves a page that shows the headers of the request.
 func headerServer(addr string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {

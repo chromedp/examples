@@ -1,10 +1,9 @@
 // Command download_image is a chromedp example demonstrating how to do
-// headless image downloads.
+// headless image downloads. It reads avatars.githubusercontent.com.
 //
-// Note that for this technique to work, the file type must load inside the
-// browser window without triggering a download. See the download_file example
-// for how to save a file that triggers the "Download / Save As" browser
-// dialog.
+// For this technique to work, the file type must load inside the browser
+// window without a download. See the download_file example for how to save a
+// file that triggers the "Download / Save As" browser dialog.
 package main
 
 import (
@@ -26,25 +25,25 @@ func main() {
 	)
 	defer cancel()
 
-	// create a timeout as a safety net to prevent any infinite wait loops
+	// create a timeout, so that no wait loop can run forever
 	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	// set the download url as the chromedp GitHub user avatar
+	// set the download URL to the avatar of the chromedp user on GitHub
 	urlstr := "https://avatars.githubusercontent.com/u/33149672"
 
-	// subscribe to the network events, so we can watch them after the
-	// navigation. the request id matching is important both to filter out
-	// unwanted network events and to reference the downloaded file later
+	// subscribe to the network events, so that the program can watch them
+	// after the navigation. The request ID filters out the events of other
+	// requests, and it finds the downloaded file later
 	requests := chromedp.Events(ctx, network.RequestWillBeSent)
 	finished := chromedp.Events(ctx, network.LoadingFinished)
 
-	// all we need to do here is navigate to the download url
+	// navigate to the download URL
 	if err := chromedp.Do(ctx, chromedp.Navigate(urlstr)); err != nil {
 		log.Fatal(err)
 	}
 
-	// this will be used to capture the request id for matching network events
+	// the request ID of the download, to match the later events
 	var requestID network.RequestID
 	for ev, err := range requests {
 		if err != nil {
@@ -57,7 +56,7 @@ func main() {
 		}
 	}
 
-	// This will block until the request with the request id is finished
+	// wait until the request with this ID is finished
 	for ev, err := range finished {
 		if err != nil {
 			log.Fatal(err)
@@ -68,21 +67,21 @@ func main() {
 		}
 	}
 
-	// get the downloaded bytes for the request id
+	// get the downloaded bytes of the request
 	buf, err := chromedp.Run(ctx, func(ctx context.Context, t *chromedp.Target) ([]byte, error) {
 		res, err := cdp.Call(ctx, t, network.GetResponseBody, network.GetResponseBodyParams{RequestID: requestID})
 		if err != nil {
 			return nil, err
 		}
-		// the result decodes the body by its base64 flag
+		// the result holds the decoded body
 		return res.Body, nil
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// write the file to disk - since we hold the bytes we dictate the name and
-	// location
+	// write the file to disk. The program holds the bytes, so it chooses the
+	// name and the location
 	if err := os.WriteFile("download.png", buf, 0644); err != nil {
 		log.Fatal(err)
 	}

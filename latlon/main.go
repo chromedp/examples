@@ -1,5 +1,6 @@
 // Command latlon is a chromedp example demonstrating how to retrieve the
-// latitude/longitude from google maps, using the browser's target events.
+// latitude and the longitude from Google Maps with the navigation events of
+// the page. It reads www.google.com/maps.
 package main
 
 import (
@@ -26,10 +27,10 @@ func main() {
 }
 
 func run(ctx context.Context, verbose bool, timeout time.Duration) error {
-	// regexp to extract latitude, longitude
+	// the regular expression that extracts the latitude and the longitude
 	latlonRE := regexp.MustCompile(`maps/@(-?\d+\.\d+,-?\d+\.\d+),`)
 
-	// create chrome instance
+	// create context
 	var opts []chromedp.ContextOption
 	if verbose {
 		opts = append(opts, chromedp.WithDebugf(log.Printf))
