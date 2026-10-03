@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 )
@@ -25,15 +26,14 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run task list
-	var res string
-	err := chromedp.Run(ctx, setheaders(
+	// run the steps
+	res, err := setheaders(
+		ctx,
 		fmt.Sprintf("http://localhost:%d", *port),
-		map[string]interface{}{
+		map[string]any{
 			"X-Header": "my request header",
 		},
-		&res,
-	))
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,14 +55,24 @@ func headerServer(addr string) error {
 	return http.ListenAndServe(addr, mux)
 }
 
-// setheaders returns a task list that sets the passed headers.
-func setheaders(host string, headers map[string]interface{}, res *string) chromedp.Tasks {
-	return chromedp.Tasks{
-		network.Enable(),
-		network.SetExtraHTTPHeaders(network.Headers(headers)),
+// setheaders sets the passed headers, navigates to the host, and returns the
+// text that the page shows.
+func setheaders(ctx context.Context, host string, headers map[string]any) (string, error) {
+	if err := chromedp.Do(ctx,
+		chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
+			if _, err := cdp.Call(ctx, t, network.Enable, network.EnableParams{}); err != nil {
+				return err
+			}
+			// network.Headers has no fields in the typed cdproto, so
+			// the typed command cannot carry a header. Send the
+			// command with a plain map instead.
+			return t.Call(ctx, network.CommandSetExtraHTTPHeaders, map[string]any{"headers": headers}, nil)
+		}),
 		chromedp.Navigate(host),
-		chromedp.Text(`#result`, res, chromedp.ByID, chromedp.NodeVisible),
+	); err != nil {
+		return "", err
 	}
+	return chromedp.Run(ctx, chromedp.Text(chromedp.ID("result"), chromedp.NodeVisible))
 }
 
 const indexHTML = `<!doctype html>
