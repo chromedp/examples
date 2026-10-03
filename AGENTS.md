@@ -6,8 +6,7 @@ than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
 proxy and more. The module is `github.com/chromedp/examples`.
 
-The programs use the new typed API of `chromedp`. The API is a proposal and the
-maintainer has not approved it. See
+The programs use the typed API of `chromedp` v0.17.0 and `cdproto` v0.157.2. See
 `docs/decisions/2026-10-03-the-programs-use-the-new-typed-api.md`.
 
 ## Standing rules
@@ -60,9 +59,11 @@ you trust it, because a later decision can amend or replace it.
    sentence. `gen.go` reads it for the table in `README.md`. The sentence must
    not hold a period before its end.
 6. A program that reads a live site says in its doc comment which site it
-   needs. A program that needs a service or a file says so too.
+   needs, with the words "It reads <site>." A program that needs a service, a
+   file or a terminal that can show images says so too.
 7. A program that runs offline serves its own page from a local server. Do not
-   make it read the internet.
+   make it read the internet. Its doc comment says "It starts a local server and
+   needs no internet."
 8. Wrap every error with `%w`. Write error messages in lower case, and do not
    start them with "failed to".
 9. After you change a doc comment, run `go run gen.go` and commit the new table
@@ -78,9 +79,11 @@ you trust it, because a later decision can amend or replace it.
     the same options, and it prints `chromedp.KeptOpen(ctx)` to the standard
     error. A program that builds its own allocator, such as `proxy`, adds
     `chromedp.VisibleWindow` and `chromedp.KeepOpen` to the options of the
-    allocator instead. Say this in the doc comment, for example "Use -v to
+    allocator instead. Say this in the doc comment, with the words "Use -v to
     print the protocol messages and -visible to show the browser window and
-    leave it open."
+    leave it open." Use the help text "print the protocol messages" for the flag
+    `-v`, and "show the browser window and leave it open" for the flag
+    `-visible`.
 
 ## Layout
 
@@ -112,12 +115,12 @@ go vet ./...
 go run ./<name>
 ```
 
-Add `-v` to any program to print the protocol messages.
+Add `-v` to any program to print the protocol messages. Add `-visible` to show
+the browser window and leave it open. The variable `CHROMEDP_VISIBLEWINDOW=1`
+shows the window with no flag. A visible window needs a display.
 
-The typed API is not in a released version of `chromedp`. `go.mod` names the
-released versions, so a build needs a `go.work` file that git ignores. It uses
-the branch `typed-api` of `../chromedp` and the typed `cdproto` in
-`../cdproto-typed`. `README.md` shows the file. Use the default workspace mode.
+Go downloads `chromedp` v0.17.0 and `cdproto` v0.157.2 when it builds a program.
+Do not edit `go.mod` or `go.sum` unless the maintainer asks.
 
 A program that needs a browser starts it. If Chrome is not on the `PATH` under
 the name `google-chrome`, `chromium` or `chrome`, link it there:
@@ -133,21 +136,22 @@ The offline programs are `cookie`, `headers`, `keys`, `multi`, `proxy`,
 `subtree`, `upload` and `visible`. Run one with the command above and a time
 limit, for example `timeout 90 go run ./cookie`. It must finish with exit code
 0. Compare the output with the table that follows. Timestamps, ports and the
-paths of temporary files differ on each run.
+paths of temporary files differ on each run. Do not run `-visible` in a session
+that has no display.
 
 | Program | Expected output |
 | --- | --- |
-| `cookie` | the log lines `server received cookie 0: cookie1=value1` and `cookie 1: cookie2=value2`, then two `chrome cookie` lines and `chrome received cookies` |
+| `cookie` | the log lines `server received cookie 0: cookie1=value1` and `cookie 1: cookie2=value2`, each one twice, then two `chrome cookie` lines and `chrome received cookies` |
 | `headers` | one log line `received headers:` that lists the headers, with `X-Header` and the value `my request header` |
 | `keys` | the values of `#input1`, `#textarea1`, `#input2` and `#select1`, which are `test4`, a text that starts with `textar`, `test3` and `three` |
 | `multi` | run it with `-out <dir> data:text/html,<h1>hello</h1>`. It prints `image 0 (...) width: 780 height: 437` and writes `<dir>/0.png` |
 | `proxy` | no stdout. The log shows `proxy: not authorized` for the first request, then the requests with `Proxy-Authorization: Basic dTpw` |
 | `subtree` | the tree of the element `h1`, with its attributes and its children `a`, `span` and a text |
-| `upload` | run it in its folder. It logs `original size: N, upload size: N` with the same number twice |
+| `upload` | it logs `original size: N, upload size: N` with the same number twice |
 | `visible` | the log lines `waiting 3s for box to become visible`, `BOX1 IS VISIBLE` and `BOX2 IS VISIBLE`, after about 4 seconds |
 
 A live program has no fixed output, because the site changes. The verification
-table in `README.md` says what each program did on the last test.
+table in `README.md` says what each program did and how it was checked.
 
 ## Before you commit
 

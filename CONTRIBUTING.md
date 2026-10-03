@@ -25,6 +25,10 @@ go test ./docs/
 change the doc comment of a program, run `go run gen.go` and include the new
 table in `README.md`.
 
+If you change a program, run it with `go run ./<name>`. The offline programs
+and the output to expect are in the section Verify an offline program of
+[`AGENTS.md`](AGENTS.md). Say in your change which programs you ran.
+
 ## Writing
 
 Write in plain English. Use short sentences and the active voice. The
