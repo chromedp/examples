@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
 
@@ -24,41 +23,32 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run task list
-	err := chromedp.Run(ctx, visible(fmt.Sprintf("http://localhost:%d", *port)))
+	// run the steps
+	err := visible(ctx, fmt.Sprintf("http://localhost:%d", *port))
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func visible(host string) chromedp.Tasks {
-	return chromedp.Tasks{
+func visible(ctx context.Context, host string) error {
+	return chromedp.Do(ctx,
 		chromedp.Navigate(host),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			_, exp, err := runtime.Evaluate(makeVisibleScript).Do(ctx)
-			if err != nil {
-				return err
-			}
-			if exp != nil {
-				return exp
-			}
-			return nil
-		}),
-		chromedp.ActionFunc(func(context.Context) error {
+		chromedp.Evaluate[chromedp.Void](makeVisibleScript),
+		chromedp.Func(func(context.Context, *chromedp.Target) error {
 			log.Printf("waiting 3s for box to become visible")
 			return nil
 		}),
-		chromedp.WaitVisible(`#box1`),
-		chromedp.ActionFunc(func(context.Context) error {
+		chromedp.WaitVisible(chromedp.ID("box1")),
+		chromedp.Func(func(context.Context, *chromedp.Target) error {
 			log.Printf(">>>>>>>>>>>>>>>>>>>> BOX1 IS VISIBLE")
 			return nil
 		}),
-		chromedp.WaitVisible(`#box2`),
-		chromedp.ActionFunc(func(context.Context) error {
+		chromedp.WaitVisible(chromedp.ID("box2")),
+		chromedp.Func(func(context.Context, *chromedp.Target) error {
 			log.Printf(">>>>>>>>>>>>>>>>>>>> BOX2 IS VISIBLE")
 			return nil
 		}),
-	}
+	)
 }
 
 const (
