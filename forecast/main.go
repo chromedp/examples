@@ -1,7 +1,8 @@
-// Command forecast is a chromedp example demonstrating how to render the
-// weather forecast of Google in the terminal. It reads www.google.com. Use the
-// flag -q to name the place, for example -q Jakarta. Use -v to print the
-// protocol messages and -visible to show the browser window and leave it open.
+// Command forecast is a chromedp example demonstrating how to render the weather
+// forecast of Google in the terminal. It reads www.google.com and needs a
+// terminal that can show images. Use the flag -q to name the place, for example
+// -q Jakarta. Use -v to print the protocol messages and -visible to show the
+// browser window and leave it open.
 package main
 
 import (
@@ -36,18 +37,18 @@ const (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open (no effect with -remote)")
-	timeout := flag.Duration("timeout", 1*time.Minute, "timeout")
-	query := flag.String("q", "", "weather query")
-	lang := flag.String("hl", "", "language (see hl.json)")
+	timeout := flag.Duration("timeout", 1*time.Minute, "time limit of the program")
+	query := flag.String("q", "", "place to show the weather for")
+	lang := flag.String("hl", "", "language code (see hl.json)")
 	unit := flag.String("unit", "", "temperature unit (C, F, or blank)")
-	typ := flag.String("type", "", "selection type (temp, rain, wind)")
-	day := flag.Int("day", 0, "day (0-7)")
-	scale := flag.Float64("scale", 1.5, "scale")
-	padding := flag.Int("padding", 20, "padding")
-	remote := flag.String("remote", "", "remote")
-	out := flag.String("out", "", "out file")
+	typ := flag.String("type", "", "kind of forecast (temp, rain, wind)")
+	day := flag.Int("day", 0, "day of the forecast (0 to 7)")
+	scale := flag.Float64("scale", 1.5, "scale of the screenshot")
+	padding := flag.Int("padding", 20, "white space around the image, in pixels")
+	remote := flag.String("remote", "", "WebSocket URL of a running browser to use")
+	out := flag.String("out", "", "file to write the screenshot to")
 	flag.Parse()
 	if err := run(context.Background(), *verbose, *visible, *timeout, *query, *lang, *unit, *typ, *day, *scale, *padding, *remote, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

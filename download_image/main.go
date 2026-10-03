@@ -1,9 +1,10 @@
 // Command download_image is a chromedp example demonstrating how to do headless
-// image downloads. It reads avatars.githubusercontent.com. Use -v to print the
-// protocol messages and -visible to show the browser window and leave it open.
-// For this technique to work, the file type must load inside the browser window
-// without a download. See the download_file example for how to save a file that
-// triggers the "Download / Save As" browser dialog.
+// image downloads. It reads avatars.githubusercontent.com and writes
+// download.png to the current directory. For this technique to work, the file
+// type must load inside the browser window without a download. See the
+// download_file example for how to save a file that triggers the "Download /
+// Save As" browser dialog. Use -v to print the protocol messages and -visible to
+// show the browser window and leave it open.
 package main
 
 import (
@@ -20,7 +21,7 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	flag.Parse()
 

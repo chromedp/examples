@@ -18,9 +18,9 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	timeout := flag.Duration("timeout", 1*time.Minute, "timeout")
+	timeout := flag.Duration("timeout", 1*time.Minute, "time limit of the program")
 	flag.Parse()
 	if err := run(context.Background(), *verbose, *visible, *timeout); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

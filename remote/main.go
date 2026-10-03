@@ -1,7 +1,9 @@
 // Command remote is a chromedp example demonstrating how to connect to an
 // existing Chrome DevTools instance using a remote WebSocket URL. The flag -url
 // names the browser and the flag -nav names the page to read, which is on the
-// internet by default. See README.md. Use -v to print the protocol messages.
+// internet by default. The program needs a terminal that can show images. See
+// README.md. Use -v to print the protocol messages. The program has no -visible
+// flag, because it uses a browser that is already running.
 package main
 
 import (
@@ -20,10 +22,10 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
-	urlstr := flag.String("url", "ws://127.0.0.1:9222", "devtools url")
-	nav := flag.String("nav", "https://www.duckduckgo.com/", "nav")
-	d := flag.Duration("d", 1*time.Second, "wait duration")
+	verbose := flag.Bool("v", false, "print the protocol messages")
+	urlstr := flag.String("url", "ws://127.0.0.1:9222", "WebSocket URL of the running browser")
+	nav := flag.String("nav", "https://www.duckduckgo.com/", "URL of the page to read")
+	d := flag.Duration("d", 1*time.Second, "time to wait after the page loads")
 	flag.Parse()
 	if err := run(context.Background(), *verbose, *urlstr, *nav, *d); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

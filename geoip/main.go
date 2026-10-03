@@ -1,8 +1,8 @@
 // Command geoip is a chromedp example demonstrating how to look up the location
 // of an IP address and show its map in the terminal. It reads
-// www.google.com/maps. Give one or more IP addresses as arguments. Use -v to
-// print the protocol messages and -visible to show the browser window and leave
-// it open.
+// www.google.com/maps and needs a terminal that can show images. Give one or
+// more IP addresses as arguments. Use -v to print the protocol messages and
+// -visible to show the browser window and leave it open.
 package main
 
 import (
@@ -29,12 +29,12 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	timeout := flag.Duration("timeout", 1*time.Minute, "timeout")
-	lang := flag.String("l", "en", "language code")
-	zoom := flag.Float64("zoom", 12.5, "zoom level")
-	scale := flag.Float64("scale", 1.5, "scale")
+	timeout := flag.Duration("timeout", 1*time.Minute, "time limit of the program")
+	lang := flag.String("l", "en", "language code of the place names")
+	zoom := flag.Float64("zoom", 12.5, "zoom level of the map")
+	scale := flag.Float64("scale", 1.5, "scale of the map image")
 	flag.Parse()
 	if err := run(context.Background(), *verbose, *visible, *timeout, *lang, *zoom, *scale, flag.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

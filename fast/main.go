@@ -1,8 +1,8 @@
 // Command fast is a chromedp example demonstrating how to measure the speed of
-// the internet connection and show the result in the terminal. It reads
-// fast.com. Inspired by [adhocore/fast]. Use -v to print the protocol messages
-// and -visible to show the browser window and leave it open.  [adhocore/fast]:
-// https://github.com/adhocore/fast
+// the internet connection and show the result in the terminal. It reads fast.com
+// and needs a terminal that can show images. It is inspired by adhocore/fast,
+// see https://github.com/adhocore/fast. Use -v to print the protocol messages
+// and -visible to show the browser window and leave it open.
 package main
 
 import (
@@ -23,12 +23,12 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	timeout := flag.Duration("timeout", 2*time.Minute, "timeout")
-	scale := flag.Float64("scale", 1.5, "scale")
-	padding := flag.Int("padding", 0, "padding")
-	out := flag.String("out", "", "out")
+	timeout := flag.Duration("timeout", 2*time.Minute, "time limit of the program")
+	scale := flag.Float64("scale", 1.5, "scale of the screenshot")
+	padding := flag.Int("padding", 0, "white space around the image, in pixels")
+	out := flag.String("out", "", "file to write the screenshot to")
 	flag.Parse()
 	if err := run(context.Background(), *verbose, *visible, *timeout, *scale, *padding, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

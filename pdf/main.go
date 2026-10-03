@@ -1,6 +1,7 @@
 // Command pdf is a chromedp example demonstrating how to capture a PDF of a
-// page. It reads www.google.com. Use -v to print the protocol messages and
-// -visible to show the browser window and leave it open.
+// page. It reads www.google.com and writes sample.pdf to the current directory.
+// Use -v to print the protocol messages and -visible to show the browser window
+// and leave it open.
 package main
 
 import (
@@ -16,7 +17,7 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	flag.Parse()
 

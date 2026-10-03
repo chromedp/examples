@@ -1,6 +1,6 @@
 // Command keys is a chromedp example demonstrating how to send key events to an
-// element. Use -v to print the protocol messages and -visible to show the
-// browser window and leave it open.
+// element. It starts a local server and needs no internet. Use -v to print the
+// protocol messages and -visible to show the browser window and leave it open.
 package main
 
 import (
@@ -16,8 +16,8 @@ import (
 )
 
 func main() {
-	port := flag.Int("port", 8544, "port")
-	verbose := flag.Bool("v", false, "verbose")
+	port := flag.Int("port", 8544, "port of the local web server")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	flag.Parse()
 

@@ -1,6 +1,8 @@
 // Command emulate is a chromedp example demonstrating how to emulate a specific
-// device such as an iPhone. It reads www.whatsmyua.info. Use -v to print the
-// protocol messages and -visible to show the browser window and leave it open.
+// device such as an iPhone. It reads www.whatsmyua.info and writes
+// screenshot1.png and screenshot2.png to the current directory. Use -v to print
+// the protocol messages and -visible to show the browser window and leave it
+// open.
 package main
 
 import (
@@ -15,7 +17,7 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	flag.Parse()
 

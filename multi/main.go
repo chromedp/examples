@@ -1,8 +1,9 @@
 // Command multi is a chromedp example demonstrating how to use headless-shell
 // and a container (Docker, Podman, other). The program takes URLs as arguments,
 // takes a screenshot of each page and prints its size. The flag -out names a
-// directory for the PNG files. See README.md. Use -v to print the protocol
-// messages and -visible to show the browser window and leave it open.
+// directory for the PNG files. A data: URL needs no internet. See README.md. Use
+// -v to print the protocol messages and -visible to show the browser window and
+// leave it open.
 package main
 
 import (
@@ -22,10 +23,10 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	wait := flag.Duration("wait", 1*time.Second, "wait duration")
-	out := flag.String("out", "", "out directory")
+	wait := flag.Duration("wait", 1*time.Second, "time to wait after each page loads")
+	out := flag.String("out", "", "directory to write the PNG files to")
 	flag.Parse()
 	if err := run(context.Background(), *verbose, *visible, *wait, *out, flag.Args()...); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

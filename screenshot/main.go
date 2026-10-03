@@ -1,7 +1,8 @@
 // Command screenshot is a chromedp example demonstrating how to take a
 // screenshot of a specific element and of the entire browser viewport. It reads
-// pkg.go.dev and brank.as. Use -v to print the protocol messages and -visible
-// to show the browser window and leave it open.
+// pkg.go.dev and brank.as and writes elementScreenshot.png and
+// fullScreenshot.png to the current directory. Use -v to print the protocol
+// messages and -visible to show the browser window and leave it open.
 package main
 
 import (
@@ -15,7 +16,7 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	flag.Parse()
 

@@ -1,7 +1,7 @@
 // Command proxy is a chromedp example demonstrating how to authenticate to a
-// proxy server that requires authentication. It starts a local proxy and a
-// local web server, and needs no internet. Use -v to print the protocol
-// messages and -visible to show the browser window and leave it open.
+// proxy server that requires authentication. It starts a local proxy and a local
+// web server, and needs no internet. Use -v to print the protocol messages and
+// -visible to show the browser window and leave it open.
 package main
 
 import (
@@ -21,7 +21,7 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "verbose")
+	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	flag.Parse()
 
