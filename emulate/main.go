@@ -17,21 +17,30 @@ func main() {
 	defer cancel()
 
 	// run
-	var b1, b2 []byte
-	if err := chromedp.Run(ctx,
+	if err := chromedp.Do(ctx,
 		// emulate iPhone 7 landscape
 		chromedp.Emulate(device.IPhone7landscape),
 		chromedp.Navigate(`https://www.whatsmyua.info/`),
-		chromedp.CaptureScreenshot(&b1),
+	); err != nil {
+		log.Fatal(err)
+	}
+	b1, err := chromedp.Run(ctx, chromedp.CaptureScreenshot())
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	if err := chromedp.Do(ctx,
 		// reset
 		chromedp.Emulate(device.Reset),
 
 		// set really large viewport
 		chromedp.EmulateViewport(1920, 2000),
 		chromedp.Navigate(`https://www.whatsmyua.info/?a`),
-		chromedp.CaptureScreenshot(&b2),
 	); err != nil {
+		log.Fatal(err)
+	}
+	b2, err := chromedp.Run(ctx, chromedp.CaptureScreenshot())
+	if err != nil {
 		log.Fatal(err)
 	}
 
