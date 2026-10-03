@@ -44,6 +44,12 @@ other than an empty string, `0` and `false` turns it on. On Linux, a visible
 window needs `DISPLAY` or `WAYLAND_DISPLAY`. The `remote` program has
 no `-visible` flag, because it attaches to a browser that you started yourself.
 The flag `-visible` has no effect on the remote browser of `forecast -remote`.
+The `tabs` program works a little differently with `-visible`. It keeps every tab
+open and waits until you close the browser, and it does not leave the browser
+running. Its flag `-tabs-in-one-window` opens the tabs in one window, as real
+tabs, and switches between them with the protocol command `Target.activateTarget`.
+Without that flag, each tab opens in a window of its own. Try both with
+`-visible` to see the difference.
 
 Some programs need arguments:
 

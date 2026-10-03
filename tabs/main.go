@@ -1,9 +1,11 @@
 // Command tabs is a chromedp example demonstrating how to use several tabs of
 // one browser. It opens three tabs at the same time, and then shows that tabs
 // share cookies, unless a tab has its own browser context. It starts a local
-// server and needs no internet. Use -v to print the protocol messages. Use
-// -visible to show the browser window and keep every tab open until you close
-// the browser.
+// server and needs no internet. By default, each tab opens in its own window.
+// Use -tabs-in-one-window to open the tabs in one window and to switch between
+// them with the protocol command Target.activateTarget. Use -v to print the
+// protocol messages. Use -visible to show the browser window and keep every tab
+// open until you close the browser.
 package main
 
 import (
@@ -14,16 +16,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"slices"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
 )
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
-	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	visible := flag.Bool("visible", false, "show the browser window and keep every tab open until you close the browser")
+	oneWindow := flag.Bool("tabs-in-one-window", false, "open the tabs in the window of the browser, not in new windows")
 	flag.Parse()
 
 	// start the server
@@ -51,10 +57,25 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := parallel(ctx, srv.URL, *visible); err != nil {
+	// The option WithNewWindow(false) opens a tab in the window of the browser.
+	// Without it, a new tab opens in a new window.
+	var tabOpts []chromedp.ContextOption
+	if *oneWindow {
+		tabOpts = append(tabOpts, chromedp.WithNewWindow(false))
+	}
+	t := &tabs{host: srv.URL, keep: *visible, opts: tabOpts}
+
+	if err := t.parallel(ctx); err != nil {
 		log.Fatal(err)
 	}
-	if err := cookies(ctx, srv.URL, *visible); err != nil {
+	if err := t.cookies(ctx); err != nil {
+		log.Fatal(err)
+	}
+	pause := time.Duration(0)
+	if *visible {
+		pause = time.Second
+	}
+	if err := t.switching(ctx, pause); err != nil {
 		log.Fatal(err)
 	}
 
@@ -76,12 +97,22 @@ func main() {
 	}
 }
 
+// tabs holds what the steps of the program share.
+type tabs struct {
+	host string
+	// keep is true when the tabs must stay open until the user closes the
+	// browser.
+	keep bool
+	// opts are the options of every new tab.
+	opts []chromedp.ContextOption
+}
+
 // newTab creates a context for a new tab of the browser of ctx. Canceling the
 // context closes the tab, so the cancel function does nothing when keep is
 // true.
-func newTab(ctx context.Context, keep bool, opts ...chromedp.ContextOption) (context.Context, context.CancelFunc) {
-	tab, cancel := chromedp.NewContext(ctx, opts...)
-	if keep {
+func (t *tabs) newTab(ctx context.Context, opts ...chromedp.ContextOption) (context.Context, context.CancelFunc) {
+	tab, cancel := chromedp.NewContext(ctx, append(slices.Clone(t.opts), opts...)...)
+	if t.keep {
 		return tab, func() {}
 	}
 	return tab, cancel
@@ -89,7 +120,7 @@ func newTab(ctx context.Context, keep bool, opts ...chromedp.ContextOption) (con
 
 // parallel opens one tab for each page, at the same time. Each page waits for
 // 500 ms on the server, so the total time is close to 500 ms, not to 1500 ms.
-func parallel(ctx context.Context, host string, keep bool) error {
+func (t *tabs) parallel(ctx context.Context) error {
 	names := []string{"one", "two", "three"}
 	titles := make([]string, len(names))
 	errs := make([]error, len(names))
@@ -100,9 +131,9 @@ func parallel(ctx context.Context, host string, keep bool) error {
 		wg.Go(func() {
 			// A new context from the context of the browser is a new tab.
 			// Cancel closes the tab.
-			tab, cancel := newTab(ctx, keep)
+			tab, cancel := t.newTab(ctx)
 			defer cancel()
-			url := host + "/page?delay=500&name=" + name
+			url := t.host + "/page?delay=500&name=" + name
 			if errs[i] = chromedp.Do(tab, chromedp.Navigate(url)); errs[i] != nil {
 				return
 			}
@@ -122,24 +153,24 @@ func parallel(ctx context.Context, host string, keep bool) error {
 // cookies sets a cookie in one tab, and reads it in a second tab and in a third
 // tab. The second tab shares the cookies of the browser. The third tab has its
 // own browser context, like a private window, and does not see the cookie.
-func cookies(ctx context.Context, host string, keep bool) error {
-	tab1, cancel := newTab(ctx, keep)
+func (t *tabs) cookies(ctx context.Context) error {
+	tab1, cancel := t.newTab(ctx)
 	defer cancel()
-	if err := chromedp.Do(tab1, chromedp.Navigate(host+"/login")); err != nil {
+	if err := chromedp.Do(tab1, chromedp.Navigate(t.host+"/login")); err != nil {
 		return err
 	}
 
-	tab2, cancel := newTab(ctx, keep)
+	tab2, cancel := t.newTab(ctx)
 	defer cancel()
-	shared, err := whoami(tab2, host)
+	shared, err := t.whoami(tab2)
 	if err != nil {
 		return err
 	}
 	log.Printf("a tab in the same browser context sees: %s", shared)
 
-	tab3, cancel := newTab(ctx, keep, chromedp.WithNewBrowserContext())
+	tab3, cancel := t.newTab(ctx, chromedp.WithNewBrowserContext())
 	defer cancel()
-	private, err := whoami(tab3, host)
+	private, err := t.whoami(tab3)
 	if err != nil {
 		return err
 	}
@@ -148,11 +179,51 @@ func cookies(ctx context.Context, host string, keep bool) error {
 }
 
 // whoami reads the text of the page that shows the cookies of the request.
-func whoami(ctx context.Context, host string) (string, error) {
-	if err := chromedp.Do(ctx, chromedp.Navigate(host+"/whoami")); err != nil {
+func (t *tabs) whoami(ctx context.Context) (string, error) {
+	if err := chromedp.Do(ctx, chromedp.Navigate(t.host+"/whoami")); err != nil {
 		return "", err
 	}
 	return chromedp.Run(ctx, chromedp.Text(chromedp.CSS("body")))
+}
+
+// switching opens three tabs, and then makes each one the active tab with the
+// protocol command Target.activateTarget. After each switch, it asks every tab
+// for its document.visibilityState. In a window of its own, a tab is always
+// visible. In a window that holds several tabs, only the active tab is visible,
+// and a hidden page gets no animation frames. pause is the time to look at each
+// tab.
+func (t *tabs) switching(ctx context.Context, pause time.Duration) error {
+	names := []string{"one", "two", "three"}
+	var tabs []context.Context
+	for _, name := range names {
+		tab, cancel := t.newTab(ctx)
+		defer cancel()
+		if err := chromedp.Do(tab, chromedp.Navigate(t.host+"/page?delay=0&name="+name)); err != nil {
+			return err
+		}
+		tabs = append(tabs, tab)
+	}
+
+	// Target.activateTarget is a command of the browser, not of a tab.
+	browser := chromedp.FromContext(ctx).Browser
+	for i, tab := range tabs {
+		id := chromedp.FromContext(tab).Target.TargetID
+		if _, err := cdp.Call(ctx, browser, target.ActivateTarget, target.ActivateTargetParams{TargetID: id}); err != nil {
+			return fmt.Errorf("activating the tab %q: %w", names[i], err)
+		}
+		time.Sleep(pause)
+
+		states := make([]string, len(tabs))
+		for j, other := range tabs {
+			state, err := chromedp.Run(other, chromedp.Evaluate[string](`document.visibilityState`))
+			if err != nil {
+				return err
+			}
+			states[j] = names[j] + "=" + state
+		}
+		log.Printf("active tab %q: %v", names[i], states)
+	}
+	return nil
 }
 
 // newMux returns the handlers of the test server. The page /page waits for
