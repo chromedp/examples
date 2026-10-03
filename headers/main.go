@@ -30,7 +30,7 @@ func main() {
 	res, err := setheaders(
 		ctx,
 		fmt.Sprintf("http://localhost:%d", *port),
-		map[string]any{
+		network.Headers{
 			"X-Header": "my request header",
 		},
 	)
@@ -57,16 +57,14 @@ func headerServer(addr string) error {
 
 // setheaders sets the passed headers, navigates to the host, and returns the
 // text that the page shows.
-func setheaders(ctx context.Context, host string, headers map[string]any) (string, error) {
+func setheaders(ctx context.Context, host string, headers network.Headers) (string, error) {
 	if err := chromedp.Do(ctx,
 		chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
 			if _, err := cdp.Call(ctx, t, network.Enable, network.EnableParams{}); err != nil {
 				return err
 			}
-			// network.Headers has no fields in the typed cdproto, so
-			// the typed command cannot carry a header. Send the
-			// command with a plain map instead.
-			return t.Call(ctx, network.CommandSetExtraHTTPHeaders, map[string]any{"headers": headers}, nil)
+			_, err := cdp.Call(ctx, t, network.SetExtraHTTPHeaders, network.SetExtraHTTPHeadersParams{Headers: headers})
+			return err
 		}),
 		chromedp.Navigate(host),
 	); err != nil {
