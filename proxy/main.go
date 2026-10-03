@@ -4,12 +4,14 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
 
+	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/fetch"
 	"github.com/chromedp/chromedp"
 )
@@ -43,51 +45,64 @@ func main() {
 	defer cancel()
 
 	// 3) handle the Fetch.AuthRequired event and provide the username/password to the proxy
-	// We will disable the fetch domain and cancel the event handler once the proxy is
+	// We will disable the fetch domain and cancel the event loops once the proxy is
 	// authenticated to reduce the overhead. If your project needs the fetch domain to be enabled,
 	// then you should change the code accordingly.
+	// Start the browser first. A browser that Events starts would live only
+	// as long as lctx, and lcancel would close it.
+	if err := chromedp.Do(ctx); err != nil {
+		log.Fatal(err)
+	}
 	lctx, lcancel := context.WithCancel(ctx)
-	chromedp.ListenTarget(lctx, func(ev interface{}) {
-		switch ev := ev.(type) {
-		case *fetch.EventRequestPaused:
-			go func() {
-				_ = chromedp.Run(ctx, fetch.ContinueRequest(ev.RequestID))
-			}()
-		case *fetch.EventAuthRequired:
-			if ev.AuthChallenge.Source == fetch.AuthChallengeSourceProxy {
-				go func() {
-					_ = chromedp.Run(ctx,
-						fetch.ContinueWithAuth(ev.RequestID, &fetch.AuthChallengeResponse{
-							Response: fetch.AuthChallengeResponseResponseProvideCredentials,
-							Username: "u",
-							Password: "p",
-						}),
-						// Chrome will remember the credential for the current instance,
-						// so we can disable the fetch domain once credential is provided.
-						// Please file an issue if Chrome does not work in this way.
-						fetch.Disable(),
-					)
-					// and cancel the event handler too.
-					lcancel()
-				}()
+	defer lcancel()
+	paused := chromedp.Events(lctx, fetch.RequestPaused)
+	authRequired := chromedp.Events(lctx, fetch.AuthRequired)
+	go func() {
+		for ev, err := range paused {
+			if err != nil {
+				return
 			}
+			_, _ = chromedp.Call(ctx, fetch.ContinueRequest, fetch.ContinueRequestParams{RequestID: ev.RequestID})
 		}
-	})
+	}()
+	go func() {
+		for ev, err := range authRequired {
+			if err != nil {
+				return
+			}
+			if ev.AuthChallenge.Source != fetch.AuthChallengeSourceProxy {
+				continue
+			}
+			_, _ = chromedp.Call(ctx, fetch.ContinueWithAuth, fetch.ContinueWithAuthParams{
+				RequestID: ev.RequestID,
+				AuthChallengeResponse: &fetch.AuthChallengeResponse{
+					Response: fetch.AuthChallengeResponseResponseProvideCredentials,
+					Username: "u",
+					Password: "p",
+				},
+			})
+			// Chrome will remember the credential for the current instance,
+			// so we can disable the fetch domain once credential is provided.
+			// Please file an issue if Chrome does not work in this way.
+			_, _ = chromedp.Call(ctx, fetch.Disable, cdp.Empty{})
+			// and stop the event loops too.
+			lcancel()
+			return
+		}
+	}()
 
-	if err := chromedp.Run(ctx,
-		// 2) enable the fetch domain to handle the Fetch.AuthRequired event
-		fetch.Enable().WithHandleAuthRequests(true),
-		chromedp.Navigate(s.URL),
-	); err != nil {
+	// 2) enable the fetch domain to handle the Fetch.AuthRequired event
+	if _, err := chromedp.Call(ctx, fetch.Enable, fetch.EnableParams{HandleAuthRequests: new(true)}); err != nil {
+		log.Fatal(err)
+	}
+	if err := chromedp.Do(ctx, chromedp.Navigate(s.URL)); err != nil {
 		log.Fatal(err)
 	}
 
 	// to show that further requests (even in new tabs) are authenticated.
 	tctx, cancel := chromedp.NewContext(ctx)
 	defer cancel()
-	if err := chromedp.Run(tctx,
-		chromedp.Navigate(s.URL+"/tab"),
-	); err != nil {
+	if err := chromedp.Do(tctx, chromedp.Navigate(s.URL+"/tab")); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -123,7 +138,7 @@ type transport struct {
 
 func (t *transport) RoundTrip(r *http.Request) (*http.Response, error) {
 	if h := r.Header.Get("X-Failed"); h != "" {
-		return nil, fmt.Errorf(h)
+		return nil, errors.New(h)
 	}
 	return t.RoundTripper.RoundTrip(r)
 }
