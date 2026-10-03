@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 )
 
@@ -44,8 +43,8 @@ func main() {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// run task list
-	err := chromedp.Run(ctx, travelSubtree(ts.URL, `title`, chromedp.ByID))
+	// run the steps
+	err := travelSubtree(ctx, ts.URL, chromedp.ID("title"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,30 +62,29 @@ func main() {
 // Users get confused sometimes (why node.Children is empty while node.ChildNodeCount > 0?).
 // And some users want to travel a subtree of the DOM more easy.
 // So here comes the example.
-func travelSubtree(urlstr string, sel interface{}, opts ...chromedp.QueryOption) chromedp.Tasks {
+func travelSubtree[S chromedp.Selectable](ctx context.Context, urlstr string, sel S, opts ...chromedp.QueryOption) error {
 	// add populate option to the passed opts
 	opts = append(opts, chromedp.Populate(-1, true, chromedp.PopulateWait(1*time.Second)))
 
-	// retrieve the nodes
-	var nodes []*cdp.Node
-	return chromedp.Tasks{
-		chromedp.Navigate(urlstr),
-		// since the [chromedp.Populate] option has been added to opts, the
-		// [chromedp.Nodes] action will wait until after the [chromedp.PopulateWait]
-		// timeout has passed
-		chromedp.Nodes(sel, &nodes, opts...),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			printNodes(os.Stdout, nodes, "", "  ")
-			return nil
-		}),
+	if err := chromedp.Do(ctx, chromedp.Navigate(urlstr)); err != nil {
+		return err
 	}
+	// retrieve the nodes. Since the [chromedp.Populate] option has been
+	// added to opts, the [chromedp.Nodes] action will wait until after the
+	// [chromedp.PopulateWait] timeout has passed
+	nodes, err := chromedp.Run(ctx, chromedp.Nodes(sel, opts...))
+	if err != nil {
+		return err
+	}
+	printNodes(os.Stdout, nodes, "", "  ")
+	return nil
 }
 
 // printNodes recurses the node tree and prints the nodes as a tree.
 //
 // Note that this same functionality is available in the chromedp package as
 // [chromedp.Dump] / [chromedp.DumpTo].
-func printNodes(w io.Writer, nodes []*cdp.Node, padding, indent string) {
+func printNodes(w io.Writer, nodes []*chromedp.Node, padding, indent string) {
 	// This will block until the chromedp listener closes the channel
 	for _, node := range nodes {
 		switch {
