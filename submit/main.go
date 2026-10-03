@@ -16,8 +16,7 @@ func main() {
 	defer cancel()
 
 	// run task list
-	var res string
-	err := chromedp.Run(ctx, submit(`https://github.com/search`, `//input[@name="q"]`, `chromedp`, &res))
+	res, err := submit(ctx, `https://github.com/search`, `//input[@name="q"]`, `chromedp`)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,13 +24,15 @@ func main() {
 	log.Printf("got: `%s`", strings.TrimSpace(res))
 }
 
-func submit(urlstr, sel, q string, res *string) chromedp.Tasks {
-	return chromedp.Tasks{
+func submit(ctx context.Context, urlstr, sel, q string) (string, error) {
+	if err := chromedp.Do(ctx,
 		chromedp.Navigate(urlstr),
 		chromedp.WaitVisible(sel),
 		chromedp.SendKeys(sel, q),
 		chromedp.Submit(sel),
 		chromedp.WaitVisible(`//*[contains(., 'repository results')]`),
-		chromedp.Text(`(//*//ul[contains(@class, "repo-list")]/li[1]//p)[1]`, res),
+	); err != nil {
+		return "", err
 	}
+	return chromedp.Run(ctx, chromedp.Text(`(//*//ul[contains(@class, "repo-list")]/li[1]//p)[1]`))
 }
