@@ -5,7 +5,7 @@ drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
 
-The programs use the typed API of `chromedp` v0.17.0 and `cdproto` v0.157.2.
+The programs use the typed API of `chromedp` v0.17.1 and `cdproto` v0.157.3.
 The file `docs/API.md` in the `chromedp` repository shows the old code and the
 new code side by side. The file `docs/MIGRATION.md` in the same folder lists
 every name that changed. See
@@ -13,8 +13,8 @@ every name that changed. See
 
 ## Build and run
 
-The module needs Go 1.27. It requires `chromedp` v0.17.0 and `cdproto`
-v0.157.2, and Go downloads them when you build a program.
+The module needs Go 1.27. It requires `chromedp` v0.17.1 and `cdproto`
+v0.157.3, and Go downloads them when you build a program.
 
 `chromedp` starts the browser. It finds Chrome or Chromium on the `PATH`. If
 Chrome has another name, link it to the name `google-chrome` in a folder on the

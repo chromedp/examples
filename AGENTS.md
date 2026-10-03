@@ -6,7 +6,7 @@ than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
 proxy and more. The module is `github.com/chromedp/examples`.
 
-The programs use the typed API of `chromedp` v0.17.0 and `cdproto` v0.157.2. See
+The programs use the typed API of `chromedp` v0.17.1 and `cdproto` v0.157.3. See
 `docs/decisions/2026-10-03-the-programs-use-the-new-typed-api.md`.
 
 ## Standing rules
@@ -119,7 +119,7 @@ Add `-v` to any program to print the protocol messages. Add `-visible` to show
 the browser window and leave it open. The variable `CHROMEDP_VISIBLEWINDOW=1`
 shows the window with no flag. A visible window needs a display.
 
-Go downloads `chromedp` v0.17.0 and `cdproto` v0.157.2 when it builds a program.
+Go downloads `chromedp` v0.17.1 and `cdproto` v0.157.3 when it builds a program.
 Do not edit `go.mod` or `go.sum` unless the maintainer asks.
 
 A program that needs a browser starts it. If Chrome is not on the `PATH` under
