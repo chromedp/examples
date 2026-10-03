@@ -1,100 +1,99 @@
 # About chromedp examples
 
-This folder holds examples for [`chromedp`][1]. The package documentation has
-simple examples that are self-contained. These examples are larger. Many need
-internet access or an external component.
+This repository holds 23 example programs for [`chromedp`][1], a Go package that
+drives Chrome through the Chrome DevTools Protocol. The package documentation
+has small examples that are self-contained. These programs are larger. Some of
+them need the internet or an external component.
 
-These examples use the new typed API of `chromedp`. See the section "The new
-API" below.
+The programs use the new typed API of `chromedp`. The file `docs/API.md` in the
+`chromedp` repository shows the old code and the new code side by side. The
+file `docs/MIGRATION.md` in the same folder lists every name that changed. The
+API is a proposal and the maintainer has not approved it. See
+[the decision for the port](docs/decisions/2026-10-03-the-programs-use-the-new-typed-api.md).
 
-The examples can break. Most of them read live websites such as `pkg.go.dev`,
-`github.com` and `google.com`. When a site changes its HTML, the selectors of
-the example stop to match. To report a problem, use the [chromedp issue
-tracker][3].
-
-## Building and Running an Example
+## Build and run
 
 The module needs Go 1.27. The typed API is not in a released version of
-`chromedp` yet. The `go.mod` file still names the old versions, so a build
-needs a `go.work` file that points at local copies of `chromedp` and `cdproto`
-on the branch `typed-api`. The file is not part of the repository.
+`chromedp`, and `go.mod` still names the released versions. A build needs a
+`go.work` file in the root of this repository. Git ignores that file. For
+example:
 
-If a program needs a browser, `chromedp` looks for `google-chrome`, `chromium`
-or `chrome` on the `PATH`. Run an example from the root of this repository:
+```
+go 1.27.1
+
+use (
+	.
+	../chromedp
+)
+
+replace (
+	github.com/chromedp/cdproto => ../cdproto-typed
+	github.com/chromedp/chromedp v0.16.0 => ../chromedp
+)
+```
+
+The folder `../chromedp` must hold the branch `typed-api` of `chromedp`. The
+folder `../cdproto-typed` must hold the typed `cdproto`.
+
+`chromedp` starts the browser. It finds Chrome or Chromium on the `PATH`. Run a
+program from the root of this repository:
 
 ```sh
-# run example <prog>
+# run the program <prog>
 $ go run ./<prog>
 
-# build example <prog>
+# build the program <prog>
 $ go build -o /tmp/<prog> ./<prog> && /tmp/<prog>
 ```
 
-The programs `upload` and `geoip` read files, so run `upload` from its own
-directory with `cd upload && go run .`.
+Some programs need arguments or a different folder:
 
-### Available Examples
+- `forecast` needs the flag `-q`, for example `go run ./forecast -q Jakarta`.
+- `geoip` takes IP addresses, for example `go run ./geoip 8.8.8.8`.
+- `multi` takes URLs. See [multi/README.md](multi/README.md).
+- `remote` needs a running browser. See [remote/README.md](remote/README.md).
+- `upload` uploads its own file `main.go`, so run it with `cd upload && go run .`.
 
-The following examples are currently available:
+## The programs
 
 <!-- the following section is updated by running `go run gen.go` -->
 <!-- START EXAMPLES -->
-| Example                           | Description                                                                         |
-|-----------------------------------|-------------------------------------------------------------------------------------|
-| [click](/click)                   | use a selector to click on an element                                               |
-| [cookie](/cookie)                 | set a HTTP cookie on requests                                                       |
-| [download_file](/download_file)   | do headless file downloads                                                          |
-| [download_image](/download_image) | do headless image downloads                                                         |
-| [emulate](/emulate)               | emulate a specific device such as an iPhone                                         |
-| [eval](/eval)                     | evaluate javascript and retrieve the result                                         |
-| [fast](/fast)                     | extract and render data from a page                                                 |
-| [forecast](/forecast)             | extract and render data from a page                                                 |
-| [geoip](/geoip)                   | extract and render data from a page                                                 |
-| [headers](/headers)               | add extra HTTP headers to browser requests                                          |
-| [keys](/keys)                     | send key events to an element                                                       |
-| [latlon](/latlon)                 | retrieve the latitude/longitude from google maps, using the browser's target events |
-| [logic](/logic)                   | more complex logic beyond simple actions                                            |
-| [multi](/multi)                   | use headless-shell and a container (Docker, Podman, other)                          |
-| [pdf](/pdf)                       | capture a pdf of a page                                                             |
-| [proxy](/proxy)                   | authenticate a proxy server which requires authentication                           |
-| [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL        |
-| [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport          |
-| [submit](/submit)                 | fill out and submit a form                                                          |
-| [subtree](/subtree)               | populate and travel a subtree of the DOM                                            |
-| [text](/text)                     | extract text from a specific element                                                |
-| [upload](/upload)                 | upload a file on a form                                                             |
-| [visible](/visible)               | wait until an element is visible                                                    |
+| Example                           | Description                                                                                     |
+|-----------------------------------|-------------------------------------------------------------------------------------------------|
+| [click](/click)                   | use a selector to click on an element                                                           |
+| [cookie](/cookie)                 | set an HTTP cookie on requests                                                                  |
+| [download_file](/download_file)   | do headless file downloads                                                                      |
+| [download_image](/download_image) | do headless image downloads                                                                     |
+| [emulate](/emulate)               | emulate a specific device such as an iPhone                                                     |
+| [eval](/eval)                     | evaluate JavaScript and retrieve the result                                                     |
+| [fast](/fast)                     | measure the speed of the internet connection and show the result in the terminal                |
+| [forecast](/forecast)             | render the weather forecast of Google in the terminal                                           |
+| [geoip](/geoip)                   | look up the location of an IP address and show its map in the terminal                          |
+| [headers](/headers)               | add extra HTTP headers to browser requests                                                      |
+| [keys](/keys)                     | send key events to an element                                                                   |
+| [latlon](/latlon)                 | retrieve the latitude and the longitude from Google Maps with the navigation events of the page |
+| [logic](/logic)                   | combine actions and Go code in a function that reads a list from a page                         |
+| [multi](/multi)                   | use headless-shell and a container (Docker, Podman, other)                                      |
+| [pdf](/pdf)                       | capture a PDF of a page                                                                         |
+| [proxy](/proxy)                   | authenticate to a proxy server that requires authentication                                     |
+| [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL                    |
+| [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport                      |
+| [submit](/submit)                 | fill out and submit a form                                                                      |
+| [subtree](/subtree)               | populate and travel a subtree of the DOM                                                        |
+| [text](/text)                     | extract text from a specific element                                                            |
+| [upload](/upload)                 | upload a file on a form                                                                         |
+| [visible](/visible)               | wait until an element is visible                                                                |
 <!-- END EXAMPLES -->
 
-## The new API
-
-The examples use the generic action API. An action returns its value, so no
-program passes a pointer to receive it. `chromedp.Do` runs actions that return
-nothing, and `chromedp.Run` runs one action and returns its value. A program
-reads events with the iterators `chromedp.Events` and `chromedp.WaitEvent`. A
-program sends a raw protocol command with `cdp.Call`. A selector is a string or
-a typed value such as `chromedp.CSS`, `chromedp.ID` and `chromedp.NodeIDs`.
-
-The file `docs/API.md` in the `chromedp` repository shows 13 examples of the old
-code and the new code side by side. The file `docs/MIGRATION.md` in the same
-directory lists every changed name.
-
-Three things are good to know when you read these examples:
-
-1. `network.Headers` has no fields in the typed `cdproto`. The `headers` example
-   sends the command `Network.setExtraHTTPHeaders` with `Target.Call` and a map.
-2. `network.GetResponseBody` does not decode the body. The `download_image`
-   example decodes the base64 text itself.
-3. `chromedp.Events` starts the browser if the context has none. A browser that
-   starts this way lives only as long as the context that you pass. The `proxy`
-   example calls `chromedp.Do(ctx)` first for this reason.
+The programs `fast`, `geoip` and `remote` draw an image in the terminal. Run
+them in a terminal that can show images.
 
 ## Verification
 
-The table below shows what happens when each program runs, with Chrome 154 on
-Linux. "Offline" means that the program needs no internet and no service. The
-column "Old" is the program at the `main` branch with `chromedp` v0.16.0. The
-column "New" is the program at this branch.
+The table shows what happened when each program ran, with Chrome 154 on Linux.
+"Offline" means that the program needs no internet and no service. The column
+"Old" is the program on the branch `main` with `chromedp` v0.16.0. The column
+"New" is the program on this branch.
 
 | Example         | Needs                            | Old                                  | New                                  |
 |-----------------|----------------------------------|--------------------------------------|--------------------------------------|
@@ -124,24 +123,34 @@ column "New" is the program at this branch.
 
 Notes:
 
-1. The programs `fast`, `geoip` and `remote` draw an image with `rasterm`. This
-   needs a terminal that can show images. In the test the output was not a
-   terminal, so the programs ended with the error `term graphics not available`
-   in the old and the new code.
-2. The program `geoip` needs the file `GeoLite2-City.mmdb`, and `forecast` needs
-   the file `hl.json`. Both are in the repository.
+1. The programs `fast`, `geoip` and `remote` draw the image with `rasterm`. In
+   the test the output was not a terminal. The old code and the new code ended
+   with the error `term graphics not available`.
+2. The programs `geoip` and `forecast` embed their data files, `GeoLite2-City.mmdb`
+   and `hl.json`, so they run from any folder.
 3. The `remote` test used `chrome --headless --remote-debugging-port=9222` and a
-   local web server.
-4. The live sites can change at any time, so the results of the live programs
-   can differ on another day.
+   local web server. Without the flag `-nav`, `remote` reads the internet.
 
-## Contributing
+## Live sites can change
 
-Pull Requests and contributions to this project are encouraged and greatly
-welcomed! The `chromedp` project always needs new examples, and needs talented
-developers (such as yourself!) to submit fixes for the existing examples when
-they break (for example, when a website's layout/HTML changes).
+Most programs read live websites such as `pkg.go.dev`, `github.com` and
+`google.com`. When a site changes its HTML, the selectors of a program stop
+matching, and the program fails. The results in the table can be different on
+another day.
+
+## Questions, bugs and changes
+
+Ask questions in the [GitHub Discussions of `chromedp`][2]. Report a bug as an
+[issue of `chromedp`][3]. Do not open an issue for a question. Pull requests
+are welcome, and `CONTRIBUTING.md` says how to prepare one. A new program must
+keep to the rules in `AGENTS.md`.
+
+| Document | Holds |
+| --- | --- |
+| [AGENTS.md](AGENTS.md) | the rules, the layout and the commands for a coding agent and for a person |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | how to prepare a change |
+| [docs/decisions/README.md](docs/decisions/README.md) | the index of the decisions |
 
 [1]: https://github.com/chromedp/chromedp
-[2]: https://pkg.go.dev/github.com/chromedp/chromedp#pkg-examples
+[2]: https://github.com/chromedp/chromedp/discussions
 [3]: https://github.com/chromedp/chromedp/issues

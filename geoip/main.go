@@ -1,5 +1,5 @@
 // Command geoip is a chromedp example demonstrating how to look up the location
-// of an IP address and show a map of it in the terminal. It reads
+// of an IP address and show its map in the terminal. It reads
 // www.google.com/maps. Give one or more IP addresses as arguments.
 package main
 

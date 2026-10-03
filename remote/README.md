@@ -1,27 +1,33 @@
 # Using
 
-Start a Chrome instance:
+The program connects to a browser that is already running. The browser must
+have a remote debugging port.
 
-Using `headless-shell`:
+Start the browser with `headless-shell`:
 
 ```sh
 $ podman run --rm --detach --publish 9222:9222 docker.io/chromedp/headless-shell:latest
 ```
 
-Alternately, using Google Chrome:
+Or start Google Chrome:
 
 ```sh
 $ google-chrome-stable --remote-debugging-port=9222
 ```
 
-Then, execute the script:
+Then run the program from the root of the repository:
 
 ```sh
-$ go run main.go
+$ go run ./remote
 ```
 
-The remote URL can be specified using the `-url` flag:
+The flag `-url` sets the URL of the browser. The default is
+`ws://127.0.0.1:9222`.
 
 ```sh
-$ go run main.go -url ws://127.0.0.1:9222
+$ go run ./remote -url ws://127.0.0.1:9222
 ```
+
+The flag `-nav` sets the page to read. The default is
+`https://www.duckduckgo.com/`, so the program needs the internet unless you set
+this flag.
