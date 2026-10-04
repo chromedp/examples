@@ -1,20 +1,22 @@
 // Command dragdrop is a chromedp example demonstrating how to drag and drop
 // with the actions DragAndDrop and DragAndDropXY. The program loads a local
-// page with three parts. A slider has a handle that follows the mouse events.
-// A sortable list changes its order when a person drags one item onto another
+// page with three parts. A slider has a handle that follows the mouse events. A
+// sortable list changes its order when a person drags one item onto another
 // item, and it also listens for mouse events. An area with HTML5 drag and drop
 // has draggable cards and drop zones, and the page reads the text of a
 // DataTransfer when a card drops. The same two actions work for both kinds of
 // page. After each drag, the program asks the page what it recorded and prints
 // the positions, the new order and the dropped text. It starts a local server
 // and needs no internet. Use -v to print the protocol messages and -visible to
-// show the browser window and leave it open.
+// show the browser window and leave it open. Use -visible-on-terminal to draw
+// the page in the terminal with terminal graphics.
 package main
 
 import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -23,6 +25,7 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 // state is what the page records. The page keeps it in the variable state.
@@ -51,6 +54,8 @@ type point struct {
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -74,22 +79,35 @@ func main() {
 		}()
 	}
 
+	// draw the page in the terminal when the user asks for it. The stream
+	// starts the browser, so it starts before the first navigation
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	out := io.Writer(os.Stdout)
+	if s != nil {
+		out = s.LogWriter()
+	}
+
 	if err := chromedp.Do(ctx, chromedp.Navigate(srv.URL+"/")); err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
-	if err := slider(ctx); err != nil {
-		log.Fatal(err)
+	if err := slider(ctx, out); err != nil {
+		s.Fatal(err)
 	}
-	if err := list(ctx); err != nil {
-		log.Fatal(err)
+	if err := list(ctx, out); err != nil {
+		s.Fatal(err)
 	}
-	if err := cards(ctx); err != nil {
-		log.Fatal(err)
+	if err := cards(ctx, out); err != nil {
+		s.Fatal(err)
 	}
 }
 
 // slider drags the handle of the slider three times.
-func slider(ctx context.Context) error {
+func slider(ctx context.Context, out io.Writer) error {
 	// DragAndDrop takes two selectors. It presses the mouse at the center of
 	// the first element, moves to the center of the second one in steps, and
 	// releases the mouse. Here the second element is a mark on the track.
@@ -100,7 +118,7 @@ func slider(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("slider, dragged to the mark: value %d, handle at %.1f px\n", st.Slider.Value, st.Slider.Left)
+	fmt.Fprintf(out, "slider, dragged to the mark: value %d, handle at %.1f px\n", st.Slider.Value, st.Slider.Left)
 
 	// DragAndDropXY takes two points, so it can drag to a place that has no
 	// element. The page tells where the handle is now. The last argument sets
@@ -116,7 +134,7 @@ func slider(ctx context.Context) error {
 	if st, err = readState(ctx); err != nil {
 		return err
 	}
-	fmt.Printf("slider, dragged from x %.1f to x %.1f in 20 steps: value %d, handle at %.1f px\n", from.X, to.X, st.Slider.Value, st.Slider.Left)
+	fmt.Fprintf(out, "slider, dragged from x %.1f to x %.1f in 20 steps: value %d, handle at %.1f px\n", from.X, to.X, st.Slider.Value, st.Slider.Left)
 
 	// The page keeps the handle on the track. A drag far beyond the end of the
 	// track gives the largest value. The point must stay in the viewport.
@@ -131,7 +149,7 @@ func slider(ctx context.Context) error {
 	if st, err = readState(ctx); err != nil {
 		return err
 	}
-	fmt.Printf("slider, dragged from x %.1f to x %.1f: value %d, handle at %.1f px\n", from.X, to.X, st.Slider.Value, st.Slider.Left)
+	fmt.Fprintf(out, "slider, dragged from x %.1f to x %.1f: value %d, handle at %.1f px\n", from.X, to.X, st.Slider.Value, st.Slider.Left)
 	return nil
 }
 
@@ -150,12 +168,12 @@ func handleCenter(ctx context.Context) (point, error) {
 }
 
 // list drags items of the sortable list onto other items.
-func list(ctx context.Context) error {
+func list(ctx context.Context, out io.Writer) error {
 	st, err := readState(ctx)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("list, at the start: %s\n", strings.Join(st.Order, ", "))
+	fmt.Fprintf(out, "list, at the start: %s\n", strings.Join(st.Order, ", "))
 
 	// The two selectors can have different types. The page moves the item
 	// that the mouse leaves to the place of the item below the mouse.
@@ -169,13 +187,13 @@ func list(ctx context.Context) error {
 		if st, err = readState(ctx); err != nil {
 			return err
 		}
-		fmt.Printf("list, %s dragged onto %s: %s\n", m[0], m[1], strings.Join(st.Order, ", "))
+		fmt.Fprintf(out, "list, %s dragged onto %s: %s\n", m[0], m[1], strings.Join(st.Order, ", "))
 	}
 	return nil
 }
 
 // cards drags the cards of the HTML5 area onto its zones.
-func cards(ctx context.Context) error {
+func cards(ctx context.Context, out io.Writer) error {
 	// The same call works. The page has draggable elements, so the browser
 	// starts a native drag after the first mouse moves. The action catches the
 	// drag and sends the drag events, so the page gets the events dragover and
@@ -191,7 +209,7 @@ func cards(ctx context.Context) error {
 		return err
 	}
 	for _, d := range st.Drops {
-		fmt.Printf("html5, dropped text %q on the zone %s (data types: %s)\n", d.Text, d.Zone, strings.Join(d.Types, ", "))
+		fmt.Fprintf(out, "html5, dropped text %q on the zone %s (data types: %s)\n", d.Text, d.Zone, strings.Join(d.Types, ", "))
 	}
 
 	// The page moved the cards into the zones, so the program can count the
@@ -201,7 +219,7 @@ func cards(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("counting the cards of %s: %w", zone, err)
 		}
-		fmt.Printf("html5, cards in %s: %d\n", zone, len(nodes))
+		fmt.Fprintf(out, "html5, cards in %s: %d\n", zone, len(nodes))
 	}
 	return nil
 }
