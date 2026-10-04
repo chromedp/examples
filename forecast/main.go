@@ -217,7 +217,7 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urls
 	// Capture the screenshot of the header and the data block. The inactive
 	// tabs and days are hidden by the page, so the screenshot shows the chart
 	// of the chosen type and day. The menu bar of the site sticks to the top of
-	// the window and it would cover a part of the forecast, so hide it and
+	// the window and covers a part of the forecast, so hide it and
 	// scroll to the top first.
 	if err := chromedp.Do(ctx, chromedp.Evaluate[chromedp.Void](hideMenuJS)); err != nil {
 		return fmt.Errorf("hiding the menu bar: %w", err)
