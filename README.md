@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 34 example programs for [`chromedp`][1], a Go package that
+This repository holds 35 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -113,6 +113,7 @@ its frames into a new temporary directory, or into the directory of its flag
 | [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL                    |
 | [screencast](/screencast)         | record the screen of a page as a series of JPEG images                                          |
 | [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport                      |
+| [selectors](/selectors)           | choose the elements of a page with the typed selectors                                          |
 | [session](/session)               | save the state of a session and restore it in another browser                                   |
 | [structeval](/structeval)         | evaluate JavaScript into typed Go values                                                        |
 | [submit](/submit)                 | fill out and submit a form                                                                      |
@@ -170,6 +171,7 @@ because they need a live site that can change. No program was run with the flag
 | remote          | a Chrome with a debugging port   | works up to the terminal image                    | earlier test      |
 | screencast      | offline                          | works                                             | run on 2026-10-04 |
 | screenshot      | internet (pkg.go.dev, brank.as)  | works                                             | earlier test      |
+| selectors       | offline                          | works                                             | run on 2026-10-04 |
 | session         | offline                          | works                                             | run on 2026-10-04 |
 | structeval      | offline                          | works                                             | run on 2026-10-04 |
 | submit          | internet (wikipedia.org)         | works                                             | earlier test      |
