@@ -1,0 +1,6 @@
+/* The animation page. The picture fits the first screen, and it keeps its ratio. */
+.anim { padding-top: 12px; padding-bottom: 24px; }
+.anim h1 { margin: 0 0 10px; font-size: 1.5rem; }
+.anim-stage { margin: 0; text-align: center; }
+.anim-stage img { display: inline-block; width: 100%; height: auto; max-height: calc(100vh - 150px); object-fit: contain; border-radius: 12px; background: #0b1233; }
+.anim-note { max-width: 720px; margin-top: 16px; font-size: 0.9375rem; color: #555; }

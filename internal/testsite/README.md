@@ -47,13 +47,18 @@ Every page has a header with a menu, a footer and the style sheet `/static/site.
 | `/print/report` | A report with a cover, 8 chapters and 8 tables. See the section Print. | `pdf` |
 | `/print/report?paper=css` | The same report with a fixed A4 paper size and margins, and a header and a page number in the margin boxes. | `pdf` |
 | `/studio` | A tall landing page of a design studio. | `screenshot` |
+| `/animation/` | An animated SVG of a harbour at night, in `img#scene` with the file `/static/harbour-night.svg`. See the section Animation. | `termcast` |
 | `/static/...` | Style sheets, scripts, icons, badges and the logo. | |
+
+## Animation
+
+`/animation/` shows one SVG file with SMIL animation, in `img#scene`. The picture is 960 by 540 pixels and it scales with the width of the page. A boat needs 16 seconds to cross the bay, and the beam of the lighthouse sweeps every 5 seconds. The waves, the stars and the moon move all the time. Every animation has `repeatCount="indefinite"`, so the scene never stops. The picture changes at each frame of the browser, so a screencast gets a new frame each time that it asks for one. The page has no script and needs no network.
 
 ## Print
 
 `/print/report` has a title block at the top of the first page, a page break before each chapter, and tables with a header row that repeats on each page (`thead { display: table-header-group }`). Its style sheet `print.css` sets no `@page` rule. The program that prints chooses the paper, the orientation and the margins with the options `PDFPaper`, `PDFLandscape` and `PDFMargins`, and it can add a header and a footer with `PDFHeaderTemplate` and `PDFFooterTemplate`. The report has about 9 pages on Letter paper and 17 pages on A4 with margins of 0.9 inch.
 
-The page has no fixed header or footer. Chrome does not support running elements, and an element with `position: fixed` repeats at the same place on each page but takes no room. It would land on the content.
+The page has no fixed header or footer. Chrome does not support running elements, and an element with `position: fixed` repeats at the same place on each page but takes no room. It lands on the content.
 
 `/print/report?paper=css` loads the second style sheet `print-a4.css` after `print.css`. It has the rule `@page { size: A4; margin: 24mm 16mm 22mm }` and the margin boxes `@top-center` and `@bottom-center`, which Chrome supports from version 131. They print the title and the text `Page N of M` inside the margins, so they never cover the content. Chrome uses the paper size of the rule only with `PDFPreferCSSPageSize`. An `@page` size also makes `PDFLandscape` and `PDFPaper` have no effect, so only this page has it. The margin boxes add to the templates of `PDFHeaderTemplate` and `PDFFooterTemplate`, so a program uses one of the two ways.
 

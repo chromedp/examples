@@ -202,6 +202,10 @@ func (s *server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /whoami", s.whoami)
 	mux.HandleFunc("GET /viewport-test", s.viewportTest)
 	mux.HandleFunc("GET /print/report", s.printReport)
+	mux.HandleFunc("GET /animation/{$}", s.animation)
+	mux.HandleFunc("GET /animation", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/animation/", http.StatusFound)
+	})
 	mux.HandleFunc("GET /docs/{$}", s.docsIndex)
 	mux.HandleFunc("GET /docs/time", s.docsTime)
 	s.newsRoutes(mux)
@@ -265,5 +269,14 @@ func (s *server) viewportTest(w http.ResponseWriter, r *http.Request) {
 		Description: "A page that changes its layout at phone, tablet and desktop widths.",
 		Active:      "/tools",
 		CSS:         []string{"home.css", "viewport.css"},
+	})
+}
+
+func (s *server) animation(w http.ResponseWriter, r *http.Request) {
+	s.render(w, "animation", page{
+		Title:       "Animated scene",
+		Description: "An SVG animation of a harbour at night. It loops forever and keeps the page changing.",
+		Active:      "/tools",
+		CSS:         []string{"animation.css"},
 	})
 }

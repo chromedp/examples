@@ -67,7 +67,7 @@ func TestEveryPageIsValidAndLocal(t *testing.T) {
 	s := New()
 	defer s.Close()
 	paths := []string{
-		"/", "/tools", "/studio", "/ua", "/whoami", "/viewport-test", "/print/report", "/docs/", "/docs/time", "/wiki/",
+		"/", "/tools", "/studio", "/ua", "/whoami", "/viewport-test", "/print/report", "/animation/", "/docs/", "/docs/time", "/wiki/",
 		"/article/Harbour_Line", "/search?q=history", "/repo/", "/repo/chromedp/examples", "/gallery", "/weather/", "/weather/jakarta",
 		"/geoip", "/geoip?ip=10.0.1.5", "/map", "/map?lat=51.5&lon=-0.12&zoom=9", "/news/", "/news/" + newsStories[0].Slug,
 	}
@@ -169,7 +169,7 @@ func TestStaticFiles(t *testing.T) {
 		}
 	}
 	// No style sheet loads a font or an image from another host.
-	for _, name := range []string{"site", "docs", "wiki", "repo", "weather", "map", "home", "studio", "print", "gallery", "ua", "viewport"} {
+	for _, name := range []string{"site", "docs", "wiki", "repo", "weather", "map", "home", "studio", "print", "gallery", "ua", "viewport", "animation"} {
 		_, css := get(t, s, "/static/"+name+".css")
 		if strings.Contains(string(css), "http") || strings.Contains(string(css), "@import") {
 			t.Errorf("%s.css refers to another host", name)
@@ -608,11 +608,33 @@ func TestDeviceAndPrintPages(t *testing.T) {
 	}
 }
 
+func TestAnimationPage(t *testing.T) {
+	s := New()
+	defer s.Close()
+	body := page200(t, s, "/animation/")
+	mustContain(t, "animation", body, `id="scene"`, "/static/harbour-night.svg", "/static/animation.css")
+	resp, svg := get(t, s, "/static/harbour-night.svg")
+	if ct := resp.Header.Get("Content-Type"); !strings.HasPrefix(ct, "image/svg+xml") {
+		t.Errorf("harbour-night.svg: content type %q, want image/svg+xml", ct)
+	}
+	// The scene must move and must loop forever, and it must not need a host.
+	mustContain(t, "harbour-night.svg", string(svg), "<animate", "<animateTransform", `repeatCount="indefinite"`)
+	if strings.Contains(string(svg), "<script") || externalRE.MatchString(string(svg)) {
+		t.Error("harbour-night.svg has a script or refers to another host")
+	}
+	if n := strings.Count(string(svg), `repeatCount="indefinite"`); n < 20 {
+		t.Errorf("harbour-night.svg has %d looping animations, want at least 20", n)
+	}
+	if resp, _ := get(t, s, "/animation"); resp.StatusCode != 200 {
+		t.Errorf("/animation: status %d, want a redirect to the page that answers 200", resp.StatusCode)
+	}
+}
+
 func TestHomeLinksEverything(t *testing.T) {
 	s := New()
 	defer s.Close()
 	body := page200(t, s, "/")
-	for _, link := range []string{"/docs/time", "/wiki/", "/article/Harbour_Line", "/repo/chromedp/examples", "/repo/", "/gallery", "/weather/jakarta", "/map?", "/geoip", "/ua", "/viewport-test", "/print/report", "/studio"} {
+	for _, link := range []string{"/docs/time", "/wiki/", "/article/Harbour_Line", "/repo/chromedp/examples", "/repo/", "/gallery", "/weather/jakarta", "/map?", "/geoip", "/ua", "/viewport-test", "/print/report", "/animation/", "/studio"} {
 		if !strings.Contains(body, `href="`+link) {
 			t.Errorf("the home page has no link to %s", link)
 		}

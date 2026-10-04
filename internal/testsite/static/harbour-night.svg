@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="960" height="540" role="img" aria-labelledby="t d">
+  <title id="t">Night harbour</title>
+  <desc id="d">A sailing boat crosses a calm harbour at night. A lighthouse sweeps its beam over the waves, the stars twinkle and the moon glows.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1233"/>
+      <stop offset="0.6" stop-color="#1d3a6e"/>
+      <stop offset="1" stop-color="#e58f6b"/>
+    </linearGradient>
+    <radialGradient id="moon" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff6d8" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#fff6d8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff2a8" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#fff2a8" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c5d8c"/>
+      <stop offset="1" stop-color="#08203d"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#sky)"/>
+
+  <!-- stars -->
+  <g fill="#ffffff">
+    <circle cx="341" cy="48" r="2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-0.2s" repeatCount="indefinite"/></circle>
+    <circle cx="558" cy="34" r="1.6" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-2.7s" repeatCount="indefinite"/></circle>
+    <circle cx="229" cy="19" r="1" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="4.4s" begin="-1.3s" repeatCount="indefinite"/></circle>
+    <circle cx="256" cy="33" r="2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-2.5s" repeatCount="indefinite"/></circle>
+    <circle cx="136" cy="67" r="1" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="4.4s" begin="-0.1s" repeatCount="indefinite"/></circle>
+    <circle cx="236" cy="21" r="1.2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3.6s" begin="-1.3s" repeatCount="indefinite"/></circle>
+    <circle cx="563" cy="40" r="1.6" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="-0.3s" repeatCount="indefinite"/></circle>
+    <circle cx="594" cy="173" r="1.2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3.6s" begin="-0.3s" repeatCount="indefinite"/></circle>
+    <circle cx="739" cy="26" r="1" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="-1.5s" repeatCount="indefinite"/></circle>
+    <circle cx="554" cy="119" r="1.6" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="4.4s" begin="-1.8s" repeatCount="indefinite"/></circle>
+    <circle cx="474" cy="102" r="1.6" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="-2.4s" repeatCount="indefinite"/></circle>
+    <circle cx="725" cy="209" r="1.2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-1.7s" repeatCount="indefinite"/></circle>
+    <circle cx="547" cy="136" r="1.6" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="4.4s" begin="-0.9s" repeatCount="indefinite"/></circle>
+    <circle cx="84" cy="40" r="2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="-2.3s" repeatCount="indefinite"/></circle>
+    <circle cx="165" cy="135" r="2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-2.9s" repeatCount="indefinite"/></circle>
+    <circle cx="89" cy="205" r="1.6" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3.6s" begin="-2.1s" repeatCount="indefinite"/></circle>
+    <circle cx="618" cy="137" r="2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-2.5s" repeatCount="indefinite"/></circle>
+    <circle cx="286" cy="131" r="1" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-2.2s" repeatCount="indefinite"/></circle>
+    <circle cx="327" cy="175" r="2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3.6s" begin="-2.1s" repeatCount="indefinite"/></circle>
+    <circle cx="918" cy="181" r="1.6" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-2.8s" repeatCount="indefinite"/></circle>
+    <circle cx="373" cy="53" r="1" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="4.4s" begin="-0.2s" repeatCount="indefinite"/></circle>
+    <circle cx="796" cy="83" r="1.2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="-1.2s" repeatCount="indefinite"/></circle>
+    <circle cx="948" cy="137" r="1" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="-1.3s" repeatCount="indefinite"/></circle>
+    <circle cx="572" cy="81" r="1.2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="4.4s" begin="-2.6s" repeatCount="indefinite"/></circle>
+    <circle cx="295" cy="190" r="2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3.6s" begin="-2.0s" repeatCount="indefinite"/></circle>
+    <circle cx="399" cy="69" r="1.2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-0.5s" repeatCount="indefinite"/></circle>
+    <circle cx="247" cy="178" r="1.2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-1.5s" repeatCount="indefinite"/></circle>
+    <circle cx="613" cy="56" r="1.6" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3.6s" begin="-0.0s" repeatCount="indefinite"/></circle>
+    <circle cx="439" cy="146" r="1.6" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3.6s" begin="-2.9s" repeatCount="indefinite"/></circle>
+    <circle cx="717" cy="229" r="1" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="4.4s" begin="-2.7s" repeatCount="indefinite"/></circle>
+    <circle cx="808" cy="184" r="2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="4.4s" begin="-1.2s" repeatCount="indefinite"/></circle>
+    <circle cx="116" cy="133" r="2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-0.6s" repeatCount="indefinite"/></circle>
+    <circle cx="223" cy="122" r="1.2" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.2s" begin="-1.0s" repeatCount="indefinite"/></circle>
+    <circle cx="63" cy="36" r="1" opacity="0.3"><animate attributeName="opacity" values="0.2;1;0.2" dur="3s" begin="-1.6s" repeatCount="indefinite"/></circle>
+  </g>
+
+  <!-- moon -->
+  <circle cx="780" cy="110" r="90" fill="url(#moon)">
+    <animate attributeName="r" values="80;100;80" dur="6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+  </circle>
+  <circle cx="780" cy="110" r="38" fill="#fff6d8"/>
+  <circle cx="767" cy="100" r="7" fill="#eadfb8"/>
+  <circle cx="794" cy="124" r="5" fill="#eadfb8"/>
+
+  <!-- far hills -->
+  <path d="M0,330 C80,280 160,300 240,320 C340,230 430,300 520,330 C640,260 760,290 960,330 V400 H0 Z" fill="#14264d"/>
+
+  <!-- lighthouse -->
+  <g transform="translate(150 0)">
+    <path d="M-34,400 L-22,235 H22 L34,400 Z" fill="#f2efe6"/>
+    <path d="M-30,345 L-27,300 H27 L30,345 Z" fill="#c8453b"/>
+    <rect x="-28" y="225" width="56" height="12" fill="#2b2f3a"/>
+    <rect x="-18" y="196" width="36" height="29" fill="#ffe9a0"/>
+    <path d="M-24,196 L0,170 L24,196 Z" fill="#2b2f3a"/>
+    <!-- the beam grows and fades like a sweep -->
+    <g transform="translate(0 210)">
+      <path d="M0,0 L760,-70 L760,70 Z" fill="url(#beam)" opacity="0">
+        <animate attributeName="opacity" values="0;0.9;0;0;0" keyTimes="0;0.15;0.3;0.5;1" dur="5s" repeatCount="indefinite"/>
+        <animateTransform attributeName="transform" type="scale" values="1 0.2;1 1;1 0.2;1 0.2;1 0.2" keyTimes="0;0.15;0.3;0.5;1" dur="5s" repeatCount="indefinite"/>
+      </path>
+      <path d="M0,0 L-520,-50 L-520,50 Z" fill="url(#beam)" opacity="0" transform="scale(1 1)">
+        <animate attributeName="opacity" values="0;0;0;0.9;0" keyTimes="0;0.5;0.55;0.65;0.8" dur="5s" repeatCount="indefinite"/>
+      </path>
+    </g>
+    <circle cx="0" cy="210" r="9" fill="#fff9d6">
+      <animate attributeName="r" values="7;12;7" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- back wave -->
+  <g>
+    <path d="M0,392 q40.0,-10 80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 t80.0,0 V560 H0 Z" fill="#2a7aa8" opacity="0.85">
+      <animateTransform attributeName="transform" type="translate" from="0 0" to="-160 0" dur="7s" repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <!-- boat -->
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="-160 0;1120 0" dur="16s" repeatCount="indefinite"/>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -7;0 0" dur="2.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="-3 70 420;3 70 420;-3 70 420" dur="3.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+        <rect x="68" y="318" width="4" height="100" fill="#3a2a22"/>
+        <path d="M72,322 C120,350 128,390 128,408 H72 Z" fill="#fdf8ee"/>
+        <path d="M68,330 C36,360 24,390 18,408 H68 Z" fill="#f0b64a"/>
+        <path d="M72,318 L96,324 L72,330 Z" fill="#c8453b"/>
+        <path d="M0,410 H150 L128,444 H26 Z" fill="#7a3b2a"/>
+        <rect x="0" y="410" width="150" height="6" fill="#c8453b"/>
+        <circle cx="48" cy="426" r="4" fill="#ffe9a0"/>
+        <circle cx="75" cy="426" r="4" fill="#ffe9a0"/>
+        <circle cx="102" cy="426" r="4" fill="#ffe9a0"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- front waves -->
+  <path d="M0,430 q50.0,-14 100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 t100.0,0 V560 H0 Z" fill="url(#sea)" opacity="0.92">
+    <animateTransform attributeName="transform" type="translate" from="-200 0" to="0 0" dur="5s" repeatCount="indefinite"/>
+  </path>
+  <path d="M0,470 q60.0,-18 120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 t120.0,0 V560 H0 Z" fill="#0c2c52">
+    <animateTransform attributeName="transform" type="translate" from="0 0" to="-240 0" dur="4s" repeatCount="indefinite"/>
+  </path>
+  <path d="M0,510 q30.0,-12 60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 t60.0,0 V560 H0 Z" fill="#06172e">
+    <animateTransform attributeName="transform" type="translate" from="-120 0" to="0 0" dur="3s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- moon reflection -->
+  <g fill="#fff6d8">
+    <rect x="740" y="440" width="80" height="5" rx="2.5" opacity="0.55"><animate attributeName="width" values="40;90;40" dur="3s" repeatCount="indefinite"/><animate attributeName="x" values="760;735;760" dur="3s" repeatCount="indefinite"/></rect>
+    <rect x="750" y="458" width="60" height="4" rx="2" opacity="0.4"><animate attributeName="width" values="70;30;70" dur="2.4s" repeatCount="indefinite"/><animate attributeName="x" values="745;765;745" dur="2.4s" repeatCount="indefinite"/></rect>
+  </g>
+</svg>
