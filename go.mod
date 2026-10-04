@@ -6,13 +6,13 @@ require (
 	github.com/chromedp/cdproto v0.157.5
 	github.com/chromedp/chromedp v0.19.0
 	github.com/chromedp/chromedp/remote v0.1.0
+	github.com/chromedp/termcast v0.1.0
 	github.com/kenshaw/rasterm v0.1.17
 	github.com/oschwald/geoip2-golang v1.13.0
 	github.com/yookoala/realpath v1.0.0
 )
 
 require (
-	github.com/chromedp/termcast v0.1.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
