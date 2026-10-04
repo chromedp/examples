@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 27 example programs for [`chromedp`][1], a Go package that
+This repository holds 28 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -98,6 +98,7 @@ its frames into a new temporary directory, or into the directory of its flag
 | [geoip](/geoip)                   | look up the location of an IP address and show its map in the terminal                          |
 | [har](/har)                       | generate a HAR file from the network events of a page                                           |
 | [headers](/headers)               | add extra HTTP headers to browser requests                                                      |
+| [intercept](/intercept)           | block, mock and change the requests of a page with the Fetch domain                             |
 | [keys](/keys)                     | send key events to an element                                                                   |
 | [latlon](/latlon)                 | retrieve the latitude and the longitude from Google Maps with the navigation events of the page |
 | [logic](/logic)                   | combine actions and Go code in a function that reads a list from a page                         |
@@ -148,6 +149,7 @@ because they need a live site that can change. No program was run with the flag
 | geoip           | internet (google.com maps)       | the lookup works, the map times out               | earlier test      |
 | har             | offline                          | works                                             | run on 2026-10-04 |
 | headers         | offline                          | works                                             | run on 2026-10-04 |
+| intercept       | offline                          | works                                             | run on 2026-10-04 |
 | keys            | offline                          | works                                             | run on 2026-10-04 |
 | latlon          | internet (google.com maps)       | works                                             | earlier test      |
 | logic           | internet (github.com)            | works                                             | earlier test      |

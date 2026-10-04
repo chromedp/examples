@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 27 example programs for `chromedp`, a Go package that
+This repository holds 28 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 27 programs |
+| `<name>/main.go` | one example program, for each of the 28 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -132,10 +132,10 @@ PATH=$TMP:$PATH go run ./<name>
 
 ## Verify an offline program
 
-The offline programs are `cookie`, `har`, `headers`, `keys`, `multi`,
-`pdfstream`, `proxy`, `screencast`, `subtree`, `upload` and `visible`. Run one
-with the command above and a time limit, for example `timeout 90 go run
-./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
+The offline programs are `cookie`, `har`, `headers`, `intercept`, `keys`,
+`multi`, `pdfstream`, `proxy`, `screencast`, `subtree`, `upload` and `visible`.
+Run one with the command above and a time limit, for example
+`timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
@@ -144,6 +144,7 @@ that has no display.
 | `cookie` | the log lines `server received cookie 0: cookie1=value1` and `cookie 1: cookie2=value2`, each one twice, then two `chrome cookie` lines and `chrome received cookies` |
 | `har` | `wrote out.har (N bytes) with 4 entries`, the page timings, and one line for each of `/`, `/logo.png`, `/app.js` and `/api/data?id=1`, all with status 200. It writes `out.har` in the current directory |
 | `headers` | one log line `received headers:` that lists the headers, with `X-Header` and the value `my request header` |
+| `intercept` | the page text, with `user: Ada Lovelace (from the program)`, `analytics script ran: false` and `image loaded: false`, then the lines `blocked 2`, `mocked 1` and `continued 1` |
 | `keys` | the values of `#input1`, `#textarea1`, `#input2` and `#select1`, which are `test4`, a text that starts with `textar`, `test3` and `three` |
 | `multi` | run it with `-out <dir> data:text/html,<h1>hello</h1>`. It prints `image 0 (...) width: 780 height: 437` and writes `<dir>/0.png` |
 | `pdfstream` | `wrote out.pdf: N bytes` after `read the stream with N calls of IO.read`, then `out.pdf starts with %PDF`. It writes `out.pdf` in the current directory |
