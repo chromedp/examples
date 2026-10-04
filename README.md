@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 35 example programs for [`chromedp`][1], a Go package that
+This repository holds 36 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -110,6 +110,7 @@ its frames into a new temporary directory, or into the directory of its flag
 | [pdfstream](/pdfstream)           | print a page to a PDF file with a stream                                                        |
 | [popups](/popups)                 | work with the popups of a page and with several targets                                         |
 | [proxy](/proxy)                   | authenticate to a proxy server that requires authentication                                     |
+| [rawcall](/rawcall)               | send protocol commands that chromedp has no action for                                          |
 | [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL                    |
 | [screencast](/screencast)         | record the screen of a page as a series of JPEG images                                          |
 | [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport                      |
@@ -168,6 +169,7 @@ because they need a live site that can change. No program was run with the flag
 | pdfstream       | offline                          | works                                             | run on 2026-10-04 |
 | popups          | offline                          | works                                             | run on 2026-10-04 |
 | proxy           | offline                          | works                                             | run on 2026-10-04 |
+| rawcall         | offline                          | works                                             | run on 2026-10-04 |
 | remote          | a Chrome with a debugging port   | works up to the terminal image                    | earlier test      |
 | screencast      | offline                          | works                                             | run on 2026-10-04 |
 | screenshot      | internet (pkg.go.dev, brank.as)  | works                                             | earlier test      |

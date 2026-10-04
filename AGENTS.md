@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 35 example programs for `chromedp`, a Go package that
+This repository holds 36 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 35 programs |
+| `<name>/main.go` | one example program, for each of the 36 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -134,9 +134,9 @@ PATH=$TMP:$PATH go run ./<name>
 
 The offline programs are `cookie`, `dialogs`, `eventsiter`, `frames`, `har`,
 `headers`, `intercept`, `keys`, `multi`, `pdfstream`, `popups`, `proxy`,
-`screencast`, `selectors`, `session`, `structeval`, `subtree`, `upload` and
-`visible`. Run one with the command above and a time limit, for example `timeout
-90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
+`rawcall`, `screencast`, `selectors`, `session`, `structeval`, `subtree`,
+`upload` and `visible`. Run one with the command above and a time limit, for
+example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
@@ -154,6 +154,7 @@ that has no display.
 | `pdfstream` | `wrote out.pdf: N bytes` after `read the stream with N calls of IO.read`, then `out.pdf starts with %PDF`. It writes `out.pdf` in the current directory |
 | `popups` | two lines `popup of the link: title "popup of the link"` and `popup of the button: ...` with a target ID, then `a tab in the same browser context sees: session=abc`, `a tab in a new browser context sees: no cookie`, and the line about the first request of the new tab, which got the page `"answered by the program"` |
 | `proxy` | no stdout. The log shows `proxy: not authorized` for the first request, then the requests with `Proxy-Authorization: Basic dTpw` |
+| `rawcall` | the method name of one command, the page before and after the time zone and locale overrides (`America/New_York`, `1.234.567,891`, `navigator.language ... id-ID`), `permission geolocation: granted`, the position `latitude:-6.2088 longitude:106.8456`, the CPU slowdown (about 4 times), the latency and offline results, and two lines with `Browser.getVersion` |
 | `screencast` | `saving the frames in <dir>`, then about `30 frames in 3s, 10.0 frames per second`. It writes `frame-0001.jpg` and more files in `<dir>` |
 | `selectors` | one line for each selector type, such as `CSS("li.fruit"): "Apple"`, `CSSAll("li.fruit"): 3 nodes`, `NodeIDs(the second of 3 ids): "Banana"`, `ByFunc(the last li.fruit): "Cherry"`, then `AtLeast(2): 2 rows`, `AtLeast(0) on .missing: 0 elements` and `NodeVisible on the hidden item: context deadline exceeded` |
 | `session` | the login line, `saved the state in <file> (N bytes)` with the cookie `session, HttpOnly: true`, then `second browser before the restore: please log in` and `second browser after the restore: hello ada, theme dark, cart 3 items`. It writes the state in a temporary file, or in the file of `-state` |
