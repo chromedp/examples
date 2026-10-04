@@ -23,7 +23,7 @@
         <p class="news-byline">By {{.Lead.Author}}, {{.Lead.Date}}</p>
       </article>
       <div class="news-grid">
-        {{range $i, $s := .Stories}}{{if eq $i 3}}{{$.Data.Middle}}{{end}}
+        {{range $i, $s := .Stories}}{{if eq $i 2}}{{$.Data.Middle}}{{end}}
         <article class="news-card" id="{{lower $s.Section}}-{{$i}}">
           <a href="/news/{{$s.Slug}}"><img src="/images/{{$s.Image}}?w=400" alt="{{$s.Alt}}" width="400" height="220"></a>
           <p class="news-kicker">{{$s.Section}}</p>
