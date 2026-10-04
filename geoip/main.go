@@ -5,10 +5,11 @@
 // internet, but it needs a terminal that can show images. Give one or more IP
 // addresses as arguments, or none to look up the example address 8.8.8.8. Use
 // -l to choose the language of the place names, -zoom and -scale to change the
-// map, -v to print the protocol messages and -visible to show the browser
-// window and leave it open. The flag -url reads the map from another site
-// instead of the local test site. The tiles and the selectors are written for
-// the local site, so a live site can differ.
+// map, -v to print the protocol messages, -visible to show the browser window
+// and leave it open, and -visible-on-terminal to draw the page in the terminal
+// with terminal graphics. The flag -url reads the map from another site instead
+// of the local test site. The tiles and the selectors are written for the local
+// site, so a live site can differ.
 package main
 
 import (
@@ -19,6 +20,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io"
 	"log"
 	"net"
 	"net/url"
@@ -29,6 +31,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
+	"github.com/chromedp/termcast"
 	"github.com/kenshaw/rasterm"
 	"github.com/oschwald/geoip2-golang"
 )
@@ -42,6 +45,7 @@ const defaultIP = "8.8.8.8"
 var geoLite2CityMmdb []byte
 
 func main() {
+	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	timeout := flag.Duration("timeout", 30*time.Second, "time limit of the program")
@@ -49,14 +53,15 @@ func main() {
 	lang := flag.String("l", "en", "language code of the place names, for example de, es, fr, ja, pt-BR, ru or zh-CN")
 	zoom := flag.Float64("zoom", 12.5, "zoom level of the map")
 	scale := flag.Float64("scale", 1.5, "scale of the map image")
+	tc.Register(flag.CommandLine)
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *visible, *timeout, *urlstr, *lang, *zoom, *scale, flag.Args()); err != nil {
+	if err := run(context.Background(), &tc, *verbose, *visible, *timeout, *urlstr, *lang, *zoom, *scale, flag.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urlstr, lang string, zoom, scale float64, args []string) error {
+func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout time.Duration, urlstr, lang string, zoom, scale float64, args []string) error {
 	// open the embedded database
 	db, err := geoip2.FromBytes(geoLite2CityMmdb)
 	if err != nil {
@@ -94,37 +99,51 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urls
 		}()
 	}
 
+	// draw the page in the terminal if the flag -visible-on-terminal is set
+	s, err := tc.Start(ctx, verbose)
+	if err != nil {
+		return err
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	stdout := io.Writer(os.Stdout)
+	if s != nil {
+		stdout = s.LogWriter()
+	}
+
 	// create a timeout
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	for i, ipstr := range args {
 		if i != 0 {
-			fmt.Fprintln(os.Stdout)
+			fmt.Fprintln(stdout)
 		}
 		ip := net.ParseIP(ipstr)
 		if ip == nil {
-			fmt.Fprintf(os.Stdout, "%s: unable to lookup: not an IP address\n", ipstr)
+			fmt.Fprintf(stdout, "%s: unable to lookup: not an IP address\n", ipstr)
 			continue
 		}
 		record, err := db.City(ip)
 		if err != nil {
-			fmt.Fprintf(os.Stdout, "%s: unable to lookup: %v\n", ipstr, err)
+			fmt.Fprintf(stdout, "%s: unable to lookup: %v\n", ipstr, err)
 			continue
 		}
 		loc := record.Location
 		if loc.Latitude == 0 && loc.Longitude == 0 {
-			fmt.Fprintf(os.Stdout, "%s: unable to lookup: the database has no location for it\n", ipstr)
+			fmt.Fprintf(stdout, "%s: unable to lookup: the database has no location for it\n", ipstr)
 			continue
 		}
-		fmt.Fprintf(os.Stdout, "%s: %s\n", ipstr, describe(record, lang))
+		fmt.Fprintf(stdout, "%s: %s\n", ipstr, describe(record, lang))
 
 		// show the map of the place
 		img, err := getMap(ctx, base, lang, loc.Latitude, loc.Longitude, zoom, scale)
 		if err != nil {
-			fmt.Fprintf(os.Stdout, "unable to get map: %v\n", err)
+			fmt.Fprintf(stdout, "unable to get map: %v\n", err)
 			continue
 		}
+		// show the map after the stream has stopped
+		s.Stop()
 		if err := rasterm.Encode(os.Stdout, img); err != nil {
 			return fmt.Errorf("showing the map: %w", err)
 		}
