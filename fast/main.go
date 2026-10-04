@@ -1,8 +1,9 @@
 // Command fast is a chromedp example demonstrating how to measure the speed of
-// the internet connection and show the result in the terminal. It reads fast.com
-// and needs a terminal that can show images. It is inspired by adhocore/fast,
-// see https://github.com/adhocore/fast. Use -v to print the protocol messages
-// and -visible to show the browser window and leave it open.
+// the internet connection and show the result in the terminal. It reads
+// fast.com and needs a terminal that can show images. It is inspired by
+// adhocore/fast, see https://github.com/adhocore/fast. Use -v to print the
+// protocol messages, -visible to show the browser window and leave it open, and
+// -visible-on-terminal to draw the page in the terminal with terminal graphics.
 package main
 
 import (
@@ -14,30 +15,34 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	"io"
 	"log"
 	"os"
 	"time"
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 	"github.com/kenshaw/rasterm"
 )
 
 func main() {
+	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	timeout := flag.Duration("timeout", 2*time.Minute, "time limit of the program")
 	scale := flag.Float64("scale", 1.5, "scale of the screenshot")
 	padding := flag.Int("padding", 0, "white space around the image, in pixels")
 	out := flag.String("out", "", "file to write the screenshot to")
+	tc.Register(flag.CommandLine)
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *visible, *timeout, *scale, *padding, *out); err != nil {
+	if err := run(context.Background(), &tc, *verbose, *visible, *timeout, *scale, *padding, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, verbose, visible bool, timeout time.Duration, scale float64, padding int, out string) error {
+func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout time.Duration, scale float64, padding int, out string) error {
 	// create context
 	var opts []chromedp.ContextOption
 	if verbose {
@@ -53,6 +58,18 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, scal
 			wsURL, dir := chromedp.KeptOpen(ctx)
 			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
 		}()
+	}
+
+	// draw the page in the terminal if the flag -visible-on-terminal is set
+	s, err := tc.Start(ctx, verbose)
+	if err != nil {
+		return err
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	stdout := io.Writer(os.Stdout)
+	if s != nil {
+		stdout = s.LogWriter()
 	}
 
 	// create a timeout
@@ -104,12 +121,13 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, scal
 		}
 	}
 
-	// show the image in the terminal
+	// show the image in the terminal, after the stream has stopped
+	s.Stop()
 	if err := rasterm.Encode(os.Stdout, img); err != nil {
 		return err
 	}
 
 	// print the time of the test
-	_, err = fmt.Fprintf(os.Stdout, "time: %v\n", end.Sub(start))
+	_, err = fmt.Fprintf(stdout, "time: %v\n", end.Sub(start))
 	return err
 }
