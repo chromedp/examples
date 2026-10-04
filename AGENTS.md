@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 39 example programs for `chromedp`, a Go package that
+This repository holds 40 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 39 programs |
+| `<name>/main.go` | one example program, for each of the 40 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -133,10 +133,10 @@ PATH=$TMP:$PATH go run ./<name>
 ## Verify an offline program
 
 The offline programs are `console`, `cookie`, `dialogs`, `dragdrop`,
-`eventsiter`, `frames`, `har`, `headers`, `intercept`, `keys`, `multi`,
-`pdfstream`, `popups`, `proxy`, `rawcall`, `screencast`, `selectors`, `session`,
-`structeval`, `subtree`, `upload`, `visible` and `workers`. Run one with the
-command above and a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
+`eventsiter`, `exposefunc`, `frames`, `har`, `headers`, `intercept`, `keys`,
+`multi`, `pdfstream`, `popups`, `proxy`, `rawcall`, `screencast`, `selectors`,
+`session`, `structeval`, `subtree`, `upload`, `visible` and `workers`. Run one
+with the command above and a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
@@ -147,6 +147,7 @@ that has no display.
 | `dialogs` | four dialogs: `alert dialog, message "Hello from the page": accepted`, `confirm gave false`, `prompt gave Ada` and a `beforeunload` dialog with an empty message, then `the browser is now on the page that says "the next page"` |
 | `dragdrop` | three lines for the slider (`value 75`, `value 34` and `value 100`, with the handle at 277, 127 and 370 px), the list order after two drags (`beta, gamma, alpha, delta`, then `delta, beta, gamma, alpha`), two lines for the HTML5 drops (`"buy milk"` on `done` and `"call Ann"` on `later`, with the data type `text/plain`), and the card count of each zone |
 | `eventsiter` | the line `the network was idle after 1s`, the 5 requests and the 5 responses (the browser asks for `/favicon.ico` by itself), the first three console messages, and `the message of the click: console.log: "clicked" 7` |
+| `exposefunc` | eight lines about what the page got: `an object in and out: Ada lives in London and knows go and javascript`, `sum(1, 2, 3.5) = 6.5`, the Go error as a rejected promise with `"division by zero"`, `no user with the id "u9"`, five calls at the same time with `squares 1, 4, 9, 16, 25`, `the largest number of calls that ran together in Go: 5`, the call after the navigation, and the line `in the iframe: the iframe got Budi from Jakarta` |
 | `frames` | five lines about the same-site iframe and the shadow root (`title: "Page of 127.0.0.1"`, `"clicked"` and `"started"`), then the lines for the cross-site iframe, with `document in the node tree: false`, a failed query, and `title from its own target: "Page of localhost"` |
 | `har` | `wrote out.har (N bytes) with 4 entries`, the page timings, and one line for each of `/`, `/logo.png`, `/app.js` and `/api/data?id=1`, all with status 200. It writes `out.har` in the current directory |
 | `headers` | one log line `received headers:` that lists the headers, with `X-Header` and the value `my request header` |
