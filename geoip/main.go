@@ -1,24 +1,26 @@
 // Command geoip is a chromedp example demonstrating how to look up the location
-// of an IP address and show its map in the terminal. It starts a local server
-// and needs no internet, but it needs a terminal that can show images. Give one
-// or more IP addresses as arguments, or none to look up the address of this
-// computer. The program reads the answer of the lookup service, and then it
-// takes a screenshot of the map of the place. Use -v to print the protocol
-// messages and -visible to show the browser window and leave it open. The flag
-// -url reads another site instead. The selectors are written for the local
-// site, so a live site can differ.
+// of an IP address and show its map in the terminal. It looks up the address
+// offline in the embedded GeoLite2 City database of MaxMind, and it takes a
+// screenshot of the map of the place from the local test site. It needs no
+// internet, but it needs a terminal that can show images. Give one or more IP
+// addresses as arguments, or none to look up the example address 8.8.8.8. Use
+// -l to choose the language of the place names, -zoom and -scale to change the
+// map, -v to print the protocol messages and -visible to show the browser
+// window and leave it open. The flag -url reads the map from another site
+// instead of the local test site. The tiles and the selectors are written for
+// the local site, so a live site can differ.
 package main
 
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	_ "embed"
 	"flag"
 	"fmt"
 	"image"
 	"image/png"
 	"log"
-	"net/http"
+	"net"
 	"net/url"
 	"os"
 	"strings"
@@ -28,29 +30,23 @@ import (
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
 	"github.com/kenshaw/rasterm"
+	"github.com/oschwald/geoip2-golang"
 )
 
-// record is the answer of the lookup service for one address.
-type record struct {
-	IP           string  `json:"ip"`
-	Range        string  `json:"range"`
-	Country      string  `json:"country"`
-	CountryCode  string  `json:"country_code"`
-	Region       string  `json:"region"`
-	City         string  `json:"city"`
-	Latitude     float64 `json:"latitude"`
-	Longitude    float64 `json:"longitude"`
-	Timezone     string  `json:"timezone"`
-	Organization string  `json:"organization"`
-	AccuracyKM   int     `json:"accuracy_radius_km"`
-}
+// defaultIP is the address that the program looks up when it has no argument.
+const defaultIP = "8.8.8.8"
+
+// geoLite2CityMmdb is the GeoLite2 City database of MaxMind.
+//
+//go:embed GeoLite2-City.mmdb
+var geoLite2CityMmdb []byte
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	timeout := flag.Duration("timeout", 30*time.Second, "time limit of the program")
-	urlstr := flag.String("url", "", "base URL of the site to read, for example a live site (default: the local test site, and the selectors are written for it)")
-	lang := flag.String("l", "en", "language code of the place names (the local site uses English only)")
+	urlstr := flag.String("url", "", "base URL of the map site to read (default: the local test site, and the tiles and selectors are written for it)")
+	lang := flag.String("l", "en", "language code of the place names, for example de, es, fr, ja, pt-BR, ru or zh-CN")
 	zoom := flag.Float64("zoom", 12.5, "zoom level of the map")
 	scale := flag.Float64("scale", 1.5, "scale of the map image")
 	flag.Parse()
@@ -61,6 +57,13 @@ func main() {
 }
 
 func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urlstr, lang string, zoom, scale float64, args []string) error {
+	// open the embedded database
+	db, err := geoip2.FromBytes(geoLite2CityMmdb)
+	if err != nil {
+		return fmt.Errorf("opening the database: %w", err)
+	}
+	defer db.Close()
+
 	// start the local test site, unless the flag -url names a site
 	if urlstr == "" {
 		site := testsite.New()
@@ -69,10 +72,9 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urls
 	}
 	base := strings.TrimRight(urlstr, "/")
 
-	// Without arguments, look up the address of this computer. The service
-	// does that when the query has no address.
+	// without arguments, look up the example address
 	if len(args) == 0 {
-		args = []string{""}
+		args = []string{defaultIP}
 	}
 
 	// create context
@@ -100,33 +102,25 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urls
 		if i != 0 {
 			fmt.Fprintln(os.Stdout)
 		}
-
-		// look up the address with the standard library, because the answer is
-		// JSON and needs no browser
-		rec, err := lookup(ctx, base, ipstr)
+		ip := net.ParseIP(ipstr)
+		if ip == nil {
+			fmt.Fprintf(os.Stdout, "%s: unable to lookup: not an IP address\n", ipstr)
+			continue
+		}
+		record, err := db.City(ip)
 		if err != nil {
 			fmt.Fprintf(os.Stdout, "%s: unable to lookup: %v\n", ipstr, err)
 			continue
 		}
-		fmt.Fprintf(
-			os.Stdout,
-			"%s: %s, %s, %s (%s %s) @ %f,%f %s\n  Network: %s, %s, accurate to %d km\n",
-			rec.IP,
-			rec.City,
-			rec.Region,
-			rec.Country,
-			rec.CountryCode,
-			rec.Timezone,
-			rec.Latitude,
-			rec.Longitude,
-			emojiFlag(rec.CountryCode),
-			rec.Organization,
-			rec.Range,
-			rec.AccuracyKM,
-		)
+		loc := record.Location
+		if loc.Latitude == 0 && loc.Longitude == 0 {
+			fmt.Fprintf(os.Stdout, "%s: unable to lookup: the database has no location for it\n", ipstr)
+			continue
+		}
+		fmt.Fprintf(os.Stdout, "%s: %s\n", ipstr, describe(record, lang))
 
 		// show the map of the place
-		img, err := getMap(ctx, base, lang, rec.Latitude, rec.Longitude, zoom, scale)
+		img, err := getMap(ctx, base, lang, loc.Latitude, loc.Longitude, zoom, scale)
 		if err != nil {
 			fmt.Fprintf(os.Stdout, "unable to get map: %v\n", err)
 			continue
@@ -138,26 +132,51 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urls
 	return nil
 }
 
-// lookup asks the lookup service for the place of an address. The service
-// answers 404 for an address that it does not know.
-func lookup(ctx context.Context, base, ipstr string) (*record, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, base+"/api/geoip?ip="+url.QueryEscape(ipstr), nil)
-	if err != nil {
-		return nil, err
+// describe returns the place of a record as one line, with the names in the
+// language lang. A name that the database does not have in that language falls
+// back to English.
+func describe(record *geoip2.City, lang string) string {
+	var parts []string
+	if name := localName(record.City.Names, lang); name != "" {
+		parts = append(parts, name)
 	}
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
+	for _, s := range record.Subdivisions {
+		if name := localName(s.Names, lang); name != "" {
+			parts = append(parts, name)
+		}
 	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("the service answered %s", res.Status)
+	country := localName(record.Country.Names, lang)
+	if country == "" {
+		country = localName(record.RegisteredCountry.Names, lang)
 	}
-	var rec record
-	if err := json.NewDecoder(res.Body).Decode(&rec); err != nil {
-		return nil, fmt.Errorf("decoding the answer: %w", err)
+	if country != "" {
+		parts = append(parts, country)
 	}
-	return &rec, nil
+	s := strings.Join(parts, ", ")
+	if code := record.Country.IsoCode; code != "" {
+		s += " (" + code
+		if tz := record.Location.TimeZone; tz != "" {
+			s += " " + tz
+		}
+		s += ")"
+	}
+	s += fmt.Sprintf(" @ %f,%f", record.Location.Latitude, record.Location.Longitude)
+	if r := record.Location.AccuracyRadius; r != 0 {
+		s += fmt.Sprintf(", accurate to %d km", r)
+	}
+	if emoji := emojiFlag(record.Country.IsoCode); emoji != "" {
+		s += " " + emoji
+	}
+	return s
+}
+
+// localName returns the name for the language lang, or the English name if
+// there is none.
+func localName(names map[string]string, lang string) string {
+	if name, ok := names[lang]; ok {
+		return name
+	}
+	return names["en"]
 }
 
 // getMap opens the map of a place, waits until the map has its tiles, and
@@ -172,16 +191,10 @@ func getMap(ctx context.Context, base, lang string, lat, lon, zoom, scale float6
 	); err != nil {
 		return nil, fmt.Errorf("loading the map: %w", err)
 	}
-	// The element #coords says where the map is.
-	where, err := chromedp.Run(ctx, chromedp.Text(`#coords`))
-	if err != nil {
-		return nil, fmt.Errorf("reading the position of the map: %w", err)
-	}
 	buf, err := chromedp.Run(ctx, chromedp.ScreenshotScale(`#app-container`, scale))
 	if err != nil {
 		return nil, fmt.Errorf("taking the screenshot of the map: %w", err)
 	}
-	fmt.Fprintf(os.Stdout, "  Map: %s\n", where)
 	return png.Decode(bytes.NewReader(buf))
 }
 
