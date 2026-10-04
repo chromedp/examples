@@ -4,7 +4,7 @@
 // the second one as a cross-site iframe. The program reads and clicks an
 // element inside an iframe of the same site with the option FromNode. It
 // reaches an element inside an open shadow root with a JSPath selector, and it
-// waits for that element with WaitNotVisible and WaitVisible. At the end, it
+// waits for that element with WaitNotPresent and WaitVisible. At the end, it
 // tries the same query on the cross-site iframe and shows that it finds
 // nothing. Then it attaches to the iframe as a target of its own. It starts
 // local servers and needs no internet. Use -v to print the protocol messages
@@ -121,12 +121,12 @@ func shadow(ctx context.Context) error {
 		message = `document.getElementById("host").shadowRoot.querySelector("p")`
 	)
 
-	// The component shows a spinner, and after 300 ms it hides the spinner and
-	// shows a button. WaitNotVisible waits for the spinner to go. Do not use
-	// WaitNotPresent here. When the expression gives null, the lookup of a
-	// JSPath selector fails in the browser, and chromedp retries until the
-	// context ends.
-	if err := chromedp.Do(ctx, chromedp.WaitNotVisible(chromedp.JSPath(spinner))); err != nil {
+	// The component shows a spinner, and after 300 ms it removes the spinner and
+	// shows a button. The component removes the spinner from the shadow root.
+	// WaitNotPresent waits until the JSPath expression gives null. Before
+	// chromedp v0.19.0, a JSPath expression that gives null made the lookup
+	// fail, and the wait never ended.
+	if err := chromedp.Do(ctx, chromedp.WaitNotPresent(chromedp.JSPath(spinner))); err != nil {
 		return fmt.Errorf("waiting for the spinner to hide: %w", err)
 	}
 	if err := chromedp.Do(ctx, chromedp.WaitVisible(chromedp.JSPath(button))); err != nil {
@@ -205,7 +205,7 @@ func newMux(otherURL string) *http.ServeMux {
 const root = document.getElementById("host").attachShadow({mode: "open"});
 root.innerHTML = '<p>waiting</p><div class="spinner">loading</div>';
 setTimeout(() => {
-  root.querySelector(".spinner").hidden = true;
+  root.querySelector(".spinner").remove();
   const button = document.createElement("button");
   button.textContent = "Start";
   button.onclick = () => { root.querySelector("p").textContent = "started"; };

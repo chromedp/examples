@@ -14,7 +14,7 @@ them need the internet or an external component.
 [![Releases][release-status]][releases]
 [![Discord Discussion][discord-status]][discord]
 
-The programs use the typed API of `chromedp` v0.18.0 and `cdproto` v0.157.4.
+The programs use the typed API of `chromedp` v0.19.0 and `cdproto` v0.157.5.
 The file `docs/API.md` in the `chromedp` repository shows the old code and the
 new code side by side. The file `docs/MIGRATION.md` in the same folder lists
 every name that changed. See
@@ -22,13 +22,13 @@ every name that changed. See
 
 ## Build and run
 
-The module needs Go 1.27. It requires `chromedp` v0.18.0, `cdproto` v0.157.4 and
+The module needs Go 1.27. It requires `chromedp` v0.19.0, `cdproto` v0.157.5 and
 `chromedp/remote` v0.1.0, and Go downloads them when you build a program. The
 programs use `remote` for the flag `-visible`, which keeps the browser open, and
 for the `remote` program.
 
-The tags of this repository follow the tags of `chromedp`. The tag `v0.18.0` holds
-programs that use `chromedp` v0.18, and a tag such as `v0.18.1` is a later change in
+The tags of this repository follow the tags of `chromedp`. The tag `v0.19.0` holds
+programs that use `chromedp` v0.19, and a tag such as `v0.19.1` is a later change in
 this repository.
 
 `chromedp` starts the browser. It finds Chrome or Chromium on the `PATH`. If
@@ -152,16 +152,16 @@ because they need a live site that can change. No program was run with the flag
 | Example         | Needs                            | Result with the current API                       | Checked           |
 |-----------------|----------------------------------|---------------------------------------------------|-------------------|
 | click           | internet (pkg.go.dev)            | works                                             | run on 2026-10-04 |
-| console         | offline                          | works with chromedp v0.19.0                       | run on 2026-10-04 |
+| console         | offline                          | works                                             | run on 2026-10-04 |
 | cookie          | offline                          | works                                             | run on 2026-10-04 |
 | dialogs         | offline                          | works                                             | run on 2026-10-04 |
 | download_file   | internet (github.com)            | fails, times out after 60 seconds                 | earlier test      |
 | download_image  | internet (githubusercontent.com) | works, writes 38371 bytes                         | earlier test      |
-| dragdrop        | offline                          | works with chromedp v0.19.0                       | run on 2026-10-04 |
+| dragdrop        | offline                          | works                                             | run on 2026-10-04 |
 | emulate         | internet (whatsmyua.info)        | works                                             | earlier test      |
 | eval            | internet (google.com)            | works                                             | earlier test      |
 | eventsiter      | offline                          | works                                             | run on 2026-10-04 |
-| exposefunc      | offline                          | works with chromedp v0.19.0                       | run on 2026-10-04 |
+| exposefunc      | offline                          | works                                             | run on 2026-10-04 |
 | fast            | internet (fast.com), terminal    | fails at the end without a terminal image         | earlier test      |
 | forecast        | internet (google.com), terminal  | fails, times out                                  | earlier test      |
 | frames          | offline                          | works                                             | run on 2026-10-04 |
@@ -174,7 +174,7 @@ because they need a live site that can change. No program was run with the flag
 | logic           | internet (github.com)            | works                                             | earlier test      |
 | multi           | offline with a `data:` URL       | works                                             | run on 2026-10-04 |
 | pdf             | internet (google.com)            | works                                             | earlier test      |
-| pdfoptions      | offline                          | works with chromedp v0.19.0                       | run on 2026-10-04 |
+| pdfoptions      | offline                          | works                                             | run on 2026-10-04 |
 | pdfstream       | offline                          | works                                             | run on 2026-10-04 |
 | popups          | offline                          | works                                             | run on 2026-10-04 |
 | proxy           | offline                          | works                                             | run on 2026-10-04 |

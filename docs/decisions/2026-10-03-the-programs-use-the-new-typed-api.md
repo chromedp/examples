@@ -6,8 +6,8 @@ The maintainer asked on 2026-10-03 for the programs of this repository to use
 the new typed API of `chromedp`. See
 `2026-10-03-generic-iterator-api-instead-of-action.md` in the `chromedp`
 repository. The maintainer approved the API and this port, and the work was
-merged on 2026-10-04. The programs use `chromedp` v0.18.0 and `cdproto`
-v0.157.4.
+merged on 2026-10-04. The programs use `chromedp` v0.19.0 and `cdproto`
+v0.157.5.
 
 ## What changed
 

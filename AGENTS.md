@@ -6,7 +6,7 @@ than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
 proxy and more. The module is `github.com/chromedp/examples`.
 
-The programs use the typed API of `chromedp` v0.18.0 and `cdproto` v0.157.4. See
+The programs use the typed API of `chromedp` v0.19.0 and `cdproto` v0.157.5. See
 `docs/decisions/2026-10-03-the-programs-use-the-new-typed-api.md`.
 
 ## Standing rules
@@ -119,7 +119,7 @@ Add `-v` to any program to print the protocol messages. Add `-visible` to show
 the browser window and leave it open. The variable `CHROMEDP_VISIBLEWINDOW=1`
 shows the window with no flag. A visible window needs a display.
 
-Go downloads `chromedp` v0.18.0 and `cdproto` v0.157.4 when it builds a program.
+Go downloads `chromedp` v0.19.0 and `cdproto` v0.157.5 when it builds a program.
 Do not edit `go.mod` or `go.sum` unless the maintainer asks.
 
 A program that needs a browser starts it. If Chrome is not on the `PATH` under
@@ -193,8 +193,8 @@ night at 05:17 UTC against the newest `main` of `chromedp` and of `chromedp/remo
 and the newest `cdproto`. Neither runs a program, because most programs read live
 websites. Do not add a test that runs a program in CI.
 
-The tags follow `chromedp`. The tag `v0.18.x` holds programs that use `chromedp`
-v0.18.x, and the patch number counts the changes of this repository. See
+The tags follow `chromedp`. The tag `v0.19.x` holds programs that use `chromedp`
+v0.19.x, and the patch number counts the changes of this repository. See
 `docs/decisions/2026-10-04-the-examples-follow-the-chromedp-version.md`. Do not
 create a tag. The maintainer does.
 
