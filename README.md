@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 28 example programs for [`chromedp`][1], a Go package that
+This repository holds 29 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -95,6 +95,7 @@ its frames into a new temporary directory, or into the directory of its flag
 | [eval](/eval)                     | evaluate JavaScript and retrieve the result                                                     |
 | [fast](/fast)                     | measure the speed of the internet connection and show the result in the terminal                |
 | [forecast](/forecast)             | render the weather forecast of Google in the terminal                                           |
+| [frames](/frames)                 | reach elements inside an iframe and inside a shadow root                                        |
 | [geoip](/geoip)                   | look up the location of an IP address and show its map in the terminal                          |
 | [har](/har)                       | generate a HAR file from the network events of a page                                           |
 | [headers](/headers)               | add extra HTTP headers to browser requests                                                      |
@@ -146,6 +147,7 @@ because they need a live site that can change. No program was run with the flag
 | eval            | internet (google.com)            | works                                             | earlier test      |
 | fast            | internet (fast.com), terminal    | fails at the end without a terminal image         | earlier test      |
 | forecast        | internet (google.com), terminal  | fails, times out                                  | earlier test      |
+| frames          | offline                          | works                                             | run on 2026-10-04 |
 | geoip           | internet (google.com maps)       | the lookup works, the map times out               | earlier test      |
 | har             | offline                          | works                                             | run on 2026-10-04 |
 | headers         | offline                          | works                                             | run on 2026-10-04 |
