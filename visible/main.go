@@ -1,7 +1,8 @@
 // Command visible is a chromedp example demonstrating how to wait until an
 // element is visible. It starts a local server and needs no internet. Use -v to
-// print the protocol messages and -visible to show the browser window and leave
-// it open.
+// print the protocol messages, -visible to show the browser window and leave it
+// open, and -visible-on-terminal to draw the page in the terminal with terminal
+// graphics.
 package main
 
 import (
@@ -14,12 +15,15 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 func main() {
 	port := flag.Int("port", 8544, "port of the local web server")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -42,10 +46,19 @@ func main() {
 		}()
 	}
 
-	// run the actions
-	err := waitBoxes(ctx, fmt.Sprintf("http://localhost:%d", *port))
+	// start the stream before the first navigation, so that the frames show
+	// the page while it loads
+	s, err := tc.Start(ctx, *verbose)
 	if err != nil {
 		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+
+	// run the actions
+	err = waitBoxes(ctx, fmt.Sprintf("http://localhost:%d", *port))
+	if err != nil {
+		s.Fatal(err)
 	}
 }
 
