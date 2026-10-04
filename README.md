@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 25 example programs for [`chromedp`][1], a Go package that
+This repository holds 26 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -74,8 +74,8 @@ Some programs need arguments:
 - `remote` needs a running browser. See [remote/README.md](remote/README.md).
 - `upload` uploads its own source file, so you can run it from any folder.
 
-The programs `download_file`, `download_image`, `emulate`, `har`, `pdf`
-and `screenshot` write files into the current directory. The
+The programs `download_file`, `download_image`, `emulate`, `har`, `pdf`,
+`pdfstream` and `screenshot` write files into the current directory. The
 programs `fast` and `forecast` write a file only when you give the flag `-out`,
 and `multi` does so only with its flag `-out`.
 
@@ -101,6 +101,7 @@ and `multi` does so only with its flag `-out`.
 | [logic](/logic)                   | combine actions and Go code in a function that reads a list from a page                         |
 | [multi](/multi)                   | use headless-shell and a container (Docker, Podman, other)                                      |
 | [pdf](/pdf)                       | capture a PDF of a page                                                                         |
+| [pdfstream](/pdfstream)           | print a page to a PDF file with a stream                                                        |
 | [proxy](/proxy)                   | authenticate to a proxy server that requires authentication                                     |
 | [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL                    |
 | [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport                      |
@@ -149,6 +150,7 @@ because they need a live site that can change. No program was run with the flag
 | logic           | internet (github.com)            | works                                             | earlier test      |
 | multi           | offline with a `data:` URL       | works                                             | run on 2026-10-04 |
 | pdf             | internet (google.com)            | works                                             | earlier test      |
+| pdfstream       | offline                          | works                                             | run on 2026-10-04 |
 | proxy           | offline                          | works                                             | run on 2026-10-04 |
 | remote          | a Chrome with a debugging port   | works up to the terminal image                    | earlier test      |
 | screenshot      | internet (pkg.go.dev, brank.as)  | works                                             | earlier test      |

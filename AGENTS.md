@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 25 example programs for `chromedp`, a Go package that
+This repository holds 26 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 25 programs |
+| `<name>/main.go` | one example program, for each of the 26 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -132,7 +132,7 @@ PATH=$TMP:$PATH go run ./<name>
 
 ## Verify an offline program
 
-The offline programs are `cookie`, `har`, `headers`, `keys`, `multi`, `proxy`, `subtree`, `upload` and `visible`. Run one
+The offline programs are `cookie`, `har`, `headers`, `keys`, `multi`, `pdfstream`, `proxy`, `subtree`, `upload` and `visible`. Run one
 with the command above and a time limit, for example `timeout 90 go run
 ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
@@ -145,6 +145,7 @@ that has no display.
 | `headers` | one log line `received headers:` that lists the headers, with `X-Header` and the value `my request header` |
 | `keys` | the values of `#input1`, `#textarea1`, `#input2` and `#select1`, which are `test4`, a text that starts with `textar`, `test3` and `three` |
 | `multi` | run it with `-out <dir> data:text/html,<h1>hello</h1>`. It prints `image 0 (...) width: 780 height: 437` and writes `<dir>/0.png` |
+| `pdfstream` | `wrote out.pdf: N bytes` after `read the stream with N calls of IO.read`, then `out.pdf starts with %PDF`. It writes `out.pdf` in the current directory |
 | `proxy` | no stdout. The log shows `proxy: not authorized` for the first request, then the requests with `Proxy-Authorization: Basic dTpw` |
 | `subtree` | the tree of the element `h1`, with its attributes and its children `a`, `span` and a text |
 | `upload` | it logs `original size: N, upload size: N` with the same number twice |
