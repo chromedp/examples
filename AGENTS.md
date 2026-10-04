@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 37 example programs for `chromedp`, a Go package that
+This repository holds 38 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 37 programs |
+| `<name>/main.go` | one example program, for each of the 38 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -132,11 +132,11 @@ PATH=$TMP:$PATH go run ./<name>
 
 ## Verify an offline program
 
-The offline programs are `cookie`, `dialogs`, `eventsiter`, `frames`, `har`,
-`headers`, `intercept`, `keys`, `multi`, `pdfstream`, `popups`, `proxy`,
-`rawcall`, `screencast`, `selectors`, `session`, `structeval`, `subtree`,
-`upload`, `visible` and `workers`. Run one with the command above and a time
-limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
+The offline programs are `cookie`, `dialogs`, `dragdrop`, `eventsiter`,
+`frames`, `har`, `headers`, `intercept`, `keys`, `multi`, `pdfstream`, `popups`,
+`proxy`, `rawcall`, `screencast`, `selectors`, `session`, `structeval`,
+`subtree`, `upload`, `visible` and `workers`. Run one with the command above and
+a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
@@ -144,6 +144,7 @@ that has no display.
 | --- | --- |
 | `cookie` | the log lines `server received cookie 0: cookie1=value1` and `cookie 1: cookie2=value2`, each one twice, then two `chrome cookie` lines and `chrome received cookies` |
 | `dialogs` | four dialogs: `alert dialog, message "Hello from the page": accepted`, `confirm gave false`, `prompt gave Ada` and a `beforeunload` dialog with an empty message, then `the browser is now on the page that says "the next page"` |
+| `dragdrop` | three lines for the slider (`value 75`, `value 34` and `value 100`, with the handle at 277, 127 and 370 px), the list order after two drags (`beta, gamma, alpha, delta`, then `delta, beta, gamma, alpha`), two lines for the HTML5 drops (`"buy milk"` on `done` and `"call Ann"` on `later`, with the data type `text/plain`), and the card count of each zone |
 | `eventsiter` | the line `the network was idle after 1s`, the 5 requests and the 5 responses (the browser asks for `/favicon.ico` by itself), the first three console messages, and `the message of the click: console.log: "clicked" 7` |
 | `frames` | five lines about the same-site iframe and the shadow root (`title: "Page of 127.0.0.1"`, `"clicked"` and `"started"`), then the lines for the cross-site iframe, with `document in the node tree: false`, a failed query, and `title from its own target: "Page of localhost"` |
 | `har` | `wrote out.har (N bytes) with 4 entries`, the page timings, and one line for each of `/`, `/logo.png`, `/app.js` and `/api/data?id=1`, all with status 200. It writes `out.har` in the current directory |

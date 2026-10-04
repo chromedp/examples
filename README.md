@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 37 example programs for [`chromedp`][1], a Go package that
+This repository holds 38 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -92,6 +92,7 @@ its frames into a new temporary directory, or into the directory of its flag
 | [dialogs](/dialogs)               | handle the JavaScript dialogs of a page                                                         |
 | [download_file](/download_file)   | do headless file downloads                                                                      |
 | [download_image](/download_image) | do headless image downloads                                                                     |
+| [dragdrop](/dragdrop)             | drag and drop with the actions DragAndDrop and DragAndDropXY                                    |
 | [emulate](/emulate)               | emulate a specific device such as an iPhone                                                     |
 | [eval](/eval)                     | evaluate JavaScript and retrieve the result                                                     |
 | [eventsiter](/eventsiter)         | listen to the events of a page with iterators                                                   |
@@ -152,6 +153,7 @@ because they need a live site that can change. No program was run with the flag
 | dialogs         | offline                          | works                                             | run on 2026-10-04 |
 | download_file   | internet (github.com)            | fails, times out after 60 seconds                 | earlier test      |
 | download_image  | internet (githubusercontent.com) | works, writes 38371 bytes                         | earlier test      |
+| dragdrop        | offline                          | works with chromedp v0.19.0                       | run on 2026-10-04 |
 | emulate         | internet (whatsmyua.info)        | works                                             | earlier test      |
 | eval            | internet (google.com)            | works                                             | earlier test      |
 | eventsiter      | offline                          | works                                             | run on 2026-10-04 |
