@@ -1,7 +1,8 @@
 // Command proxy is a chromedp example demonstrating how to authenticate to a
 // proxy server that requires authentication. It starts a local proxy and a local
-// web server, and needs no internet. Use -v to print the protocol messages and
-// -visible to show the browser window and leave it open.
+// web server, and needs no internet. Use -v to print the protocol messages,
+// -visible to show the browser window and leave it open, and
+// -visible-on-terminal to draw the page in the terminal with terminal graphics.
 package main
 
 import (
@@ -19,11 +20,14 @@ import (
 	"github.com/chromedp/cdproto/fetch"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// create a simple proxy that requires authentication
@@ -75,6 +79,13 @@ func main() {
 	if err := chromedp.Do(ctx); err != nil {
 		log.Fatal(err)
 	}
+	stream, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stream.Stop()
+	log.SetOutput(stream.LogWriter())
+
 	lctx, lcancel := context.WithCancel(ctx)
 	defer lcancel()
 	paused := chromedp.Events(lctx, fetch.RequestPaused)
@@ -115,10 +126,10 @@ func main() {
 
 	// 2) enable the fetch domain to handle the Fetch.AuthRequired event
 	if _, err := chromedp.Call(ctx, fetch.Enable, fetch.EnableParams{HandleAuthRequests: new(true)}); err != nil {
-		log.Fatal(err)
+		stream.Fatal(err)
 	}
 	if err := chromedp.Do(ctx, chromedp.Navigate(s.URL)); err != nil {
-		log.Fatal(err)
+		stream.Fatal(err)
 	}
 
 	// navigate in a new tab, to show that the proxy accepts later requests
@@ -126,7 +137,7 @@ func main() {
 	tctx, cancel := chromedp.NewContext(ctx)
 	defer cancel()
 	if err := chromedp.Do(tctx, chromedp.Navigate(s.URL+"/tab")); err != nil {
-		log.Fatal(err)
+		stream.Fatal(err)
 	}
 }
 
