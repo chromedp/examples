@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 31 example programs for `chromedp`, a Go package that
+This repository holds 32 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 31 programs |
+| `<name>/main.go` | one example program, for each of the 32 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -133,9 +133,9 @@ PATH=$TMP:$PATH go run ./<name>
 ## Verify an offline program
 
 The offline programs are `cookie`, `dialogs`, `frames`, `har`, `headers`,
-`intercept`, `keys`, `multi`, `pdfstream`, `proxy`, `screencast`, `session`,
-`subtree`, `upload` and `visible`. Run one with the command above and a time
-limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
+`intercept`, `keys`, `multi`, `pdfstream`, `popups`, `proxy`, `screencast`,
+`session`, `subtree`, `upload` and `visible`. Run one with the command above and
+a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
@@ -150,6 +150,7 @@ that has no display.
 | `keys` | the values of `#input1`, `#textarea1`, `#input2` and `#select1`, which are `test4`, a text that starts with `textar`, `test3` and `three` |
 | `multi` | run it with `-out <dir> data:text/html,<h1>hello</h1>`. It prints `image 0 (...) width: 780 height: 437` and writes `<dir>/0.png` |
 | `pdfstream` | `wrote out.pdf: N bytes` after `read the stream with N calls of IO.read`, then `out.pdf starts with %PDF`. It writes `out.pdf` in the current directory |
+| `popups` | two lines `popup of the link: title "popup of the link"` and `popup of the button: ...` with a target ID, then `a tab in the same browser context sees: session=abc`, `a tab in a new browser context sees: no cookie`, and the line about the first request of the new tab, which got the page `"answered by the program"` |
 | `proxy` | no stdout. The log shows `proxy: not authorized` for the first request, then the requests with `Proxy-Authorization: Basic dTpw` |
 | `screencast` | `saving the frames in <dir>`, then about `30 frames in 3s, 10.0 frames per second`. It writes `frame-0001.jpg` and more files in `<dir>` |
 | `session` | the login line, `saved the state in <file> (N bytes)` with the cookie `session, HttpOnly: true`, then `second browser before the restore: please log in` and `second browser after the restore: hello ada, theme dark, cart 3 items`. It writes the state in a temporary file, or in the file of `-state` |
