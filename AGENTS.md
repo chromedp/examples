@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 36 example programs for `chromedp`, a Go package that
+This repository holds 37 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 36 programs |
+| `<name>/main.go` | one example program, for each of the 37 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -135,8 +135,8 @@ PATH=$TMP:$PATH go run ./<name>
 The offline programs are `cookie`, `dialogs`, `eventsiter`, `frames`, `har`,
 `headers`, `intercept`, `keys`, `multi`, `pdfstream`, `popups`, `proxy`,
 `rawcall`, `screencast`, `selectors`, `session`, `structeval`, `subtree`,
-`upload` and `visible`. Run one with the command above and a time limit, for
-example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
+`upload`, `visible` and `workers`. Run one with the command above and a time
+limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
@@ -162,6 +162,7 @@ that has no display.
 | `subtree` | the tree of the element `h1`, with its attributes and its children `a`, `span` and a text |
 | `upload` | it logs `original size: N, upload size: N` with the same number twice |
 | `visible` | the log lines `waiting 3s for box to become visible`, `BOX1 IS VISIBLE` and `BOX2 IS VISIBLE`, after about 4 seconds |
+| `workers` | one line for each of the 8 jobs (7 with a title and a value, and `job 8, delay 5s: timed out after 2s`), `8 jobs, 4 workers, 7 finished, 1 failed`, the sum of the delays and of the times of the jobs, and the total time with a speedup of about 2 times |
 
 A live program has no fixed output, because the site changes. The verification
 table in `README.md` says what each program did and how it was checked.

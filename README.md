@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 36 example programs for [`chromedp`][1], a Go package that
+This repository holds 37 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -123,6 +123,7 @@ its frames into a new temporary directory, or into the directory of its flag
 | [text](/text)                     | extract text from a specific element                                                            |
 | [upload](/upload)                 | upload a file on a form                                                                         |
 | [visible](/visible)               | wait until an element is visible                                                                |
+| [workers](/workers)               | run many jobs at the same time in one browser with a pool of goroutines                         |
 <!-- END EXAMPLES -->
 
 The programs `fast`, `forecast`, `geoip` and `remote` draw an image in the
@@ -182,6 +183,7 @@ because they need a live site that can change. No program was run with the flag
 | text            | internet (pkg.go.dev)            | works                                             | earlier test      |
 | upload          | offline                          | works                                             | run on 2026-10-04 |
 | visible         | offline                          | works                                             | run on 2026-10-04 |
+| workers         | offline                          | works                                             | run on 2026-10-04 |
 
 Notes:
 
