@@ -3,8 +3,9 @@
 // navigation events of the page. It starts a local server and needs no
 // internet. The program drives the map, with the zoom button, a drag and the
 // keyboard, and it prints each new position when the URL changes. Use -v to
-// print the protocol messages and -visible to show the browser window and leave
-// it open. The flag -url reads another page instead. The selectors are written
+// print the protocol messages, -visible to show the browser window and leave it
+// open, and -visible-on-terminal to draw the page in the terminal with terminal
+// graphics. The flag -url reads another page instead. The selectors are written
 // for the local site, so a live site can differ.
 package main
 
@@ -12,6 +13,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"regexp"
@@ -23,6 +25,7 @@ import (
 	"github.com/chromedp/chromedp/kb"
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
+	"github.com/chromedp/termcast"
 )
 
 // latlonRE extracts the latitude, the longitude and the zoom from the part of
@@ -39,18 +42,20 @@ func (p position) String() string {
 }
 
 func main() {
+	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	timeout := flag.Duration("timeout", 30*time.Second, "time limit of the program")
 	urlstr := flag.String("url", "", "full URL of the map page to read, for example a live site (default: the map of the local test site, and the selectors are written for it)")
+	tc.Register(flag.CommandLine)
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *visible, *timeout, *urlstr); err != nil {
+	if err := run(context.Background(), &tc, *verbose, *visible, *timeout, *urlstr); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urlstr string) error {
+func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout time.Duration, urlstr string) error {
 	// start the local test site, unless the flag -url names a page
 	if urlstr == "" {
 		site := testsite.New()
@@ -73,6 +78,18 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urls
 			wsURL, dir := chromedp.KeptOpen(ctx)
 			fmt.Fprintf(os.Stderr, "browser kept open at %s with profile directory %s\n", wsURL, dir)
 		}()
+	}
+
+	// draw the page in the terminal if the flag -visible-on-terminal is set
+	s, err := tc.Start(ctx, verbose)
+	if err != nil {
+		return err
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	stdout := io.Writer(os.Stdout)
+	if s != nil {
+		stdout = s.LogWriter()
 	}
 
 	// create a timeout
@@ -125,7 +142,7 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urls
 		if err != nil {
 			return fmt.Errorf("%s: waiting for the new URL: %w", step.name, err)
 		}
-		fmt.Fprintf(os.Stdout, "%s: %s\n", step.name, pos)
+		fmt.Fprintf(stdout, "%s: %s\n", step.name, pos)
 	}
 	return nil
 }
