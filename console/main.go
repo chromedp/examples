@@ -3,13 +3,14 @@
 // loads a local page that calls console.log, console.warn and console.error
 // with strings and objects. After a click, the page throws an exception that
 // nothing catches, rejects a promise that nothing handles, and loads an image
-// that does not exist, which the browser reports as an error of the network. The
-// program prints every message in order, with its type, its text, its place
-// (URL, line and column) and the first lines of the stack trace of an exception.
-// Then it shows how to read only some types, and how to stop reading with a
-// break and with a canceled context. It starts a local server and needs no
-// internet. Use -v to print the protocol messages and -visible to show the
-// browser window and leave it open.
+// that does not exist, which the browser reports as an error of the network.
+// The program prints every message in order, with its type, its text, its place
+// (URL, line and column) and the first lines of the stack trace of an
+// exception. Then it shows how to read only some types, and how to stop reading
+// with a break and with a canceled context. It starts a local server and needs
+// no internet. Use -v to print the protocol messages and -visible to show the
+// browser window and leave it open. Use -visible-on-terminal to draw the page
+// in the terminal with terminal graphics.
 package main
 
 import (
@@ -26,6 +27,7 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 // endMarker is the text of the last message that the page writes. The program
@@ -35,6 +37,8 @@ const endMarker = "end of the run"
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -58,13 +62,26 @@ func main() {
 		}()
 	}
 
-	if err := run(ctx, srv.URL); err != nil {
+	// draw the page in the terminal when the user asks for it. The stream
+	// starts the browser, so it starts before the first navigation
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
 		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	out := io.Writer(os.Stdout)
+	if s != nil {
+		out = s.LogWriter()
+	}
+
+	if err := run(ctx, out, srv.URL); err != nil {
+		s.Fatal(err)
 	}
 }
 
 // run reads the console in three ways.
-func run(ctx context.Context, host string) error {
+func run(ctx context.Context, out io.Writer, host string) error {
 	// An empty Do starts the browser. The browser sends the console messages
 	// only from the moment that the tab exists, and Console starts the
 	// browser if it is not running. Starting it first makes the order clear.
@@ -83,14 +100,14 @@ func run(ctx context.Context, host string) error {
 	); err != nil {
 		return fmt.Errorf("running the page: %w", err)
 	}
-	fmt.Println("all the messages:")
+	fmt.Fprintln(out, "all the messages:")
 	for m, err := range messages {
 		// The iterator yields an error when the subscription ends. For
 		// example, the context ends, or the browser cannot start.
 		if err != nil {
 			return fmt.Errorf("reading the console: %w", err)
 		}
-		show(m, host)
+		show(out, m, host)
 		// A page never closes its console, so the loop needs an end. The page
 		// writes a marker last. The break ends the subscription, and a message
 		// after the break is lost. Call Console again before the next action
@@ -110,7 +127,7 @@ func run(ctx context.Context, host string) error {
 	); err != nil {
 		return fmt.Errorf("running the page again: %w", err)
 	}
-	fmt.Println("only the errors and the exceptions:")
+	fmt.Fprintln(out, "only the errors and the exceptions:")
 	for m, err := range messages {
 		if err != nil {
 			return fmt.Errorf("reading the console: %w", err)
@@ -121,7 +138,7 @@ func run(ctx context.Context, host string) error {
 		if m.Type != chromedp.ConsoleError && !m.IsException() {
 			continue
 		}
-		show(m, host)
+		show(out, m, host)
 	}
 
 	// Part 3: stop with a context. The page is quiet now, so the loop will
@@ -130,13 +147,13 @@ func run(ctx context.Context, host string) error {
 	// NewContext does that.
 	quiet, stop := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer stop()
-	fmt.Println("waiting for a message from a quiet page:")
+	fmt.Fprintln(out, "waiting for a message from a quiet page:")
 	for m, err := range chromedp.Console(quiet) {
 		if err != nil {
-			fmt.Printf("  stopped: %v\n", err)
+			fmt.Fprintf(out, "  stopped: %v\n", err)
 			break
 		}
-		show(m, host)
+		show(out, m, host)
 	}
 	return nil
 }
@@ -152,21 +169,21 @@ func run(ctx context.Context, host string) error {
 // give three queues, so the program cannot tell the order of a call and an
 // exception. Console gives one queue with the text of the DevTools console,
 // and it keeps the order.
-func show(m chromedp.ConsoleMessage, host string) {
+func show(out io.Writer, m chromedp.ConsoleMessage, host string) {
 	source := ""
 	if m.Source != "" {
 		source = " [" + m.Source + "]"
 	}
-	fmt.Printf("  %-9s %s%s\n", m.Type, m.Text, source)
+	fmt.Fprintf(out, "  %-9s %s%s\n", m.Type, m.Text, source)
 
 	// The line and the column start at 0 in the protocol, so add 1 to get the
 	// numbers of an editor. The place can be empty. An entry of the browser
 	// log, such as a failed image, has the URL of the resource and no line.
 	switch {
 	case m.Source != "":
-		fmt.Printf("            for %s\n", strings.TrimPrefix(m.URL, host))
+		fmt.Fprintf(out, "            for %s\n", strings.TrimPrefix(m.URL, host))
 	case m.URL != "":
-		fmt.Printf("            at %s:%d:%d\n", strings.TrimPrefix(m.URL, host), m.Line+1, m.Column+1)
+		fmt.Fprintf(out, "            at %s:%d:%d\n", strings.TrimPrefix(m.URL, host), m.Line+1, m.Column+1)
 	}
 
 	// The stack of an exception tells which calls led to it.
@@ -179,7 +196,7 @@ func show(m chromedp.ConsoleMessage, host string) {
 			if name == "" {
 				name = "(anonymous)"
 			}
-			fmt.Printf("            stack: %s (%s:%d:%d)\n", name, strings.TrimPrefix(f.URL, host), f.LineNumber+1, f.ColumnNumber+1)
+			fmt.Fprintf(out, "            stack: %s (%s:%d:%d)\n", name, strings.TrimPrefix(f.URL, host), f.LineNumber+1, f.ColumnNumber+1)
 		}
 	}
 }
