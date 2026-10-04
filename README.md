@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 40 example programs for [`chromedp`][1], a Go package that
+This repository holds 41 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -77,9 +77,9 @@ Some programs need arguments:
 The programs `download_file`, `download_image`, `emulate`, `har`, `pdf`,
 `pdfstream` and `screenshot` write files into the current directory. The
 programs `fast` and `forecast` write a file only when you give the flag `-out`,
-and `multi` does so only with its flag `-out`. The program `screencast` writes
-its frames into a new temporary directory, or into the directory of its flag
-`-out`.
+and `multi` does so only with its flag `-out`. The programs `pdfoptions` and
+`screencast` write their files into a new temporary directory, or into the
+directory of their flag `-out`.
 
 ## The programs
 
@@ -110,6 +110,7 @@ its frames into a new temporary directory, or into the directory of its flag
 | [logic](/logic)                   | combine actions and Go code in a function that reads a list from a page                         |
 | [multi](/multi)                   | use headless-shell and a container (Docker, Podman, other)                                      |
 | [pdf](/pdf)                       | capture a PDF of a page                                                                         |
+| [pdfoptions](/pdfoptions)         | print a page to PDF files with different options of chromedp                                    |
 | [pdfstream](/pdfstream)           | print a page to a PDF file with a stream                                                        |
 | [popups](/popups)                 | work with the popups of a page and with several targets                                         |
 | [proxy](/proxy)                   | authenticate to a proxy server that requires authentication                                     |
@@ -173,6 +174,7 @@ because they need a live site that can change. No program was run with the flag
 | logic           | internet (github.com)            | works                                             | earlier test      |
 | multi           | offline with a `data:` URL       | works                                             | run on 2026-10-04 |
 | pdf             | internet (google.com)            | works                                             | earlier test      |
+| pdfoptions      | offline                          | works with chromedp v0.19.0                       | run on 2026-10-04 |
 | pdfstream       | offline                          | works                                             | run on 2026-10-04 |
 | popups          | offline                          | works                                             | run on 2026-10-04 |
 | proxy           | offline                          | works                                             | run on 2026-10-04 |

@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 40 example programs for `chromedp`, a Go package that
+This repository holds 41 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 40 programs |
+| `<name>/main.go` | one example program, for each of the 41 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -134,9 +134,9 @@ PATH=$TMP:$PATH go run ./<name>
 
 The offline programs are `console`, `cookie`, `dialogs`, `dragdrop`,
 `eventsiter`, `exposefunc`, `frames`, `har`, `headers`, `intercept`, `keys`,
-`multi`, `pdfstream`, `popups`, `proxy`, `rawcall`, `screencast`, `selectors`,
-`session`, `structeval`, `subtree`, `upload`, `visible` and `workers`. Run one
-with the command above and a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
+`multi`, `pdfoptions`, `pdfstream`, `popups`, `proxy`, `rawcall`, `screencast`,
+`selectors`, `session`, `structeval`, `subtree`, `upload`, `visible` and
+`workers`. Run one with the command above and a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
@@ -154,6 +154,7 @@ that has no display.
 | `intercept` | the page text, with `user: Ada Lovelace (from the program)`, `analytics script ran: false` and `image loaded: false`, then the lines `blocked 2`, `mocked 1` and `continued 1` |
 | `keys` | the values of `#input1`, `#textarea1`, `#input2` and `#select1`, which are `test4`, a text that starts with `textar`, `test3` and `three` |
 | `multi` | run it with `-out <dir> data:text/html,<h1>hello</h1>`. It prints `image 0 (...) width: 780 height: 437` and writes `<dir>/0.png` |
+| `pdfoptions` | the line `writing the PDF files in <dir>` and one line for each of 10 files, from `default.pdf` to `css-page-off.pdf`. Each line has the page count and the page size, for example `default.pdf 5 pages 612 x 792 pt`, `landscape.pdf` with 792 x 612, `scale-2.pdf` with 10 pages, `pages-2-3.pdf` with 2 pages, `outline-tagged.pdf` with `outline true` and `css-page-size.pdf` with 432 x 288. It writes the files in the directory of `-out`, or in a new temporary directory |
 | `pdfstream` | `wrote out.pdf: N bytes` after `read the stream with N calls of IO.read`, then `out.pdf starts with %PDF`. It writes `out.pdf` in the current directory |
 | `popups` | two lines `popup of the link: title "popup of the link"` and `popup of the button: ...` with a target ID, then `a tab in the same browser context sees: session=abc`, `a tab in a new browser context sees: no cookie`, and the line about the first request of the new tab, which got the page `"answered by the program"` |
 | `proxy` | no stdout. The log shows `proxy: not authorized` for the first request, then the requests with `Proxy-Authorization: Basic dTpw` |
