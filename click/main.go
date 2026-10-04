@@ -1,11 +1,12 @@
 // Command click is a chromedp example demonstrating how to use a selector to
 // click on an element. It reads a page of the local test site and needs no
 // internet. It opens three code examples of the reference page of the package
-// time and prints the first line of the function main of each one. Use -url to give the full URL of a
-// page to read, for example a live site, and the program does not start the
-// local site then. The selectors are written for the local site and a live site
-// can differ. Use -v to print the protocol messages and -visible to show the
-// browser window and leave it open.
+// time and prints the first line of the function main of each one. Use -url to
+// give the full URL of a page to read, for example a live site, and the program
+// does not start the local site then. The selectors are written for the local
+// site and a live site can differ. Use -v to print the protocol messages and
+// -visible to show the browser window and leave it open. Use
+// -visible-on-terminal to draw the page in the terminal with terminal graphics.
 package main
 
 import (
@@ -20,12 +21,15 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
+	"github.com/chromedp/termcast"
 )
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	urlstr := flag.String("url", "", "full URL of the page to read, for example a live site (the selectors are written for the local site and a live site can differ); when empty, the program starts the local test site and reads /docs/time")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the local test site, unless the user gives a page to read
@@ -52,18 +56,27 @@ func main() {
 		}()
 	}
 
+	// draw the page in the terminal when the user asks for it. The stream
+	// starts the browser, so it starts before the first navigation
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+
 	// create a timeout
 	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
 	// navigate to the page and wait until the footer is visible. The page is
 	// then loaded
-	err := chromedp.Do(ctx,
+	err = chromedp.Do(ctx,
 		chromedp.Navigate(*urlstr),
 		chromedp.WaitVisible(`body > footer`),
 	)
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 
 	// open three examples, one after the other. An example is a details
@@ -71,7 +84,7 @@ func main() {
 	for _, name := range []string{"After", "Sleep", "NewTimer"} {
 		code, err := readExample(ctx, name)
 		if err != nil {
-			log.Fatal(err)
+			s.Fatal(err)
 		}
 		log.Printf("example %s has %d lines, the first line of main is %q", name, strings.Count(code, "\n")+1, firstLine(code))
 		if name == "After" {
