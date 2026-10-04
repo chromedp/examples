@@ -1,49 +1,80 @@
 // Command geoip is a chromedp example demonstrating how to look up the location
-// of an IP address and show its map in the terminal. It reads
-// www.google.com/maps and needs a terminal that can show images. Give one or
-// more IP addresses as arguments. Use -v to print the protocol messages and
-// -visible to show the browser window and leave it open.
+// of an IP address and show its map in the terminal. It starts a local server
+// and needs no internet, but it needs a terminal that can show images. Give one
+// or more IP addresses as arguments, or none to look up the address of this
+// computer. The program reads the answer of the lookup service, and then it
+// takes a screenshot of the map of the place. Use -v to print the protocol
+// messages and -visible to show the browser window and leave it open. The flag
+// -url reads another site instead. The selectors are written for the local
+// site, so a live site can differ.
 package main
 
 import (
 	"bytes"
 	"context"
-	"errors"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"image"
 	"image/png"
 	"log"
-	"net"
+	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
-	_ "embed"
-
-	"github.com/chromedp/cdproto/cdp"
-	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/testsite"
 	"github.com/kenshaw/rasterm"
-	"github.com/oschwald/geoip2-golang"
 )
+
+// record is the answer of the lookup service for one address.
+type record struct {
+	IP           string  `json:"ip"`
+	Range        string  `json:"range"`
+	Country      string  `json:"country"`
+	CountryCode  string  `json:"country_code"`
+	Region       string  `json:"region"`
+	City         string  `json:"city"`
+	Latitude     float64 `json:"latitude"`
+	Longitude    float64 `json:"longitude"`
+	Timezone     string  `json:"timezone"`
+	Organization string  `json:"organization"`
+	AccuracyKM   int     `json:"accuracy_radius_km"`
+}
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	timeout := flag.Duration("timeout", 1*time.Minute, "time limit of the program")
-	lang := flag.String("l", "en", "language code of the place names")
+	timeout := flag.Duration("timeout", 30*time.Second, "time limit of the program")
+	urlstr := flag.String("url", "", "base URL of the site to read, for example a live site (default: the local test site, and the selectors are written for it)")
+	lang := flag.String("l", "en", "language code of the place names (the local site uses English only)")
 	zoom := flag.Float64("zoom", 12.5, "zoom level of the map")
 	scale := flag.Float64("scale", 1.5, "scale of the map image")
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *visible, *timeout, *lang, *zoom, *scale, flag.Args()); err != nil {
+	if err := run(context.Background(), *verbose, *visible, *timeout, *urlstr, *lang, *zoom, *scale, flag.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, verbose, visible bool, timeout time.Duration, lang string, zoom, scale float64, args []string) error {
+func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urlstr, lang string, zoom, scale float64, args []string) error {
+	// start the local test site, unless the flag -url names a site
+	if urlstr == "" {
+		site := testsite.New()
+		defer site.Close()
+		urlstr = site.URL
+	}
+	base := strings.TrimRight(urlstr, "/")
+
+	// Without arguments, look up the address of this computer. The service
+	// does that when the query has no address.
+	if len(args) == 0 {
+		args = []string{""}
+	}
+
 	// create context
 	var opts []chromedp.ContextOption
 	if verbose {
@@ -69,129 +100,95 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, lang
 		if i != 0 {
 			fmt.Fprintln(os.Stdout)
 		}
-		ip := net.ParseIP(ipstr)
-		record, err := db.City(ip)
+
+		// look up the address with the standard library, because the answer is
+		// JSON and needs no browser
+		rec, err := lookup(ctx, base, ipstr)
 		if err != nil {
 			fmt.Fprintf(os.Stdout, "%s: unable to lookup: %v\n", ipstr, err)
 			continue
 		}
-		var sd []string
-		for _, s := range record.Subdivisions {
-			sd = append(sd, s.Names[lang])
-		}
-		var extra string
-		if len(sd) != 0 {
-			extra = ", " + strings.Join(sd, ", ")
-		}
-		var emoji string
-		if len(record.Country.IsoCode) == 2 {
-			emoji = " " + emojiFlag(record.Country.IsoCode)
-		}
 		fmt.Fprintf(
 			os.Stdout,
-			"%s: %s%s, %s (%s %s) @ %f,%f%s\n",
-			ipstr,
-			record.City.Names[lang],
-			extra,
-			record.Country.Names[lang],
-			record.Country.IsoCode,
-			record.Location.TimeZone,
-			record.Location.Latitude,
-			record.Location.Longitude,
-			emoji,
+			"%s: %s, %s, %s (%s %s) @ %f,%f %s\n  Network: %s, %s, accurate to %d km\n",
+			rec.IP,
+			rec.City,
+			rec.Region,
+			rec.Country,
+			rec.CountryCode,
+			rec.Timezone,
+			rec.Latitude,
+			rec.Longitude,
+			emojiFlag(rec.CountryCode),
+			rec.Organization,
+			rec.Range,
+			rec.AccuracyKM,
 		)
-		img, err := getMap(ctx, timeout, record.Location.Latitude, record.Location.Longitude, zoom, scale)
+
+		// show the map of the place
+		img, err := getMap(ctx, base, lang, rec.Latitude, rec.Longitude, zoom, scale)
 		if err != nil {
 			fmt.Fprintf(os.Stdout, "unable to get map: %v\n", err)
 			continue
 		}
-		if err = rasterm.Encode(os.Stdout, img); err != nil {
-			fmt.Fprintf(os.Stdout, "unable to show map: %v", err)
-			continue
+		if err := rasterm.Encode(os.Stdout, img); err != nil {
+			return fmt.Errorf("showing the map: %w", err)
 		}
 	}
 	return nil
 }
 
-func getMap(ctx context.Context, timeout time.Duration, lat, lng, zoom, scale float64) (image.Image, error) {
-	if err := chromedp.Do(ctx, chromedp.Navigate(fmt.Sprintf(mapURL, lat, lng, zoom))); err != nil {
-		return nil, err
-	}
-	address, err := chromedp.Run(ctx, chromedp.Text(chromedp.CSS(`div[data-tooltip="Copy address"] > div:nth-child(2) > span > span`), chromedp.NodeVisible))
+// lookup asks the lookup service for the place of an address. The service
+// answers 404 for an address that it does not know.
+func lookup(ctx context.Context, base, ipstr string) (*record, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, base+"/api/geoip?ip="+url.QueryEscape(ipstr), nil)
 	if err != nil {
 		return nil, err
 	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("the service answered %s", res.Status)
+	}
+	var rec record
+	if err := json.NewDecoder(res.Body).Decode(&rec); err != nil {
+		return nil, fmt.Errorf("decoding the answer: %w", err)
+	}
+	return &rec, nil
+}
+
+// getMap opens the map of a place, waits until the map has its tiles, and
+// returns a screenshot of the map.
+func getMap(ctx context.Context, base, lang string, lat, lon, zoom, scale float64) (image.Image, error) {
+	mapURL := fmt.Sprintf("%s/map?lat=%f&lon=%f&zoom=%.2f&hl=%s", base, lat, lon, zoom, url.QueryEscape(lang))
+	// The map counts the tiles that it still loads in the attribute
+	// data-loading. It is 0 when the map is ready, so wait for that.
 	if err := chromedp.Do(ctx,
-		chromedp.WaitReady(`div:has(> [aria-label="Collapse side panel"])`,
-			chromedp.AtLeast(7),
-			chromedp.After(func(ctx context.Context, t *chromedp.Target, nodes []*chromedp.Node) error {
-				var id cdp.NodeID
-				for _, n := range nodes {
-					if _, err := cdp.Call(ctx, t, dom.GetBoxModel, dom.GetBoxModelParams{NodeID: n.NodeID}); err == nil {
-						id = n.NodeID
-						break
-					}
-				}
-				if id == chromedp.EmptyNodeID {
-					return errors.New("unable to find node")
-				}
-				_, err := chromedp.Click(chromedp.NodeIDs{id})(ctx, t)
-				return err
-			}),
-		),
-		chromedp.WaitReady(chromedp.CSS(`div:has(+.onegoogle) > div > div`),
-			chromedp.AtLeast(1),
-			chromedp.After(func(ctx context.Context, t *chromedp.Target, nodes []*chromedp.Node) error {
-				script := fmt.Sprintf(inViewportJS, nodes[0].FullXPath())
-				for {
-					visible, err := chromedp.EvaluateAsDevTools[bool](script)(ctx, t)
-					if err != nil {
-						return err
-					}
-					if !visible {
-						<-time.After(180 * time.Millisecond)
-						return nil
-					}
-					select {
-					case <-ctx.Done():
-						return ctx.Err()
-					case <-time.After(10 * time.Millisecond):
-					}
-				}
-			}),
-		),
+		chromedp.Navigate(mapURL),
+		chromedp.Query(`#map[data-loading="0"]`, chromedp.NodeVisible),
 	); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("loading the map: %w", err)
 	}
-	buf, err := chromedp.Run(ctx, chromedp.ScreenshotScale(chromedp.CSS(`#app-container`), scale))
+	// The element #coords says where the map is.
+	where, err := chromedp.Run(ctx, chromedp.Text(`#coords`))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("reading the position of the map: %w", err)
 	}
-	fmt.Fprintf(os.Stdout, "  Address: %s\n", address)
+	buf, err := chromedp.Run(ctx, chromedp.ScreenshotScale(`#app-container`, scale))
+	if err != nil {
+		return nil, fmt.Errorf("taking the screenshot of the map: %w", err)
+	}
+	fmt.Fprintf(os.Stdout, "  Map: %s\n", where)
 	return png.Decode(bytes.NewReader(buf))
 }
 
+// emojiFlag returns the flag of a country from its two letter code.
 func emojiFlag(code string) string {
+	if len(code) != 2 {
+		return ""
+	}
 	return string(0x1f1e6+rune(code[0])-'A') + string(0x1f1e6+rune(code[1])-'A')
 }
-
-const mapURL = `http://www.google.com/maps/place/%[1]f,%[2]f/@%[1]f,%[2]f,%[3]fz?hl=en`
-
-// inViewportJS is a JavaScript snippet. It returns true if the node with the
-// XPath expression is inside the viewport of the window.
-const inViewportJS = `(function(a) {
-  var r = a[0].getBoundingClientRect();
-  return r.top >= 0 && r.left >= 0 && r.bottom <= window.innerHeight && r.right <= window.innerWidth;
-})($x(%q))`
-
-var db *geoip2.Reader
-
-func init() {
-	var err error
-	if db, err = geoip2.FromBytes(geoLite2CityMmdb); err != nil {
-		panic(err)
-	}
-}
-
-//go:embed GeoLite2-City.mmdb
-var geoLite2CityMmdb []byte
