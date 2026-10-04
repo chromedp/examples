@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 33 example programs for `chromedp`, a Go package that
+This repository holds 34 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 33 programs |
+| `<name>/main.go` | one example program, for each of the 34 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -132,10 +132,11 @@ PATH=$TMP:$PATH go run ./<name>
 
 ## Verify an offline program
 
-The offline programs are `cookie`, `dialogs`, `frames`, `har`, `headers`,
-`intercept`, `keys`, `multi`, `pdfstream`, `popups`, `proxy`, `screencast`,
-`session`, `structeval`, `subtree`, `upload` and `visible`. Run one with the
-command above and a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
+The offline programs are `cookie`, `dialogs`, `eventsiter`, `frames`, `har`,
+`headers`, `intercept`, `keys`, `multi`, `pdfstream`, `popups`, `proxy`,
+`screencast`, `session`, `structeval`, `subtree`, `upload` and `visible`. Run
+one with the command above and a time limit, for example `timeout 90 go run
+./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
@@ -143,6 +144,7 @@ that has no display.
 | --- | --- |
 | `cookie` | the log lines `server received cookie 0: cookie1=value1` and `cookie 1: cookie2=value2`, each one twice, then two `chrome cookie` lines and `chrome received cookies` |
 | `dialogs` | four dialogs: `alert dialog, message "Hello from the page": accepted`, `confirm gave false`, `prompt gave Ada` and a `beforeunload` dialog with an empty message, then `the browser is now on the page that says "the next page"` |
+| `eventsiter` | the line `the network was idle after 1s`, the 5 requests and the 5 responses (the browser asks for `/favicon.ico` by itself), the first three console messages, and `the message of the click: console.log: "clicked" 7` |
 | `frames` | five lines about the same-site iframe and the shadow root (`title: "Page of 127.0.0.1"`, `"clicked"` and `"started"`), then the lines for the cross-site iframe, with `document in the node tree: false`, a failed query, and `title from its own target: "Page of localhost"` |
 | `har` | `wrote out.har (N bytes) with 4 entries`, the page timings, and one line for each of `/`, `/logo.png`, `/app.js` and `/api/data?id=1`, all with status 200. It writes `out.har` in the current directory |
 | `headers` | one log line `received headers:` that lists the headers, with `X-Header` and the value `my request header` |

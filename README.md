@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 33 example programs for [`chromedp`][1], a Go package that
+This repository holds 34 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -94,6 +94,7 @@ its frames into a new temporary directory, or into the directory of its flag
 | [download_image](/download_image) | do headless image downloads                                                                     |
 | [emulate](/emulate)               | emulate a specific device such as an iPhone                                                     |
 | [eval](/eval)                     | evaluate JavaScript and retrieve the result                                                     |
+| [eventsiter](/eventsiter)         | listen to the events of a page with iterators                                                   |
 | [fast](/fast)                     | measure the speed of the internet connection and show the result in the terminal                |
 | [forecast](/forecast)             | render the weather forecast of Google in the terminal                                           |
 | [frames](/frames)                 | reach elements inside an iframe and inside a shadow root                                        |
@@ -150,6 +151,7 @@ because they need a live site that can change. No program was run with the flag
 | download_image  | internet (githubusercontent.com) | works, writes 38371 bytes                         | earlier test      |
 | emulate         | internet (whatsmyua.info)        | works                                             | earlier test      |
 | eval            | internet (google.com)            | works                                             | earlier test      |
+| eventsiter      | offline                          | works                                             | run on 2026-10-04 |
 | fast            | internet (fast.com), terminal    | fails at the end without a terminal image         | earlier test      |
 | forecast        | internet (google.com), terminal  | fails, times out                                  | earlier test      |
 | frames          | offline                          | works                                             | run on 2026-10-04 |
