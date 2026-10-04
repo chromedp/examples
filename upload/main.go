@@ -1,7 +1,8 @@
 // Command upload is a chromedp example demonstrating how to upload a file on a
 // form. It starts a local server and needs no internet. The program uploads its
 // own source file, so it works from any directory. Use -v to print the protocol
-// messages and -visible to show the browser window and leave it open.
+// messages, -visible to show the browser window and leave it open, and
+// -visible-on-terminal to draw the page in the terminal with terminal graphics.
 package main
 
 import (
@@ -16,12 +17,15 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 func main() {
 	port := flag.Int("port", 8544, "port of the local web server")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// find the source file of this program. The path comes from the build, so
@@ -58,10 +62,19 @@ func main() {
 		}()
 	}
 
+	// start the stream before the first navigation, so that the frames show
+	// the page while it loads
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+
 	// run the actions
 	_, err = upload(ctx, fmt.Sprintf("http://localhost:%d", *port), filepath)
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 
 	log.Printf("original size: %d, upload size: %d", fi.Size(), <-result)
