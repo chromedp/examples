@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 26 example programs for [`chromedp`][1], a Go package that
+This repository holds 27 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -77,7 +77,9 @@ Some programs need arguments:
 The programs `download_file`, `download_image`, `emulate`, `har`, `pdf`,
 `pdfstream` and `screenshot` write files into the current directory. The
 programs `fast` and `forecast` write a file only when you give the flag `-out`,
-and `multi` does so only with its flag `-out`.
+and `multi` does so only with its flag `-out`. The program `screencast` writes
+its frames into a new temporary directory, or into the directory of its flag
+`-out`.
 
 ## The programs
 
@@ -104,6 +106,7 @@ and `multi` does so only with its flag `-out`.
 | [pdfstream](/pdfstream)           | print a page to a PDF file with a stream                                                        |
 | [proxy](/proxy)                   | authenticate to a proxy server that requires authentication                                     |
 | [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL                    |
+| [screencast](/screencast)         | record the screen of a page as a series of JPEG images                                          |
 | [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport                      |
 | [submit](/submit)                 | fill out and submit a form                                                                      |
 | [subtree](/subtree)               | populate and travel a subtree of the DOM                                                        |
@@ -153,6 +156,7 @@ because they need a live site that can change. No program was run with the flag
 | pdfstream       | offline                          | works                                             | run on 2026-10-04 |
 | proxy           | offline                          | works                                             | run on 2026-10-04 |
 | remote          | a Chrome with a debugging port   | works up to the terminal image                    | earlier test      |
+| screencast      | offline                          | works                                             | run on 2026-10-04 |
 | screenshot      | internet (pkg.go.dev, brank.as)  | works                                             | earlier test      |
 | submit          | internet (wikipedia.org)         | works                                             | earlier test      |
 | subtree         | offline                          | works                                             | run on 2026-10-04 |
