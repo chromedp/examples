@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 24 example programs for [`chromedp`][1], a Go package that
+This repository holds 25 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -74,10 +74,10 @@ Some programs need arguments:
 - `remote` needs a running browser. See [remote/README.md](remote/README.md).
 - `upload` uploads its own source file, so you can run it from any folder.
 
-The programs `download_file`, `download_image`, `emulate`, `pdf` and
-`screenshot` write files into the current directory. The programs `fast` and
-`forecast` write a file only when you give the flag `-out`, and `multi` does so
-only with its flag `-out`.
+The programs `download_file`, `download_image`, `emulate`, `har`, `pdf`
+and `screenshot` write files into the current directory. The
+programs `fast` and `forecast` write a file only when you give the flag `-out`,
+and `multi` does so only with its flag `-out`.
 
 ## The programs
 
@@ -94,6 +94,7 @@ only with its flag `-out`.
 | [fast](/fast)                     | measure the speed of the internet connection and show the result in the terminal                |
 | [forecast](/forecast)             | render the weather forecast of Google in the terminal                                           |
 | [geoip](/geoip)                   | look up the location of an IP address and show its map in the terminal                          |
+| [har](/har)                       | generate a HAR file from the network events of a page                                           |
 | [headers](/headers)               | add extra HTTP headers to browser requests                                                      |
 | [keys](/keys)                     | send key events to an element                                                                   |
 | [latlon](/latlon)                 | retrieve the latitude and the longitude from Google Maps with the navigation events of the page |
@@ -141,6 +142,7 @@ because they need a live site that can change. No program was run with the flag
 | fast            | internet (fast.com), terminal    | fails at the end without a terminal image         | earlier test      |
 | forecast        | internet (google.com), terminal  | fails, times out                                  | earlier test      |
 | geoip           | internet (google.com maps)       | the lookup works, the map times out               | earlier test      |
+| har             | offline                          | works                                             | run on 2026-10-04 |
 | headers         | offline                          | works                                             | run on 2026-10-04 |
 | keys            | offline                          | works                                             | run on 2026-10-04 |
 | latlon          | internet (google.com maps)       | works                                             | earlier test      |
