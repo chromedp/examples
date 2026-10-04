@@ -6,7 +6,8 @@
 // run before the program starts, with a debugging port. Start it with
 // "google-chrome --remote-debugging-port=9222", or let the program start a
 // headless Chrome with the flag -start. See README.md. Use -v to print the
-// protocol messages. The program has no -visible flag, because it uses a
+// protocol messages. Use -visible-on-terminal to draw the page in the terminal
+// with terminal graphics. The program has no -visible flag, because it uses a
 // browser that is already running. The browser must reach the page, so a
 // browser in a container needs the flag -nav with a page that it can reach.
 package main
@@ -29,6 +30,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
+	"github.com/chromedp/termcast"
 	"github.com/kenshaw/rasterm"
 )
 
@@ -43,6 +45,8 @@ func main() {
 	d := flag.Duration("d", 0, "extra time to wait after the page loads, for a page that builds itself late")
 	start := flag.Bool("start", false, "start a headless Chrome with a debugging port, and connect to it (not with -url)")
 	timeout := flag.Duration("timeout", 30*time.Second, "time limit of the program")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 	urlSet := false
 	flag.Visit(func(f *flag.Flag) { urlSet = urlSet || f.Name == "url" })
@@ -50,13 +54,13 @@ func main() {
 		fmt.Fprintln(os.Stderr, "error: use the flag -start or the flag -url, not both")
 		os.Exit(1)
 	}
-	if err := run(context.Background(), *verbose, *urlstr, *nav, *d, *start, *timeout); err != nil {
+	if err := run(context.Background(), &tc, *verbose, *urlstr, *nav, *d, *start, *timeout); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, verbose bool, urlstr, nav string, d time.Duration, start bool, timeout time.Duration) error {
+func run(ctx context.Context, tc *termcast.Flags, verbose bool, urlstr, nav string, d time.Duration, start bool, timeout time.Duration) error {
 	if urlstr == "" {
 		return errors.New("invalid remote devtools url")
 	}
@@ -96,6 +100,19 @@ func run(ctx context.Context, verbose bool, urlstr, nav string, d time.Duration,
 	ctx, cancel = chromedp.NewContext(allocatorContext, opts...)
 	defer cancel()
 
+	// Start the stream before the first navigation, so that the frames show
+	// the page while it loads. It connects to the browser. While it runs, it
+	// holds what the program writes to out.
+	s, err := tc.Start(ctx, verbose)
+	if err != nil {
+		return err
+	}
+	defer s.Stop()
+	out := io.Writer(os.Stdout)
+	if s != nil {
+		out = s.LogWriter()
+	}
+
 	// run the actions. The first action connects to the browser, so a
 	// connection error shows up here.
 	if err := chromedp.Do(ctx, chromedp.Navigate(nav)); err != nil {
@@ -129,12 +146,14 @@ func run(ctx context.Context, verbose bool, urlstr, nav string, d time.Duration,
 	if err != nil {
 		return fmt.Errorf("taking a screenshot of %s: %w", nav, err)
 	}
-	fmt.Printf("Page %s\n", nav)
-	fmt.Printf("  title: %s\n  heading: %s\n  links: %d\n", title, strings.TrimSpace(heading), links)
+	fmt.Fprintf(out, "Page %s\n", nav)
+	fmt.Fprintf(out, "  title: %s\n  heading: %s\n  links: %d\n", title, strings.TrimSpace(heading), links)
 	img, err := png.Decode(bytes.NewReader(buf))
 	if err != nil {
 		return err
 	}
+	// stop the stream before the image, because the stream clears the terminal
+	s.Stop()
 	return rasterm.Encode(os.Stdout, img)
 }
 
