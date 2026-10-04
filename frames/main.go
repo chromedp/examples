@@ -7,14 +7,16 @@
 // waits for that element with WaitNotPresent and WaitVisible. At the end, it
 // tries the same query on the cross-site iframe and shows that it finds
 // nothing. Then it attaches to the iframe as a target of its own. It starts
-// local servers and needs no internet. Use -v to print the protocol messages
-// and -visible to show the browser window and leave it open.
+// local servers and needs no internet. Use -v to print the protocol messages,
+// -visible to show the browser window and leave it open, and
+// -visible-on-terminal to draw the page in the terminal with terminal graphics.
 package main
 
 import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -24,11 +26,14 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 func main() {
+	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// The page comes from 127.0.0.1, and the iframe of the other site comes
@@ -57,22 +62,34 @@ func main() {
 		}()
 	}
 
+	// draw the page in the terminal if the flag -visible-on-terminal is set
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	stdout := io.Writer(os.Stdout)
+	if s != nil {
+		stdout = s.LogWriter()
+	}
+
 	if err := chromedp.Do(ctx, chromedp.Navigate(srv.URL+"/")); err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
-	if err := sameSite(ctx); err != nil {
-		log.Fatal(err)
+	if err := sameSite(ctx, stdout); err != nil {
+		s.Fatal(err)
 	}
-	if err := shadow(ctx); err != nil {
-		log.Fatal(err)
+	if err := shadow(ctx, stdout); err != nil {
+		s.Fatal(err)
 	}
-	if err := crossSite(ctx); err != nil {
-		log.Fatal(err)
+	if err := crossSite(ctx, stdout); err != nil {
+		s.Fatal(err)
 	}
 }
 
 // sameSite reads and clicks an element inside an iframe of the same site.
-func sameSite(ctx context.Context) error {
+func sameSite(ctx context.Context, stdout io.Writer) error {
 	// A query on the page does not look inside an iframe, so first get the
 	// node of the iframe element.
 	nodes, err := chromedp.Run(ctx, chromedp.Nodes(chromedp.CSS("#same")))
@@ -88,7 +105,7 @@ func sameSite(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("reading the title in the iframe: %w", err)
 	}
-	fmt.Printf("same-site iframe, title: %q\n", title)
+	fmt.Fprintf(stdout, "same-site iframe, title: %q\n", title)
 
 	// The same selector on the page finds nothing, because the element is in
 	// another document. AtLeast(0) lets the query return at once.
@@ -96,7 +113,7 @@ func sameSite(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("querying the page: %w", err)
 	}
-	fmt.Printf("the same selector on the page finds %d elements\n", len(outside))
+	fmt.Fprintf(stdout, "the same selector on the page finds %d elements\n", len(outside))
 
 	if err := chromedp.Do(ctx, chromedp.Click(chromedp.CSS("#button"), chromedp.FromNode(frame))); err != nil {
 		return fmt.Errorf("clicking in the iframe: %w", err)
@@ -105,7 +122,7 @@ func sameSite(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("reading the button in the iframe: %w", err)
 	}
-	fmt.Printf("same-site iframe, button after the click: %q\n", label)
+	fmt.Fprintf(stdout, "same-site iframe, button after the click: %q\n", label)
 	return nil
 }
 
@@ -114,7 +131,7 @@ func sameSite(ctx context.Context) error {
 // selector cannot find them. A JSPath selector runs a JavaScript expression
 // that returns the element, and the expression can go through the shadowRoot
 // property of each host.
-func shadow(ctx context.Context) error {
+func shadow(ctx context.Context, stdout io.Writer) error {
 	const (
 		spinner = `document.getElementById("host").shadowRoot.querySelector(".spinner")`
 		button  = `document.getElementById("host").shadowRoot.querySelector("button")`
@@ -139,14 +156,14 @@ func shadow(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("reading the message in the shadow root: %w", err)
 	}
-	fmt.Printf("shadow root, message after the click: %q\n", text)
+	fmt.Fprintf(stdout, "shadow root, message after the click: %q\n", text)
 
 	// A CSS selector does not see into the shadow root.
 	inside, err := chromedp.Run(ctx, chromedp.QueryNodeIDs(chromedp.CSSAll("#host button"), chromedp.AtLeast(0)))
 	if err != nil {
 		return fmt.Errorf("querying the page: %w", err)
 	}
-	fmt.Printf("the selector %q finds %d elements\n", "#host button", len(inside))
+	fmt.Fprintf(stdout, "the selector %q finds %d elements\n", "#host button", len(inside))
 	return nil
 }
 
@@ -155,20 +172,20 @@ func shadow(ctx context.Context) error {
 // is not part of the node tree of the page. So the query that worked for the
 // same-site iframe finds nothing. The iframe is a target of its own. A program
 // can attach to that target, and then it queries the iframe as a page.
-func crossSite(ctx context.Context) error {
+func crossSite(ctx context.Context, stdout io.Writer) error {
 	nodes, err := chromedp.Run(ctx, chromedp.Nodes(chromedp.CSS("#cross")))
 	if err != nil {
 		return fmt.Errorf("finding the cross-site iframe: %w", err)
 	}
 	frame := nodes[0]
-	fmt.Printf("cross-site iframe, document in the node tree: %t\n", frame.ContentDocument != nil)
+	fmt.Fprintf(stdout, "cross-site iframe, document in the node tree: %t\n", frame.ContentDocument != nil)
 
 	// The query waits for the element until its context ends, so give it a
 	// time limit.
 	queryCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	if _, err := chromedp.Run(queryCtx, chromedp.Text(chromedp.CSS("#title"), chromedp.FromNode(frame))); err != nil {
-		fmt.Printf("cross-site iframe, the query with FromNode failed: %v\n", err)
+		fmt.Fprintf(stdout, "cross-site iframe, the query with FromNode failed: %v\n", err)
 	}
 
 	// An iframe in another process has the type "iframe" in the list of
@@ -187,7 +204,7 @@ func crossSite(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("reading the title in the iframe target: %w", err)
 		}
-		fmt.Printf("cross-site iframe, title from its own target: %q\n", title)
+		fmt.Fprintf(stdout, "cross-site iframe, title from its own target: %q\n", title)
 	}
 	return nil
 }
