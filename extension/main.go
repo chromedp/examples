@@ -62,7 +62,10 @@
 // internet, but the extension must be on disk. Use -url to read another site
 // with the same structure. Use -v to print the protocol messages and -visible
 // to show the browser window. A visible browser closes when you close its
-// window, because the program waits for you and then ends.
+// window, because the program waits for you and then ends. Use
+// -visible-on-terminal to draw the page in the terminal with terminal graphics.
+// The program loads both runs in one tab, so the drawing follows the page
+// through both runs.
 package main
 
 import (
@@ -90,6 +93,7 @@ import (
 	"github.com/chromedp/cdproto/fetch"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/termcast"
 
 	"github.com/chromedp/examples/internal/testsite"
 )
@@ -126,13 +130,22 @@ func main() {
 	flag.StringVar(&cfg.ext, "ext", "", "unpacked directory or ZIP file of uBlock Origin Lite on disk")
 	flag.StringVar(&cfg.profile, "profile", "", "user data directory of the browser, or empty for a temporary one")
 	flag.StringVar(&cfg.out, "out", "", "directory for the screenshots, or empty for a temporary one")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
-	if err := run(cfg); err != nil {
+	if err := run(cfg, tc); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(cfg config) error {
+// run returns an error instead of calling the method Fatal of the stream, so
+// that the deferred calls stop the stream and remove the temporary files.
+func run(cfg config, tc termcast.Flags) error {
+	// The stream starts after the browser, so check the flags first. The
+	// protocol messages of -v would draw over the frames.
+	if tc.Enabled && cfg.verbose {
+		return fmt.Errorf("starting the stream: %w", termcast.ErrVerbose)
+	}
 	dir, cleanup, err := findExtension(cfg.ext)
 	if err != nil {
 		return err
@@ -195,29 +208,41 @@ func run(cfg config) error {
 		return fmt.Errorf("starting the browser: %w", err)
 	}
 
+	// Draw the page in the terminal when the user asks for it. The stream
+	// follows the tab of ctx. The program loads the page in this tab in both
+	// runs, so one stream shows both runs. The results go through the held
+	// writer, so that they do not draw over the frames.
+	s, err := tc.Start(ctx, cfg.verbose)
+	if err != nil {
+		return fmt.Errorf("starting the stream: %w", err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	w := s.LogWriter()
+
 	pageURL := strings.TrimSuffix(base, "/") + "/news/"
-	before, err := visit(ctx, pageURL, filepath.Join(out, "news-before.png"))
+	before, err := visit(ctx, w, pageURL, filepath.Join(out, "news-before.png"))
 	if err != nil {
 		return fmt.Errorf("loading the page without the extension: %w", err)
 	}
-	if err := install(ctx, dir); err != nil {
+	if err := install(ctx, w, dir); err != nil {
 		return err
 	}
-	after, err := visit(ctx, pageURL, filepath.Join(out, "news-after.png"))
+	after, err := visit(ctx, w, pageURL, filepath.Join(out, "news-after.png"))
 	if err != nil {
 		return fmt.Errorf("loading the page with the extension: %w", err)
 	}
 
-	fmt.Printf("\n%-34s %-12s %s\n", "", "without", "with the extension")
-	fmt.Printf("%-34s %-12d %d\n", "ad slots that a reader can see", before.slots, after.slots)
-	fmt.Printf("%-34s %-12d %d\n", "ads drawn by the ad scripts", before.creatives, after.creatives)
-	fmt.Printf("%-34s %-12d %d\n", "page height in pixels", before.height, after.height)
-	fmt.Printf("%-34s %-12d %d\n", "requests that the program answered", len(before.answered), len(after.answered))
-	fmt.Printf("%-34s %-12d %d\n", "requests that the extension blocked", len(before.blocked), len(after.blocked))
-	fmt.Printf("%-34s %-12d %d\n", "requests that it redirected", len(before.redirected), len(after.redirected))
-	printList("answered by the program without the extension", before.answered)
-	printList("blocked by the extension", after.blocked)
-	printList("redirected by the extension to a script of its own", after.redirected)
+	fmt.Fprintf(w, "\n%-34s %-12s %s\n", "", "without", "with the extension")
+	fmt.Fprintf(w, "%-34s %-12d %d\n", "ad slots that a reader can see", before.slots, after.slots)
+	fmt.Fprintf(w, "%-34s %-12d %d\n", "ads drawn by the ad scripts", before.creatives, after.creatives)
+	fmt.Fprintf(w, "%-34s %-12d %d\n", "page height in pixels", before.height, after.height)
+	fmt.Fprintf(w, "%-34s %-12d %d\n", "requests that the program answered", len(before.answered), len(after.answered))
+	fmt.Fprintf(w, "%-34s %-12d %d\n", "requests that the extension blocked", len(before.blocked), len(after.blocked))
+	fmt.Fprintf(w, "%-34s %-12d %d\n", "requests that it redirected", len(before.redirected), len(after.redirected))
+	printList(w, "answered by the program without the extension", before.answered)
+	printList(w, "blocked by the extension", after.blocked)
+	printList(w, "redirected by the extension to a script of its own", after.redirected)
 
 	if cfg.visible {
 		fmt.Fprintln(os.Stderr, "close the browser window to stop the program")
@@ -228,19 +253,19 @@ func run(cfg config) error {
 	return nil
 }
 
-func printList(title string, list []string) {
+func printList(w io.Writer, title string, list []string) {
 	if len(list) == 0 {
 		return
 	}
-	fmt.Printf("\n%s:\n", title)
+	fmt.Fprintf(w, "\n%s:\n", title)
 	for _, s := range list {
-		fmt.Printf("  %s\n", s)
+		fmt.Fprintf(w, "  %s\n", s)
 	}
 }
 
 // install loads the extension in the browser, and switches it to the complete
 // filtering mode. It prints what it did.
-func install(ctx context.Context, dir string) error {
+func install(ctx context.Context, w io.Writer, dir string) error {
 	// The command works on the browser and not on a tab, so it needs
 	// CallBrowser. It returns after Chrome installs the extension.
 	res, err := chromedp.CallBrowser(ctx, extensions.LoadUnpacked, extensions.LoadUnpackedParams{Path: dir})
@@ -253,7 +278,7 @@ func install(ctx context.Context, dir string) error {
 	}
 	for _, e := range list.Extensions {
 		if e.ID == res.ID {
-			fmt.Printf("\nloaded the extension %s from %s\n", e.ID, e.Path)
+			fmt.Fprintf(w, "\nloaded the extension %s from %s\n", e.ID, e.Path)
 		}
 	}
 
@@ -275,7 +300,7 @@ func install(ctx context.Context, dir string) error {
 	if err != nil {
 		return fmt.Errorf("reading the filtering mode: %w", err)
 	}
-	fmt.Printf("filtering mode that the profile kept: %d\n", mode)
+	fmt.Fprintf(w, "filtering mode that the profile kept: %d\n", mode)
 	if mode == 3 {
 		return nil
 	}
@@ -283,7 +308,7 @@ func install(ctx context.Context, dir string) error {
 	if _, err := chromedp.Run(tab, chromedp.Evaluate[int](fmt.Sprintf(message, "setDefaultFilteringMode", ", level: 3"), chromedp.EvalAwaitPromise)); err != nil {
 		return fmt.Errorf("setting the filtering mode: %w", err)
 	}
-	fmt.Println("set the filtering mode to 3")
+	fmt.Fprintln(w, "set the filtering mode to 3")
 	return nil
 }
 
@@ -311,12 +336,11 @@ const measure = `(() => {
   };
 })()`
 
-// visit loads the page in a new tab, with the Fetch domain answering the
+// visit loads the page in the tab of ctx, with the Fetch domain answering the
 // requests to the ad hosts, and measures the page. It writes a screenshot of
 // the whole page to shot.
-func visit(ctx context.Context, pageURL, shot string) (*result, error) {
-	tab, cancel := chromedp.NewContext(ctx)
-	defer cancel()
+func visit(ctx context.Context, w io.Writer, pageURL, shot string) (*result, error) {
+	tab := ctx
 
 	// Subscribe before the page loads, so that no event is lost. The listeners
 	// use their own context, and stop ends them.
@@ -431,7 +455,7 @@ func visit(ctx context.Context, pageURL, shot string) (*result, error) {
 		return nil, fmt.Errorf("writing %s: %w", shot, err)
 	}
 	if cfg, err := png.DecodeConfig(bytes.NewReader(buf)); err == nil {
-		fmt.Printf("wrote %s (%d x %d pixels, %d bytes)\n", shot, cfg.Width, cfg.Height, len(buf))
+		fmt.Fprintf(w, "wrote %s (%d x %d pixels, %d bytes)\n", shot, cfg.Width, cfg.Height, len(buf))
 	}
 
 	stop()

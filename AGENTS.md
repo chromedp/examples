@@ -93,7 +93,7 @@ you trust it, because a later decision can amend or replace it.
     starts. After the stream starts, call `s.Fatal` and not `log.Fatal`, and
     send the results through `s.LogWriter()`. The flag does not work with
     `-v`. The programs `tabs`, `popups`, `workers`, `multi`, `session`,
-    `screencast`, `pdfstream`, `har`, `rawcall`, `extension` and `termcast` do not
+    `screencast`, `pdfstream`, `har`, `rawcall` and `termcast` do not
     have the flag.
 
 ## Layout
