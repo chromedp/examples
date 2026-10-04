@@ -2,16 +2,17 @@
 // device such as an iPhone. It starts a local server and needs no internet. The
 // program emulates an iPhone 17 with a preset of the package chromedp/device,
 // and loads the pages /ua and /viewport-test of the local test site. It prints
-// the user agent, the viewport, the device pixel ratio and the touch support that
-// the page reports, and the layout that the page chooses. Then it resets the
-// emulation, sets a desktop viewport and does the same for the desktop. For
-// both it writes a screenshot of the window and a screenshot of the full page to
-// the directory of the flag -out, which is the current directory by default, and
-// it prints the size of each file. The flag -url gives the full URL of one page
-// to read, for example a live site, and then the program does not start the
-// local site and uses this page for both steps. The selectors are written for
-// the local site, so a live site can differ. Use -v to print the protocol
-// messages and -visible to show the browser window and leave it open.
+// the user agent, the viewport, the device pixel ratio and the touch support
+// that the page reports, and the layout that the page chooses. Then it resets
+// the emulation, sets a desktop viewport and does the same for the desktop. For
+// both it writes a screenshot of the window and a screenshot of the full page
+// to the directory of the flag -out, which is the current directory by default,
+// and it prints the size of each file. The flag -url gives the full URL of one
+// page to read, for example a live site, and then the program does not start
+// the local site and uses this page for both steps. The selectors are written
+// for the local site, so a live site can differ. Use -v to print the protocol
+// messages and -visible to show the browser window and leave it open. Use
+// -visible-on-terminal to draw the page in the terminal with terminal graphics.
 package main
 
 import (
@@ -21,6 +22,7 @@ import (
 	"fmt"
 	"image"
 	_ "image/png" // the decoder, for image.DecodeConfig
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -30,6 +32,7 @@ import (
 	"github.com/chromedp/chromedp/device"
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
+	"github.com/chromedp/termcast"
 )
 
 // facts are the ids of the elements of the page /ua, with the label that the
@@ -51,6 +54,8 @@ func main() {
 	out := flag.String("out", ".", "directory for the screenshots")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// choose the pages. Without -url, the program starts the local site. The
@@ -80,40 +85,53 @@ func main() {
 		}()
 	}
 
+	// draw the page in the terminal when the user asks for it. The stream
+	// starts the browser, so it starts before the first navigation
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	stdout := io.Writer(os.Stdout)
+	if s != nil {
+		stdout = s.LogWriter()
+	}
+
 	// create a timeout, so that no wait loop can run forever
 	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	if err := os.MkdirAll(*out, 0o755); err != nil {
-		log.Fatalf("creating the directory %s: %v", *out, err)
+		s.Fatal(fmt.Errorf("creating the directory %s: %w", *out, err))
 	}
 
 	// emulate an iPhone. The preset holds the user agent, the size of the
 	// viewport in CSS pixels, the device pixel ratio, and the flags for a
 	// mobile browser and for touch. Emulate sends all of them to the browser
 	phone := device.IPhone17.Device()
-	fmt.Printf("emulating %s: %d x %d px, pixel ratio %g, mobile %t, touch %t\n",
+	fmt.Fprintf(stdout, "emulating %s: %d x %d px, pixel ratio %g, mobile %t, touch %t\n",
 		phone.Name, phone.Width, phone.Height, phone.Scale, phone.Mobile, phone.Touch)
 	if err := chromedp.Do(ctx, chromedp.Emulate(device.IPhone17)); err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
-	if err := inspect(ctx, "phone", reportURL, layoutURL, *out); err != nil {
-		log.Fatal(err)
+	if err := inspect(ctx, stdout, "phone", reportURL, layoutURL, *out); err != nil {
+		s.Fatal(err)
 	}
 
 	// reset the emulation. Emulate(device.Reset) sets back the user agent,
 	// the size of the window, the pixel ratio and the flags for mobile and
 	// touch. A desktop does not need a preset, so set a large viewport. The
 	// window is the same, and the page sees a new size
-	fmt.Println("emulating a desktop: 1280 x 800 px")
+	fmt.Fprintln(stdout, "emulating a desktop: 1280 x 800 px")
 	if err := chromedp.Do(ctx,
 		chromedp.Emulate(device.Reset),
 		chromedp.EmulateViewport(1280, 800),
 	); err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
-	if err := inspect(ctx, "desktop", reportURL, layoutURL, *out); err != nil {
-		log.Fatal(err)
+	if err := inspect(ctx, stdout, "desktop", reportURL, layoutURL, *out); err != nil {
+		s.Fatal(err)
 	}
 }
 
@@ -121,7 +139,7 @@ func main() {
 // /viewport-test shows. It writes two screenshots of the layout page, one of the
 // window and one of the full page. The name is the start of the names of the
 // files.
-func inspect(ctx context.Context, name, reportURL, layoutURL, dir string) error {
+func inspect(ctx context.Context, out io.Writer, name, reportURL, layoutURL, dir string) error {
 	// the script of the page fills the elements when the page loads, and sets
 	// the attribute data-ready of the body when it has finished. Wait for the
 	// attribute, because the elements hold the word "unknown" until then
@@ -136,7 +154,7 @@ func inspect(ctx context.Context, name, reportURL, layoutURL, dir string) error 
 		if err != nil {
 			return fmt.Errorf("reading %s: %w", f.sel, err)
 		}
-		fmt.Printf("  %-19s %s\n", f.label+":", text)
+		fmt.Fprintf(out, "  %-19s %s\n", f.label+":", text)
 	}
 
 	// the layout of the page. The label shows the active layout. Its spans
@@ -149,7 +167,7 @@ func inspect(ctx context.Context, name, reportURL, layoutURL, dir string) error 
 	if err != nil {
 		return fmt.Errorf("reading the layout label: %w", err)
 	}
-	fmt.Printf("  %-19s %s\n", "layout:", label)
+	fmt.Fprintf(out, "  %-19s %s\n", "layout:", label)
 
 	// CaptureScreenshot takes what the window shows. Its image has the size of
 	// the viewport multiplied by the device pixel ratio, so a phone with the
@@ -158,7 +176,7 @@ func inspect(ctx context.Context, name, reportURL, layoutURL, dir string) error 
 	if err != nil {
 		return fmt.Errorf("capturing the window: %w", err)
 	}
-	if err := save(dir, name+"-window.png", buf); err != nil {
+	if err := save(out, dir, name+"-window.png", buf); err != nil {
 		return err
 	}
 
@@ -167,11 +185,11 @@ func inspect(ctx context.Context, name, reportURL, layoutURL, dir string) error 
 	if err != nil {
 		return fmt.Errorf("capturing the full page: %w", err)
 	}
-	return save(dir, name+"-full.png", buf)
+	return save(out, dir, name+"-full.png", buf)
 }
 
 // save writes an image file and prints its size in pixels and in bytes.
-func save(dir, name string, buf []byte) error {
+func save(out io.Writer, dir, name string, buf []byte) error {
 	path := filepath.Join(dir, name)
 	if err := os.WriteFile(path, buf, 0o644); err != nil {
 		return fmt.Errorf("writing %s: %w", path, err)
@@ -180,6 +198,6 @@ func save(dir, name string, buf []byte) error {
 	if err != nil {
 		return fmt.Errorf("reading the size of %s: %w", path, err)
 	}
-	fmt.Printf("  wrote %s: %d x %d px, %d bytes\n", path, cfg.Width, cfg.Height, len(buf))
+	fmt.Fprintf(out, "  wrote %s: %d x %d px, %d bytes\n", path, cfg.Width, cfg.Height, len(buf))
 	return nil
 }
