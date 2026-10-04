@@ -7,11 +7,11 @@
 // own, so the request never reaches the server. It adds a header to the second
 // API request and lets the request continue. At the end, it prints the text
 // that the page built from these answers and the number of requests that it
-// blocked, mocked and continued. Every paused request must be continued,
-// failed or fulfilled. A request that gets no answer waits forever, and the
-// page stops. It starts a local server and needs no internet. Use -v to print
-// the protocol messages and -visible to show the browser window and leave it
-// open.
+// blocked, mocked and continued. Every paused request must be continued, failed
+// or fulfilled. A request that gets no answer waits forever, and the page
+// stops. It starts a local server and needs no internet. Use -v to print the
+// protocol messages, -visible to show the browser window and leave it open, and
+// -visible-on-terminal to draw the page in the terminal with terminal graphics.
 package main
 
 import (
@@ -19,6 +19,7 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
+	"io"
 	"iter"
 	"log"
 	"net/http"
@@ -32,11 +33,14 @@ import (
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 func main() {
+	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -60,8 +64,20 @@ func main() {
 		}()
 	}
 
-	if err := run(ctx, srv.URL); err != nil {
+	// draw the page in the terminal if the flag -visible-on-terminal is set
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
 		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	stdout := io.Writer(os.Stdout)
+	if s != nil {
+		stdout = s.LogWriter()
+	}
+
+	if err := run(ctx, srv.URL, stdout); err != nil {
+		s.Fatal(err)
 	}
 }
 
@@ -72,7 +88,7 @@ type counts struct {
 }
 
 // run loads the page with the interception on, and prints the result.
-func run(ctx context.Context, host string) error {
+func run(ctx context.Context, host string, stdout io.Writer) error {
 	// An empty Do starts the browser. The handler below uses a context that
 	// the program cancels at the end, and the first call on a context binds
 	// the browser to it. So the first call must use the main context.
@@ -123,10 +139,10 @@ func run(ctx context.Context, host string) error {
 		return err
 	}
 	sort.Strings(c.blocked)
-	fmt.Printf("page text:\n%s\n\n", indent(text))
-	fmt.Printf("blocked %d: %s\n", len(c.blocked), strings.Join(c.blocked, ", "))
-	fmt.Printf("mocked %d: %s\n", len(c.mocked), strings.Join(c.mocked, ", "))
-	fmt.Printf("continued %d: %s\n", len(c.continued), strings.Join(c.continued, ", "))
+	fmt.Fprintf(stdout, "page text:\n%s\n\n", indent(text))
+	fmt.Fprintf(stdout, "blocked %d: %s\n", len(c.blocked), strings.Join(c.blocked, ", "))
+	fmt.Fprintf(stdout, "mocked %d: %s\n", len(c.mocked), strings.Join(c.mocked, ", "))
+	fmt.Fprintf(stdout, "continued %d: %s\n", len(c.continued), strings.Join(c.continued, ", "))
 	return nil
 }
 
