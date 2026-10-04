@@ -142,7 +142,7 @@ func main() {
 // that the deferred calls stop the stream and remove the temporary files.
 func run(cfg config, tc termcast.Flags) error {
 	// The stream starts after the browser, so check the flags first. The
-	// protocol messages of -v would draw over the frames.
+	// protocol messages of -v draw over the frames.
 	if tc.Enabled && cfg.verbose {
 		return fmt.Errorf("starting the stream: %w", termcast.ErrVerbose)
 	}
