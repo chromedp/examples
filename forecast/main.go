@@ -1,11 +1,12 @@
-// Command forecast is a chromedp example demonstrating how to render the weather
-// forecast of a city in the terminal. It starts a local server and needs no
-// internet, but it needs a terminal that can show images. Use the flag -q to
-// name the place, for example -q Tokyo. The program clicks the unit, the tab
-// and the day, prints what the forecast says, and draws the forecast. Use -v to
-// print the protocol messages and -visible to show the browser window and leave
-// it open. The flag -url reads another site instead. The selectors are written
-// for the local site, so a live site can differ.
+// Command forecast is a chromedp example demonstrating how to render the
+// weather forecast of a city in the terminal. It starts a local server and
+// needs no internet, but it needs a terminal that can show images. Use the flag
+// -q to name the place, for example -q Tokyo. The program clicks the unit, the
+// tab and the day, prints what the forecast says, and draws the forecast. Use
+// -v to print the protocol messages, -visible to show the browser window and
+// leave it open, and -visible-on-terminal to draw the page in the terminal with
+// terminal graphics. The flag -url reads another site instead. The selectors
+// are written for the local site, so a live site can differ.
 package main
 
 import (
@@ -19,6 +20,7 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	"io"
 	"log"
 	"maps"
 	"net/url"
@@ -30,6 +32,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
+	"github.com/chromedp/termcast"
 	"github.com/kenshaw/rasterm"
 )
 
@@ -67,6 +70,7 @@ const summaryJS = `(function(day) {
 })(%d)`
 
 func main() {
+	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open (no effect with -remote)")
 	timeout := flag.Duration("timeout", 30*time.Second, "time limit of the program")
@@ -80,8 +84,9 @@ func main() {
 	padding := flag.Int("padding", 20, "white space around the image, in pixels")
 	remoteURL := flag.String("remote", "", "WebSocket URL of a running browser to use")
 	out := flag.String("out", "", "file to write the screenshot to")
+	tc.Register(flag.CommandLine)
 	flag.Parse()
-	if err := run(context.Background(), *verbose, *visible, *timeout, *urlstr, *query, *lang, *unit, *typ, *day, *scale, *padding, *remoteURL, *out); err != nil {
+	if err := run(context.Background(), &tc, *verbose, *visible, *timeout, *urlstr, *query, *lang, *unit, *typ, *day, *scale, *padding, *remoteURL, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		if strings.HasPrefix(err.Error(), "invalid lang ") {
 			fmt.Fprint(os.Stderr, "\nvalid languages:\n")
@@ -93,7 +98,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urlstr, query, lang, unit, typ string, day int, scale float64, padding int, remoteURL, out string) error {
+func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout time.Duration, urlstr, query, lang, unit, typ string, day int, scale float64, padding int, remoteURL, out string) error {
 	// make sure that the flag values are valid
 	lang = strings.ToLower(lang)
 	if _, ok := langs[lang]; !ok && lang != "" {
@@ -160,6 +165,18 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urls
 		}()
 	}
 
+	// draw the page in the terminal if the flag -visible-on-terminal is set
+	s, err := tc.Start(ctx, verbose)
+	if err != nil {
+		return err
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	stdout := io.Writer(os.Stdout)
+	if s != nil {
+		stdout = s.LogWriter()
+	}
+
 	// create a timeout
 	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -208,10 +225,10 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urls
 	if err != nil {
 		return fmt.Errorf("reading the forecast: %w", err)
 	}
-	fmt.Printf("%s, %s, %s\n", sum.Place, sum.When, sum.Condition)
-	fmt.Printf("temperature: %s °%s\n", sum.Temp, sum.Unit)
+	fmt.Fprintf(stdout, "%s, %s, %s\n", sum.Place, sum.When, sum.Condition)
+	fmt.Fprintf(stdout, "temperature: %s °%s\n", sum.Temp, sum.Unit)
 	for _, detail := range sum.Details {
-		fmt.Println(detail)
+		fmt.Fprintln(stdout, detail)
 	}
 
 	// Capture the screenshot of the header and the data block. The inactive
@@ -249,7 +266,8 @@ func run(ctx context.Context, verbose, visible bool, timeout time.Duration, urls
 		}
 	}
 
-	// show the image in the terminal
+	// show the image in the terminal, after the stream has stopped
+	s.Stop()
 	return rasterm.Encode(os.Stdout, img)
 }
 
