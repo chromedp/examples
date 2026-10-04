@@ -1,0 +1,40 @@
+{{define "content"}}
+<div class="report">
+  <div class="print-header" aria-hidden="true">Parcel Group plc &middot; Quarterly report, third quarter 2026</div>
+  <div class="print-footer" aria-hidden="true">Confidential. Made for the board of directors.</div>
+
+  <section class="cover" aria-labelledby="report-title">
+    <p class="eyebrow">Parcel Group plc</p>
+    <h1 id="report-title">Quarterly report</h1>
+    <p class="cover-sub">Third quarter of 2026</p>
+    <img src="/images/chart-bar.svg" alt="Bar chart of the passengers per month" width="640" height="400">
+    <p class="muted">Prepared by the finance team. Printed from the Harbour Labs test site.</p>
+    <nav class="contents" aria-label="Contents">
+      <h2>Contents</h2>
+      <ol>
+        {{range .Data.Sections}}<li><a href="#{{.ID}}">{{.Title}}</a></li>
+        {{end}}
+      </ol>
+    </nav>
+  </section>
+
+  {{range $i, $s := .Data.Sections}}
+  <section class="chapter" id="{{$s.ID}}" aria-labelledby="{{$s.ID}}-h">
+    <h2 id="{{$s.ID}}-h"><span class="chapter-no">{{add $i 1}}</span> {{$s.Title}}</h2>
+    {{range $s.Text}}<p>{{.}}</p>
+    {{end}}
+    <div class="table-wrap">
+      <table>
+        <caption>{{$s.Table.Caption}}</caption>
+        <thead><tr>{{range $j, $h := $s.Table.Head}}<th scope="col"{{if $j}} class="num"{{end}}>{{$h}}</th>{{end}}</tr></thead>
+        <tbody>
+          {{range $s.Table.Rows}}<tr>{{range $j, $c := .}}{{if eq $j 0}}<th scope="row">{{$c}}</th>{{else}}<td class="num">{{$c}}</td>{{end}}{{end}}</tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Note. Figures for the last month are preliminary and can change by the day of the board meeting.</p>
+  </section>
+  {{end}}
+</div>
+{{end}}

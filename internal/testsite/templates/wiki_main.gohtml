@@ -1,0 +1,29 @@
+{{define "content"}}
+<div class="page-head"><div class="container">
+  <h1 id="mainTitle">Welcome to the Harbour encyclopedia</h1>
+  <p>Thirty-two articles in eight topics. Every article is made up for this test site, so you can read, search and scroll without any real person in the text.</p>
+</div></div>
+<div class="container section" style="padding-top: 28px">
+  <form class="card search-big" action="/search" method="get" role="search">
+    <h2>Search</h2>
+    <div class="search-form">
+      <label class="visually-hidden" for="mainSearch">Search the encyclopedia</label>
+      <input id="mainSearch" name="q" type="search" placeholder="Try railway, history or tern">
+      <button type="submit">Search</button>
+    </div>
+  </form>
+  <div id="mw-content-text">
+    <h2>Featured article</h2>
+    <div class="card">
+      <h3><a href="/article/{{.Data.Featured.Slug}}">{{.Data.Featured.Title}}</a></h3>
+      <p>{{.Data.Featured.Snippet}}</p>
+      <p><a class="btn secondary" href="/article/{{.Data.Featured.Slug}}">Read the whole article</a></p>
+    </div>
+    <h2>Topics</h2>
+    <div class="grid">
+      {{range .Data.Topics}}<section class="card"><h3>{{.Name}}</h3><ul>{{range .Articles}}<li><a href="/article/{{.Slug}}">{{.Title}}</a></li>{{end}}</ul></section>
+      {{end}}
+    </div>
+  </div>
+</div>
+{{end}}

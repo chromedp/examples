@@ -1,0 +1,63 @@
+{{define "content"}}
+{{with .Data}}
+<div class="wiki-layout container">
+  <aside class="wiki-side" aria-label="Portal">
+    <nav>
+      <h2>Navigation</h2>
+      <ul>
+        <li><a href="/wiki/">Main page</a></li>
+        <li><a href="/article/Harbour_Line">Featured article</a></li>
+        <li><a href="/search?q=history">All histories</a></li>
+        <li><a href="/gallery">Pictures</a></li>
+      </ul>
+      <h2>Topic</h2>
+      <ul>
+        <li><a href="/search?q={{.Topic | lower}}">{{.Topic}}</a></li>
+        {{range .See}}<li><a href="/article/{{.Slug}}">{{.Title}}</a></li>
+        {{end}}
+      </ul>
+      <h2>Tools</h2>
+      <ul><li><a href="#references">References</a></li><li><a href="#see-also">See also</a></li><li><a href="javascript:window.print()">Print this page</a></li></ul>
+    </nav>
+  </aside>
+
+  <article class="wiki-content" lang="en">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/wiki/">Encyclopedia</a></li><li>{{.Topic}}</li><li>{{.Title}}</li></ol></nav>
+    <h1 id="firstHeading" class="firstHeading">{{.Title}}</h1>
+    <p id="siteSub" class="muted">From the Harbour encyclopedia, the free made-up reference. About {{fnum .Words}} words.</p>
+    <div id="mw-content-text" class="mw-body-content">
+      <div class="mw-parser-output">
+        <table class="infobox" aria-label="Facts about {{.Title}}">
+          <caption>{{.Title}}</caption>
+          <tbody>
+            <tr><td colspan="2" class="infobox-image"><img src="/images/{{.Image}}" alt="{{.Title}}" width="260" loading="lazy"></td></tr>
+            {{range .Infobox}}<tr><th scope="row">{{.Label}}</th><td>{{.Value}}</td></tr>
+            {{end}}
+          </tbody>
+        </table>
+        {{.Lead}}
+        {{.TOC}}
+        {{.Body}}
+        <h2 id="see-also"><span class="mw-headline">See also</span></h2>
+        <ul class="see-also">
+          {{range .See}}<li><a href="/article/{{.Slug}}">{{.Title}}</a></li>
+          {{end}}
+          <li><a href="/gallery">Gallery of pictures</a></li>
+        </ul>
+        <h2 id="references"><span class="mw-headline">References</span></h2>
+        <ol class="references">
+          {{range $i, $r := .Refs}}<li id="cite_note-{{add $i 1}}">{{safe $r}}</li>
+          {{end}}
+        </ol>
+        <h2 id="external"><span class="mw-headline">External links</span></h2>
+        <ul>
+          <li><a href="/wiki/">Main page of the encyclopedia</a></li>
+          <li><a href="/search?q={{.Title | lower}}">Search for this title</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="catlinks">Category: <a href="/search?q={{.Topic | lower}}">{{.Topic}}</a></div>
+  </article>
+</div>
+{{end}}
+{{end}}

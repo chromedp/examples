@@ -1,0 +1,39 @@
+/* The printed report. The screen view looks like a document, and the print view uses pages. */
+.report { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
+.print-header, .print-footer { display: none; }
+.cover { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 40px; margin-bottom: 28px; }
+.cover h1 { font-size: 3rem; margin: 0.1em 0; }
+.cover-sub { font-size: 1.4rem; color: var(--muted); margin-top: 0; }
+.cover img { border: 1px solid var(--line); border-radius: 8px; margin: 18px 0; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; font-weight: 700; color: var(--brand-dark); margin: 0; }
+.contents ol { columns: 2; }
+.chapter { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; }
+.chapter h2 { margin-top: 0; display: flex; gap: 12px; align-items: baseline; }
+.chapter-no { color: var(--brand); font-variant-numeric: tabular-nums; }
+.note { font-size: 0.85rem; color: var(--muted); }
+
+@page { size: A4; margin: 24mm 16mm 22mm; }
+@page :first { margin-top: 16mm; }
+
+@media print {
+  body { background: #fff; color: #000; font-size: 11pt; line-height: 1.45; }
+  .site-header, .site-footer, .skip-link { display: none; }
+  .report { max-width: none; padding: 0; margin: 0; }
+  .print-header, .print-footer {
+    display: block; position: fixed; left: 0; right: 0; font-size: 8.5pt; color: #555;
+  }
+  .print-header { top: -17mm; border-bottom: 0.5pt solid #999; padding-bottom: 2mm; }
+  .print-footer { bottom: -16mm; border-top: 0.5pt solid #999; padding-top: 2mm; text-align: right; }
+  .cover, .chapter { border: 0; border-radius: 0; padding: 0; margin: 0; background: none; }
+  .cover { break-after: page; }
+  .chapter { break-before: page; }
+  .cover img { width: 100%; height: auto; }
+  h1, h2, h3, caption { break-after: avoid; }
+  table { font-size: 9.5pt; }
+  thead { display: table-header-group; }
+  tr, figure, blockquote { break-inside: avoid; }
+  th, td { padding: 3pt 6pt; border-bottom: 0.5pt solid #bbb; }
+  thead th { position: static; background: #eee; }
+  tbody tr:nth-child(even) { background: #f6f6f6; }
+  a { color: inherit; text-decoration: none; }
+}

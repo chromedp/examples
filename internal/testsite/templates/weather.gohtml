@@ -1,0 +1,87 @@
+{{define "content"}}
+{{with .Data}}
+<div class="container weather">
+  <header id="taw" class="weather-head">
+    <form class="search-form" action="/weather" method="get" role="search">
+      <label class="visually-hidden" for="wq">City</label>
+      <input id="wq" name="q" type="search" value="{{.City.Name}}" autocomplete="off">
+      <button type="submit">Search</button>
+    </form>
+    <p class="muted">Weather results for <strong>{{.City.Name}}, {{.City.Country}}</strong>. <a href="{{maplink .City}}">Show on the map</a></p>
+  </header>
+
+  <section id="wob_wc" class="wob" aria-label="Weather forecast for {{.City.Name}}" data-unit="{{.Unit}}" data-type="{{.Type}}" data-day="{{.Day}}">
+    <div class="wob-top">
+      {{range .Days}}<div class="wob-sum" data-day="{{.Index}}">
+        <img {{if eq .Index 0}}id="wob_tci" {{end}}class="wob-icon" src="/static/icons/{{.Icon}}.svg" alt="{{.Condition}}" width="64" height="64">
+        <div class="wob-temp">
+          <span {{if eq .Index 0}}id="wob_tm" {{end}}class="wob-big"><span class="u-c">{{if eq .Index 0}}{{round (index .Temp 14)}}{{else}}{{.HighC}}{{end}}</span><span class="u-f">{{if eq .Index 0}}{{tempf (round (index .Temp 14))}}{{else}}{{.HighF}}{{end}}</span></span>
+          <span class="wob-units">
+            <span {{if eq .Index 0}}id="wob_unit_c" {{end}}class="wob-unit unit-c" role="button" tabindex="0" aria-pressed="true">&deg;C</span> |
+            <span {{if eq .Index 0}}id="wob_unit_f" {{end}}class="wob-unit unit-f" role="button" tabindex="0" aria-pressed="false">&deg;F</span>
+          </span>
+        </div>
+        <ul class="wob-details">
+          <li>Precipitation: <span {{if eq .Index 0}}id="wob_pp" {{end}}>{{.Rain}}%</span></li>
+          <li>Humidity: <span {{if eq .Index 0}}id="wob_hm" {{end}}>{{.Humidity}}%</span></li>
+          <li>Wind: <span {{if eq .Index 0}}id="wob_ws" {{end}}><span class="u-c">{{.WindKmh}} km/h</span><span class="u-f">{{.WindMph}} mph</span></span></li>
+        </ul>
+        <div class="wob-where">
+          {{if eq .Index 0}}<h1 id="wob_loc">{{$.Data.City.Name}}, {{$.Data.City.Country}}</h1>{{else}}<p class="wob-loc">{{$.Data.City.Name}}, {{$.Data.City.Country}}</p>{{end}}
+          <div {{if eq .Index 0}}id="wob_dts" {{end}}>{{.Weekday}}{{if eq .Index 0}} {{$.Data.Time}}{{end}}</div>
+          <div {{if eq .Index 0}}id="wob_dc" {{end}}>{{.Condition}}</div>
+        </div>
+      </div>
+      {{end}}
+    </div>
+
+    <div id="wob_d" class="wob-chart-area">
+      <div class="wob-tabs" role="tablist" aria-label="Kind of chart">
+        <button type="button" id="wob_temp" class="wob-tab" role="tab" aria-label="Temperature" aria-selected="true" aria-controls="wob_p_temp" data-type="temp">Temperature</button>
+        <button type="button" id="wob_rain" class="wob-tab" role="tab" aria-label="Precipitation" aria-selected="false" aria-controls="wob_p_rain" data-type="rain" tabindex="-1">Precipitation</button>
+        <button type="button" id="wob_wind" class="wob-tab" role="tab" aria-label="Wind" aria-selected="false" aria-controls="wob_p_wind" data-type="wind" tabindex="-1">Wind</button>
+      </div>
+      <div class="wob-panels">
+        <div id="wob_p_temp" class="wob-panel" role="tabpanel" aria-labelledby="wob_temp">
+          {{range .Days}}<div class="wob-chart" data-day="{{.Index}}">{{.TempSVG}}</div>
+          {{end}}
+        </div>
+        <div id="wob_p_rain" class="wob-panel" role="tabpanel" aria-labelledby="wob_rain">
+          {{range .Days}}<div class="wob-chart" data-day="{{.Index}}">{{.RainSVG}}</div>
+          {{end}}
+        </div>
+        <div id="wob_p_wind" class="wob-panel" role="tabpanel" aria-labelledby="wob_wind">
+          {{range .Days}}<div class="wob-chart" data-day="{{.Index}}">{{.WindSVG}}</div>
+          {{end}}
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap wob-days-wrap">
+      <table id="wob_dp" class="wob-days">
+        <caption>Forecast for today and the next seven days. Choose a day to change the chart.</caption>
+        <thead><tr><th scope="col">Day</th><th scope="col">Weather</th><th scope="col" class="num">High / low</th><th scope="col" class="num">Rain</th><th scope="col" class="num">Wind</th></tr></thead>
+        <tbody>
+          {{range .Days}}<tr data-row="{{.Index}}">
+            <th scope="row"><button type="button" class="wob-day" data-wob-di="{{.Index}}" aria-pressed="{{if eq .Index $.Data.Day}}true{{else}}false{{end}}">{{.Short}}</button></th>
+            <td><img src="/static/icons/{{.Icon}}.svg" alt="" width="32" height="32"> {{.Condition}}</td>
+            <td class="num"><span class="u-c">{{.HighC}}&deg; / {{.LowC}}&deg;</span><span class="u-f">{{.HighF}}&deg; / {{.LowF}}&deg;</span></td>
+            <td class="num">{{.Rain}}%</td>
+            <td class="num"><span class="u-c">{{.WindKmh}} km/h</span><span class="u-f">{{.WindMph}} mph</span></td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="other-cities" aria-label="Other cities">
+    <h2>Other cities</h2>
+    <ul class="city-links">
+      {{range .Cities}}<li><a href="/weather/{{.Slug}}">{{.Name}}</a></li>
+      {{end}}
+    </ul>
+  </section>
+</div>
+{{end}}
+{{end}}

@@ -1,0 +1,17 @@
+{{define "content"}}
+<div class="page-head"><div class="container">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li>Tools</li></ol></nav>
+  <h1>Tools</h1>
+  <p>Pages for device emulation, printing, screenshots and lookups.</p>
+</div></div>
+<div class="container section">
+  <ul class="tool-list">
+    <li class="card"><h2><a href="/ua">Browser details</a></h2><p>Shows the user agent, the viewport size, the device pixel ratio and the touch support. Use it with device emulation.</p></li>
+    <li class="card"><h2><a href="/viewport-test">Responsive page</a></h2><p>The layout and the colors change at 480, 768 and 1100 pixels.</p></li>
+    <li class="card"><h2><a href="/print/report">Printed report</a></h2><p>A report for the print dialog and for PDF output. It has a cover, page breaks and tables.</p></li>
+    <li class="card"><h2><a href="/studio">Studio landing page</a></h2><p>A tall page of a design studio. It suits a full page screenshot.</p></li>
+    <li class="card"><h2><a href="/geoip">IP lookup</a></h2><p>Look up an address in the table of two hundred ranges. The JSON API is at <code>/api/geoip?ip=10.0.1.5</code>.</p></li>
+    <li class="card"><h2><a href="/map">Map</a></h2><p>A map that you can drag and zoom. The address follows the center of the map.</p></li>
+  </ul>
+</div>
+{{end}}

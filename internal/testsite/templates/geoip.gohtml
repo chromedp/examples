@@ -1,0 +1,41 @@
+{{define "content"}}
+{{with .Data}}
+<div class="page-head"><div class="container">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/tools">Tools</a></li><li>IP lookup</li></ol></nav>
+  <h1>IP lookup</h1>
+  <p>Look up an address in a table of 200 ranges. The ranges are documentation, private, shared and loopback addresses, so they are not real. The JSON API is at <code>/api/geoip?ip=10.0.1.5</code>.</p>
+</div></div>
+<div class="container section">
+  <form class="search-form big" action="/geoip" method="get" role="search">
+    <label class="visually-hidden" for="ip">IP address</label>
+    <input id="ip" name="ip" type="text" value="{{.Query}}" placeholder="10.0.1.5" autocomplete="off">
+    <button type="submit">Look up</button>
+  </form>
+  {{with .Error}}<p class="notice" role="alert" style="max-width: 620px; margin-top: 18px">{{.}}</p>{{end}}
+  {{with .Record}}
+  <div class="card" style="margin-top: 20px; max-width: 620px">
+    <h2>{{.City}}, {{.Country}}</h2>
+    <dl class="facts" style="margin: 0">
+      <div><dt>Address</dt><dd>{{.IP}}</dd></div>
+      <div><dt>Range</dt><dd>{{.Range}}</dd></div>
+      <div><dt>Organization</dt><dd>{{.Organization}}</dd></div>
+      <div><dt>Time zone</dt><dd>{{.Timezone}}</dd></div>
+      <div><dt>Latitude</dt><dd>{{.Latitude}}</dd></div>
+      <div><dt>Longitude</dt><dd>{{.Longitude}}</dd></div>
+    </dl>
+    <p><a class="btn" href="{{$.Data.MapLink}}">Show on the map</a></p>
+  </div>
+  {{end}}
+  <h2>Some ranges of the table</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Range</th><th scope="col">City</th><th scope="col">Country</th><th scope="col">Organization</th><th scope="col">Time zone</th></tr></thead>
+      <tbody>
+        {{range .Ranges}}<tr><td><a href="/geoip?ip={{.IP}}">{{.Range}}</a></td><td>{{.City}}</td><td>{{.Country}}</td><td>{{.Organization}}</td><td>{{.Timezone}}</td></tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{end}}
+{{end}}

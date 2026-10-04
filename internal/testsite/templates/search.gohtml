@@ -1,0 +1,31 @@
+{{define "content"}}
+{{with .Data}}
+<div class="container narrow-col" style="padding: 24px 0 56px">
+  <h1 id="firstHeading">Search results</h1>
+  <div id="mw-content-text">
+    {{if .Query}}
+      {{if .Total}}<p class="search-summary">Showing results {{.From}} to {{.To}} of {{.Total}} for <strong>{{.Query}}</strong>.</p>
+      {{else}}<p class="search-summary">No page matches <strong>{{.Query}}</strong>. Try a shorter word, such as <a href="/search?q=history">history</a>.</p>{{end}}
+    {{else}}<p class="search-summary">Type a word in the box above to search the encyclopedia.</p>{{end}}
+    {{if .Results}}
+    <ul class="mw-search-results">
+      {{range .Results}}<li class="mw-search-result">
+        <div class="mw-search-result-heading"><a href="/article/{{.A.Slug}}">{{.A.Title}}</a></div>
+        <div class="searchresult">{{.Html}}</div>
+        <div class="mw-search-result-data">{{fnum .A.Words}} words &middot; {{.A.Topic}}</div>
+      </li>
+      {{end}}
+    </ul>
+    <nav aria-label="Pages of results">
+      <ul class="pagination">
+        {{if .Prev}}<li><a rel="prev" href="/search?q={{$.Query | urlquery}}&amp;page={{.Prev}}">Previous</a></li>{{end}}
+        {{range .Pages}}<li>{{if eq . $.Data.Page}}<span aria-current="page">{{.}}</span>{{else}}<a href="/search?q={{$.Query | urlquery}}&amp;page={{.}}">{{.}}</a>{{end}}</li>
+        {{end}}
+        {{if .Next}}<li><a rel="next" href="/search?q={{$.Query | urlquery}}&amp;page={{.Next}}">Next</a></li>{{end}}
+      </ul>
+    </nav>
+    {{end}}
+  </div>
+</div>
+{{end}}
+{{end}}

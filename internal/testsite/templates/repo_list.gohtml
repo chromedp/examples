@@ -1,0 +1,25 @@
+{{define "content"}}
+<div class="page-head"><div class="container">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li>Projects</li></ol></nav>
+  <h1>Projects</h1>
+  <p>A curated list of {{.Data.Total}} projects. Each line has the name of the project, a short description and the number of stars.</p>
+</div></div>
+<div class="container layout">
+  <aside class="sidebar" aria-label="Sections">
+    <h2>Sections</h2>
+    <ul>
+      {{range .Data.Sections}}<li><a href="#{{.Slug}}">{{.Title}}</a></li>
+      {{end}}
+    </ul>
+  </aside>
+  <article class="markdown-body awesome" id="readme">
+    {{range .Data.Sections}}
+    <div class="markdown-heading"><h3 class="heading-element" id="{{.Slug}}">{{.Title}}</h3><a class="anchor" href="#{{.Slug}}" aria-label="Link to this section"></a></div>
+    <ul>
+      {{range .Items}}<li data-stars="{{fnum .Stars}}" data-lang="{{.Lang}}"><a href="/repo/{{.Owner}}/{{.Name}}">{{.Name}}</a> - {{.Desc}}</li>
+      {{end}}
+    </ul>
+    {{end}}
+  </article>
+</div>
+{{end}}

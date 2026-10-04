@@ -1,0 +1,64 @@
+/* Weather forecast. The state lives in attributes of #wob_wc, so a script only needs to set them. */
+.weather { padding: 24px 0 56px; max-width: 920px; }
+.weather-head { margin-bottom: 16px; }
+.weather-head .search-form { max-width: 480px; }
+.wob { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px 26px; box-shadow: var(--shadow); }
+.wob-sum { display: none; grid-template-columns: auto auto 1fr; gap: 6px 26px; align-items: center; }
+.wob[data-day="0"] .wob-sum[data-day="0"], .wob[data-day="1"] .wob-sum[data-day="1"], .wob[data-day="2"] .wob-sum[data-day="2"], .wob[data-day="3"] .wob-sum[data-day="3"],
+.wob[data-day="4"] .wob-sum[data-day="4"], .wob[data-day="5"] .wob-sum[data-day="5"], .wob[data-day="6"] .wob-sum[data-day="6"], .wob[data-day="7"] .wob-sum[data-day="7"] { display: grid; }
+.wob-temp { display: flex; align-items: flex-start; gap: 6px; }
+.wob-big { font-size: 4rem; line-height: 1; font-weight: 300; }
+.wob-units { font-size: 0.95rem; margin-top: 6px; color: var(--muted); }
+.wob-unit { cursor: pointer; padding: 0 2px; }
+.wob-unit:hover { text-decoration: underline; }
+.wob[data-unit="c"] .unit-c, .wob[data-unit="f"] .unit-f { color: var(--ink); font-weight: 700; text-decoration: none; }
+.wob-details { list-style: none; padding: 0; margin: 0; grid-column: 1 / 3; font-size: 0.9rem; color: var(--muted); display: flex; gap: 18px; flex-wrap: wrap; }
+.wob-where { grid-column: 3; grid-row: 1 / 3; text-align: right; }
+.wob-where h1, .wob-loc { font-size: 1.5rem; margin: 0; font-weight: 600; }
+.wob-loc { line-height: 1.25; }
+
+.wob[data-unit="c"] .u-f, .wob[data-unit="f"] .u-c { display: none; }
+.wob svg .u-c, .wob svg .u-f { display: inline; }
+.wob[data-unit="c"] svg .u-f, .wob[data-unit="f"] svg .u-c { display: none; }
+
+.wob-chart-area { margin-top: 22px; }
+.wob-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); }
+.wob-tab { background: none; border: 0; border-bottom: 3px solid transparent; padding: 8px 14px; color: var(--muted); font-weight: 600; margin-bottom: -1px; }
+.wob-tab:hover { color: var(--ink); }
+.wob-tab[aria-selected="true"] { color: var(--brand-dark); border-bottom-color: var(--brand); }
+.wob-panel { display: none; }
+.wob[data-type="temp"] #wob_p_temp, .wob[data-type="rain"] #wob_p_rain, .wob[data-type="wind"] #wob_p_wind { display: block; }
+.wob-chart { display: none; padding-top: 6px; }
+.wob[data-day="0"] .wob-chart[data-day="0"], .wob[data-day="1"] .wob-chart[data-day="1"], .wob[data-day="2"] .wob-chart[data-day="2"], .wob[data-day="3"] .wob-chart[data-day="3"],
+.wob[data-day="4"] .wob-chart[data-day="4"], .wob[data-day="5"] .wob-chart[data-day="5"], .wob[data-day="6"] .wob-chart[data-day="6"], .wob[data-day="7"] .wob-chart[data-day="7"] { display: block; }
+.wob-chart svg { width: 100%; height: auto; display: block; }
+.wob-chart .axis { font: 11px var(--font); fill: var(--muted); }
+.wob-chart .val { font: 600 12px var(--font); fill: var(--ink); }
+.wob-chart .base { stroke: var(--line); }
+.wob-chart .area { fill: #fde68a; fill-opacity: 0.55; }
+.wob-chart .line { fill: none; stroke: #f59e0b; stroke-width: 2.5; stroke-linejoin: round; }
+.wob-chart .line.wind { stroke: #64748b; }
+.wob-chart .dot { fill: #fff; stroke: #f59e0b; stroke-width: 2; }
+.wob-chart .dot.wind { stroke: #64748b; }
+.wob-chart .bar { fill: #60a5fa; }
+
+.wob-days-wrap { margin-top: 20px; }
+.wob-days td img { vertical-align: middle; }
+.wob-day { background: none; border: 1px solid transparent; border-radius: 8px; padding: 4px 10px; font-weight: 600; color: var(--ink); }
+.wob-day:hover { background: var(--brand-soft); }
+.wob-day[aria-pressed="true"] { background: var(--brand); color: #fff; }
+.wob-days tbody tr { cursor: pointer; }
+
+.other-cities h2 { font-size: 1.1rem; }
+.city-links { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; }
+.city-links a { display: block; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); text-decoration: none; }
+.search-form.big { max-width: 620px; }
+.notice { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 10px 14px; max-width: 620px; }
+
+@media (max-width: 640px) {
+  .wob { padding: 16px; }
+  .wob-sum { grid-template-columns: auto 1fr; }
+  .wob-where { grid-column: 1 / 3; grid-row: auto; text-align: left; }
+  .wob-details { grid-column: 1 / 3; }
+  .wob-big { font-size: 3rem; }
+}

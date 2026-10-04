@@ -1,0 +1,81 @@
+{{define "content"}}
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-text">
+      <p class="eyebrow">Local test site</p>
+      <h1>Real looking pages for browser automation</h1>
+      <p class="lead">Harbour Labs is a made-up company. This site gives the example programs of chromedp long pages, tables, forms, images, maps and files to work on, and it never touches the internet.</p>
+      <div class="row">
+        <a class="btn" href="/docs/time">Read the docs</a>
+        <a class="btn secondary" href="/article/Harbour_Line">Open the long article</a>
+      </div>
+    </div>
+    <img class="hero-art" src="/images/hero.svg" alt="Skyline of a harbour town at dusk" width="960" height="420">
+  </div>
+</section>
+
+<section class="container section" aria-labelledby="areas">
+  <h2 id="areas">What you can find here</h2>
+  <div class="grid">
+    <a class="card" href="/docs/time"><span class="tag">Documentation</span><h3>The time package</h3><p>A reference page with an index, many sections and runnable examples inside details elements.</p></a>
+    <a class="card" href="/wiki/"><span class="tag">Encyclopedia</span><h3>Wiki</h3><p>Thirty-two articles in eight topics, a search form with ten results on each page and a very long article.</p></a>
+    <a class="card" href="/repo/chromedp/examples"><span class="tag">Code hosting</span><h3>A repository page</h3><p>A file list, a rendered README, a Code menu and a ZIP archive that the server builds on the fly.</p></a>
+    <a class="card" href="/repo/"><span class="tag">Code hosting</span><h3>Repository list</h3><p>Forty projects in sections, as a list of links with a short description.</p></a>
+    <a class="card" href="/gallery"><span class="tag">Media</span><h3>Image gallery</h3><p>Twenty-four pictures in three formats, from 400 to 2000 pixels wide, with lazy loading and srcset.</p></a>
+    <a class="card" href="/weather/jakarta"><span class="tag">Data</span><h3>Weather</h3><p>A forecast for eight cities with tabs, a chart, a seven day table and a unit switch.</p></a>
+    <a class="card" href="/map?lat=-6.2088&amp;lon=106.8456&amp;zoom=11"><span class="tag">Maps</span><h3>Map</h3><p>A draggable map with generated tiles. The address holds the latitude and the longitude.</p></a>
+    <a class="card" href="/geoip"><span class="tag">Data</span><h3>IP lookup</h3><p>A small API that maps two hundred address ranges to a city, a time zone and an organization.</p></a>
+    <a class="card" href="/ua"><span class="tag">Devices</span><h3>Browser details</h3><p>Shows the user agent, the viewport, the pixel ratio and the touch support.</p></a>
+    <a class="card" href="/viewport-test"><span class="tag">Devices</span><h3>Responsive page</h3><p>The layout changes at the width of a phone, a tablet and a desktop.</p></a>
+    <a class="card" href="/print/report"><span class="tag">Print</span><h3>Quarterly report</h3><p>A report with page breaks, running headers and tables. It prints on more than six pages.</p></a>
+    <a class="card" href="/studio"><span class="tag">Landing page</span><h3>Studio</h3><p>A tall landing page with sections, a portfolio and a price table.</p></a>
+  </div>
+</section>
+
+<section class="band">
+  <div class="container">
+    <h2>Numbers of the day</h2>
+    <dl class="stats">
+      <div><dt>Pages</dt><dd>38</dd></div>
+      <div><dt>Articles</dt><dd>32</dd></div>
+      <div><dt>Repositories</dt><dd>41</dd></div>
+      <div><dt>Images</dt><dd>40</dd></div>
+      <div><dt>Weather cities</dt><dd>8</dd></div>
+      <div><dt>IP ranges</dt><dd>200</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="container section" aria-labelledby="news">
+  <h2 id="news">Latest notes</h2>
+  <div class="news">
+    <article class="card">
+      <h3><a href="/article/Harbour_Line">The Harbour Line gets a new timetable</a></h3>
+      <p class="muted">4 October 2026</p>
+      <p>The line that links the old port with the hills will run every twelve minutes at rush hour. The article describes its history, its stations and its trains.</p>
+    </article>
+    <article class="card">
+      <h3><a href="/weather/reykjavik">A cold week in Reykjavik</a></h3>
+      <p class="muted">3 October 2026</p>
+      <p>Nights fall below freezing from Tuesday. Switch the forecast to Fahrenheit and see the same week with other numbers.</p>
+    </article>
+    <article class="card">
+      <h3><a href="/gallery">New pictures in the gallery</a></h3>
+      <p class="muted">1 October 2026</p>
+      <p>Four vector drawings and four flat illustrations join the photographs. One of the photographs is larger than one megabyte.</p>
+    </article>
+  </div>
+</section>
+
+<section class="container section" aria-labelledby="contact">
+  <h2 id="contact">Write to us</h2>
+  <form class="card contact" action="/search" method="get">
+    <div class="field"><label for="name">Name</label><input id="name" name="name" type="text" autocomplete="name"></div>
+    <div class="field"><label for="mail">Email</label><input id="mail" name="mail" type="email" autocomplete="email"></div>
+    <div class="field"><label for="topic">Topic</label>
+      <select id="topic" name="topic"><option>General question</option><option>Bug report</option><option>Partnership</option></select></div>
+    <div class="field"><label for="msg">Message</label><textarea id="msg" name="msg" rows="4"></textarea></div>
+    <button class="btn" type="button">Send message</button>
+  </form>
+</section>
+{{end}}

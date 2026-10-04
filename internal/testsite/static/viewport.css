@@ -1,0 +1,23 @@
+/* The responsive test page. The three media queries change the look. */
+.vp-head { background: #dbeafe; }
+.vp-label span { display: none; padding: 4px 12px; border-radius: 999px; font-weight: 700; color: #fff; }
+.vp-label .vp-desktop { display: inline-block; background: #1d4ed8; }
+.vp-grid { display: grid; gap: 20px; grid-template-columns: repeat(4, 1fr); }
+.vp-button { margin-top: 12px; }
+
+@media (max-width: 1099px) {
+  .vp-head { background: #dcfce7; }
+  .vp-label .vp-desktop { display: none; }
+  .vp-label .vp-tablet { display: inline-block; background: #15803d; }
+  .vp-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  html { font-size: 20px; }
+  .vp-head { background: #fee2e2; }
+  .vp-label .vp-tablet { display: none; }
+  .vp-label .vp-phone { display: inline-block; background: #b91c1c; }
+  .vp-grid { grid-template-columns: 1fr; }
+  .vp-button { display: flex; justify-content: center; width: 100%; padding: 16px; }
+  .card { border-radius: 18px; }
+}

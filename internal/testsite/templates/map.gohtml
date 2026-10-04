@@ -1,0 +1,26 @@
+{{define "content"}}
+{{with .Data}}
+<div class="container map-page">
+  <h1 class="visually-hidden">Map</h1>
+  <div id="app-container" class="map-app">
+    <form id="map-form" class="map-bar" action="/map" method="get">
+      <div class="field"><label for="lat">Latitude</label><input id="lat" name="lat" type="text" inputmode="decimal" value="{{printf "%.4f" .Lat}}"></div>
+      <div class="field"><label for="lon">Longitude</label><input id="lon" name="lon" type="text" inputmode="decimal" value="{{printf "%.4f" .Lon}}"></div>
+      <div class="field"><label for="zoom">Zoom</label><input id="zoom" name="zoom" type="text" inputmode="decimal" value="{{printf "%.1f" .Zoom}}"></div>
+      <button type="submit" class="btn">Go</button>
+    </form>
+    <div id="map" class="map" tabindex="0" role="application" aria-label="Map. Drag to move, use the plus and minus keys to zoom." data-lat="{{.Lat}}" data-lon="{{.Lon}}" data-zoom="{{.Zoom}}" data-loading="0">
+      <div id="tile-layer" class="tile-layer"></div>
+      <div class="map-marker" aria-hidden="true"></div>
+      <div class="map-controls" role="group" aria-label="Zoom">
+        <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+        <button type="button" id="zoom-out" aria-label="Zoom out">&minus;</button>
+      </div>
+      <p id="coords" class="map-coords" aria-live="polite"></p>
+      <p class="map-credit">Tiles drawn by the test site. The coasts are made up.</p>
+    </div>
+  </div>
+  <p class="muted">The address of this page holds the position. For example <code>#@-6.20880,106.84560,11.00z</code> after the map settles.</p>
+</div>
+{{end}}
+{{end}}

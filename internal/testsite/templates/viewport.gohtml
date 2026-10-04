@@ -1,0 +1,20 @@
+{{define "content"}}
+<div class="page-head vp-head"><div class="container">
+  <h1>Responsive layout</h1>
+  <p>Resize the window or emulate a phone. The columns, the type size and the colors change at three widths.</p>
+  <p class="vp-label" aria-live="polite"><span class="vp-phone">Phone layout, up to 480 pixels</span><span class="vp-tablet">Tablet layout, 481 to 1099 pixels</span><span class="vp-desktop">Desktop layout, 1100 pixels and more</span></p>
+</div></div>
+<div class="container section">
+  <div class="vp-grid">
+    <article class="card"><h2>Fast</h2><p>The cards stack in one column on a phone, two on a tablet and four on a desktop.</p></article>
+    <article class="card"><h2>Readable</h2><p>The text keeps a comfortable line length, and the buttons grow to a size that a thumb can hit.</p></article>
+    <article class="card"><h2>Flexible</h2><p>Images scale with the column and keep their ratio. Nothing scrolls sideways.</p></article>
+    <article class="card"><h2>Tested</h2><p>The page has no script. The media queries in the style sheet do all the work.</p></article>
+    <article class="card"><h2>Compact</h2><p>The menu of the header turns into a button below 720 pixels.</p></article>
+    <article class="card"><h2>Clear</h2><p>The label above tells you which layout is active.</p></article>
+    <article class="card"><h2>Accessible</h2><p>Colors keep a contrast ratio of at least 4.5 to 1 in every layout.</p></article>
+    <article class="card"><h2>Honest</h2><p>This is a test page, and its only job is to look different at each width.</p></article>
+  </div>
+  <p><a class="btn vp-button" href="/">Back to the home page</a></p>
+</div>
+{{end}}

@@ -43,6 +43,7 @@ you trust it, because a later decision can amend or replace it.
 | preparing a change as a person | `CONTRIBUTING.md` |
 | adding or changing a program | the sections Hard rules and Before you commit in this file |
 | running a program against its expected output | the section Verify an offline program in this file |
+| making a program read local pages instead of a live site | the section The local test site in this file, and `internal/testsite/README.md` |
 
 ## Hard rules
 
@@ -94,6 +95,7 @@ you trust it, because a later decision can amend or replace it.
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
 | `multi/Dockerfile` | the container image of `multi` |
+| `internal/testsite/` | the local test site that the programs read, with its `README.md`, its tests and `gen/main.go` |
 | `gen.go` | writes the table of the programs in `README.md`. Run `go run gen.go` |
 | `docs/decisions/` | the decisions and their index |
 | `docs/docs_test.go` | the test of the documents and the Go comments |
@@ -184,6 +186,43 @@ go test ./docs/
 the links, the decision index, the document tables and the skill copies. It
 also tests the table of the programs in `README.md`. It applies the prose rules
 to the documents and to the Go comments.
+
+## The local test site
+
+Every program except `fast` reads local content and not a live site. See
+`docs/decisions/2026-10-04-the-examples-use-a-local-test-site.md`. The package
+`internal/testsite` serves the content. `internal/testsite/README.md` lists
+every route, every selector that a program can use and the size of each page.
+
+Start the site in a program like this:
+
+```go
+site := testsite.New()
+defer site.Close()
+```
+
+`site.URL` is the base address, such as `http://127.0.0.1:41233`. `site.OtherURL`
+is the same server under the name `localhost`, and a browser treats it as
+another site. Use it for a cross-site frame or a cross-origin request. Each
+program that reads the site has the flag `-url`. When the flag is empty, the
+program starts the test site. When it holds an address, the program reads that
+site, so a person can point it at a live site with the same structure.
+
+Follow these rules when you work on the site or on a program that uses it.
+
+1. Keep every page local. A page must not load a font, an image, a script or a
+   style sheet from another host. `go test ./internal/testsite/` fails when it
+   does.
+2. Write original text. Do not copy text or images from a real site.
+3. Do not change a route, an id, a class or a selector that
+   `internal/testsite/README.md` lists without checking the programs that use
+   it. Change the program and the list together.
+4. A binary asset comes from `internal/testsite/gen/main.go`. Change the
+   generator and run `GOWORK=off go run internal/testsite/gen/main.go`. Commit
+   the new files. Do not edit a generated file by hand.
+5. Keep the embedded files under 8 MB in total.
+6. The tests of the package need no browser. Run `go test ./internal/testsite/`
+   before you commit. Check a change of the layout with a real browser too.
 
 ## Continuous integration and tags
 

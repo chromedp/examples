@@ -1,0 +1,21 @@
+/* The map page. Tiles are absolutely positioned images inside the layer. */
+.map-page { padding: 20px 0 48px; }
+.map-app { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+.map-bar { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--line); background: #f8f9fb; }
+.map-bar .field { margin: 0; }
+.map-bar input { width: 130px; padding: 6px 10px; }
+.map { position: relative; height: 560px; overflow: hidden; background: #9ac6e4; touch-action: none; cursor: grab; user-select: none; }
+.map.dragging { cursor: grabbing; }
+.tile-layer { position: absolute; inset: 0; }
+.tile-layer img { position: absolute; max-width: none; display: block; user-select: none; -webkit-user-drag: none; }
+.map-marker { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: #ef4444; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); pointer-events: none; }
+.map-controls { position: absolute; right: 14px; top: 14px; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+.map-controls button { width: 40px; height: 40px; border: 0; background: #fff; font-size: 1.4rem; line-height: 1; color: var(--ink); }
+.map-controls button + button { border-top: 1px solid var(--line); }
+.map-controls button:hover { background: var(--brand-soft); }
+.map-coords { position: absolute; left: 10px; bottom: 28px; margin: 0; padding: 3px 10px; background: rgba(255, 255, 255, 0.9); border-radius: 6px; font: 0.82rem var(--mono); }
+.map-credit { position: absolute; left: 10px; bottom: 6px; margin: 0; font-size: 0.72rem; color: #264257; background: rgba(255, 255, 255, 0.7); padding: 0 6px; border-radius: 4px; }
+@media (max-width: 640px) {
+  .map { height: 420px; }
+  .map-bar input { width: 100px; }
+}

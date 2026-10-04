@@ -1,0 +1,19 @@
+{{define "content"}}
+<div class="page-head"><div class="container">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li>Weather</li></ol></nav>
+  <h1>Weather</h1>
+  <p>Forecasts for eight cities. Each one has an hourly chart, a table for the next days and a switch between Celsius and Fahrenheit.</p>
+</div></div>
+<div class="container section">
+  <form class="search-form big" action="/weather" method="get" role="search">
+    <label class="visually-hidden" for="q">City</label>
+    <input id="q" name="q" type="search" placeholder="Search for a city, such as Jakarta">
+    <button type="submit">Show the weather</button>
+  </form>
+  {{with .Data.Message}}<p class="notice" role="status">{{.}}</p>{{end}}
+  <div class="grid" style="margin-top: 24px">
+    {{range .Data.Cities}}<a class="card" href="/weather/{{.Slug}}"><h2>{{.Name}}</h2><p class="muted">{{.Country}}</p><p>Usual high of {{round .High}} &deg;C</p></a>
+    {{end}}
+  </div>
+</div>
+{{end}}

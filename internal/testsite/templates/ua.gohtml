@@ -1,0 +1,28 @@
+{{define "content"}}
+<div class="page-head"><div class="container">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/tools">Tools</a></li><li>Browser details</li></ol></nav>
+  <h1>What is my browser</h1>
+  <p>The page reads these values when it loads and again when the window changes size.</p>
+</div></div>
+<div class="container section">
+  <div class="card">
+    <h2>Your browser</h2>
+    <p id="ua" class="ua-string" data-server="{{.Data}}">{{.Data}}</p>
+    <dl class="facts">
+      <div><dt>Platform</dt><dd id="platform">unknown</dd></div>
+      <div><dt>Language</dt><dd id="language">unknown</dd></div>
+      <div><dt>Viewport</dt><dd id="viewport">unknown</dd></div>
+      <div><dt>Screen</dt><dd id="screen">unknown</dd></div>
+      <div><dt>Device pixel ratio</dt><dd id="dpr">unknown</dd></div>
+      <div><dt>Touch points</dt><dd id="touch">unknown</dd></div>
+      <div><dt>Orientation</dt><dd id="orientation">unknown</dd></div>
+      <div><dt>Color scheme</dt><dd id="scheme">unknown</dd></div>
+      <div><dt>Mobile layout</dt><dd id="mobile">unknown</dd></div>
+    </dl>
+  </div>
+  <div class="card" style="margin-top: 20px">
+    <h2>Request headers that the server saw</h2>
+    <p>The server read the header <code>User-Agent</code>. It is the text above in the first box.</p>
+  </div>
+</div>
+{{end}}

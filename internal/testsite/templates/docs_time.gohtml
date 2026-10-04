@@ -1,0 +1,95 @@
+{{define "content"}}
+<div class="Documentation-header">
+  <div class="container">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/docs/">Packages</a></li><li>time</li></ol></nav>
+    <h1 class="Documentation-title">package time</h1>
+    <ul class="Documentation-meta">
+      <li><span class="pill">Version: go1.27</span></li>
+      <li><span class="pill">Latest</span></li>
+      <li>Imports: 9</li>
+      <li>Imported by: 412,380</li>
+      <li>Standard library</li>
+    </ul>
+    <p class="Documentation-import"><code>import "time"</code></p>
+  </div>
+</div>
+
+<div class="container layout Documentation">
+  <aside class="sidebar" aria-label="Table of contents">
+    <nav class="Documentation-sidebar">
+      <h2>Contents</h2>
+      <ul>
+        <li><a href="#pkg-overview">Overview</a></li>
+        <li><a href="#pkg-index">Index</a></li>
+        <li><a href="#pkg-examples">Examples</a></li>
+        <li><a href="#pkg-constants">Constants</a></li>
+        <li><a href="#pkg-variables">Variables</a></li>
+      </ul>
+      {{range .Data.Groups}}{{if or (eq .ID "pkg-functions") (eq .ID "pkg-types")}}
+      <h2>{{.Title}}</h2>
+      <ul>
+        {{range .Entries}}{{if or (eq .Kind "func") (eq .Kind "type")}}<li><a href="#{{.ID}}">{{if eq .Kind "func"}}func {{end}}{{.Name}}</a></li>{{end}}
+        {{end}}
+      </ul>
+      {{end}}{{end}}
+    </nav>
+  </aside>
+
+  <article class="Documentation-content">
+    <section id="pkg-overview" class="Documentation-overview">
+      <h2>Overview</h2>
+      {{range .Data.Overview}}<p>{{.}}</p>
+      {{end}}
+      <h3 id="pkg-layouts">Reading and writing text</h3>
+      <p>The following program shows the reference layout. It prints the same instant in two layouts, and it reads one of them back.</p>
+      <pre><code>t := time.Date(2026, time.October, 4, 15, 4, 5, 0, time.UTC)
+fmt.Println(t.Format("Mon Jan 2 15:04:05 2006"))
+back, _ := time.Parse(time.Kitchen, "3:04PM")
+fmt.Println(back.Hour(), back.Minute())</code></pre>
+      <h3 id="pkg-monotonic">Monotonic clocks</h3>
+      <p>A Time that comes from Now holds two readings. The wall clock shows the date and the hour, and a person can change it at any time. The monotonic clock only moves forward, and it has no meaning outside the process.</p>
+      <p>Methods that compare, subtract or sort times use the monotonic reading when both values hold one. Methods that change the time, such as Add, move both readings. Methods that expose the time as text or as a count of seconds drop the monotonic reading, because the reading cannot survive that step.</p>
+    </section>
+
+    <section id="pkg-index" class="Documentation-index">
+      <h2>Index</h2>
+      <ul class="Documentation-indexList">
+        {{range .Data.Groups}}{{if or (eq .ID "pkg-constants") (eq .ID "pkg-variables")}}{{range .Entries}}<li><a href="#{{.ID}}">{{.Kind}} {{.Name}}</a></li>
+        {{end}}{{else}}{{range .Entries}}<li class="{{.Kind}}"><a href="#{{.ID}}">{{if eq .Kind "type"}}type {{end}}{{if ne .Kind "type"}}func {{end}}{{.Name}}</a></li>
+        {{end}}{{end}}{{end}}
+      </ul>
+    </section>
+
+    <section id="pkg-examples" class="Documentation-examples">
+      <h2>Examples</h2>
+      <p>Open an example to read its code and its output. Each one is a complete program.</p>
+      {{range .Data.Examples}}
+      <details id="{{.ID}}" class="Documentation-exampleDetails">
+        <summary id="{{.ID}}-summary" class="Documentation-exampleDetailsHeader">Example {{.Title}}<a href="#{{.ID}}" aria-label="Link to this example">&para;</a></summary>
+        <div class="Documentation-exampleDetailsBody">
+          <textarea class="Documentation-exampleCode" rows="{{.Rows}}" spellcheck="false" readonly aria-label="Code of the example {{.Title}}">{{.Code}}</textarea>
+          <pre class="Documentation-exampleOutput"><span class="Documentation-exampleOutputLabel">Output:</span>
+{{.Output}}</pre>
+        </div>
+      </details>
+      {{end}}
+    </section>
+
+    {{range .Data.Groups}}
+    <section id="{{.ID}}" class="Documentation-group">
+      <h2>{{.Title}}</h2>
+      <p>{{.Intro}}</p>
+      {{range .Entries}}
+      <div class="Documentation-entry Documentation-{{.Kind}}">
+        <h4 id="{{.ID}}" class="Documentation-{{.Kind}}Header">{{if eq .Kind "method"}}method {{else}}{{.Kind}} {{end}}{{.Name}} <a class="Documentation-source" href="#{{.ID}}" aria-label="Link to {{.Name}}">&para;</a></h4>
+        <pre><code>{{.Sig}}</code></pre>
+        {{range .Doc}}<p>{{.}}</p>
+        {{end}}
+        {{if .Example}}<p class="Documentation-seeExample">See the <a href="#{{.Example}}">example</a>.</p>{{end}}
+      </div>
+      {{end}}
+    </section>
+    {{end}}
+  </article>
+</div>
+{{end}}

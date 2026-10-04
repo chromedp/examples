@@ -1,0 +1,6 @@
+/* The browser details page. */
+.ua-string { font-family: var(--mono); font-size: 1rem; background: var(--code-bg); border-radius: 8px; padding: 12px 14px; word-break: break-word; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin: 20px 0 0; }
+.facts div { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fbfcfe; }
+.facts dt { font-size: 0.8rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; }
+.facts dd { margin: 4px 0 0; font-size: 1.25rem; font-weight: 650; }

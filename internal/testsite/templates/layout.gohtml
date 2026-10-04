@@ -1,0 +1,82 @@
+{{define "layout"}}<!doctype html>
+<html lang="{{.Lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} - Harbour Labs</title>
+{{with .Description}}<meta name="description" content="{{.}}">
+{{end}}<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/site.css">
+{{range .CSS}}<link rel="stylesheet" href="/static/{{.}}">
+{{end}}</head>
+<body{{with .Class}} class="{{.}}"{{end}}>
+<a class="skip-link" href="#main">Skip to the content</a>
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/"><img src="/static/logo.svg" alt="Harbour Labs" class="Homepage-logo" width="146" height="37"></a>
+    {{if .Search}}<form class="search-form header-search" action="/search" method="get" role="search">
+      <label class="visually-hidden" for="searchInput">Search the encyclopedia</label>
+      <input id="searchInput" name="q" type="search" value="{{.Query}}" placeholder="Search the encyclopedia" autocomplete="off">
+      <button type="submit" id="searchButton">Search</button>
+    </form>{{end}}
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="/"{{if eq .Active "/"}} aria-current="page"{{end}}>Home</a></li>
+        <li><a href="/docs/"{{if eq .Active "/docs/"}} aria-current="page"{{end}}>Docs</a></li>
+        <li><a href="/wiki/"{{if eq .Active "/wiki/"}} aria-current="page"{{end}}>Wiki</a></li>
+        <li><a href="/repo/"{{if eq .Active "/repo/"}} aria-current="page"{{end}}>Code</a></li>
+        <li><a href="/gallery"{{if eq .Active "/gallery"}} aria-current="page"{{end}}>Gallery</a></li>
+        <li><a href="/weather/"{{if eq .Active "/weather/"}} aria-current="page"{{end}}>Weather</a></li>
+        <li><a href="/map"{{if eq .Active "/map"}} aria-current="page"{{end}}>Map</a></li>
+        <li><a href="/tools"{{if eq .Active "/tools"}} aria-current="page"{{end}}>Tools</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main id="main">
+{{template "content" .}}
+</main>
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <p><strong>Harbour Labs</strong></p>
+        <p>A made-up company with a real looking web site. All the pages, the pictures and the data come from the test site of the chromedp examples, and nothing leaves your machine.</p>
+      </div>
+      <nav aria-label="Reference">
+        <h2>Reference</h2>
+        <ul>
+          <li><a href="/docs/time">The time package</a></li>
+          <li><a href="/article/Harbour_Line">A long article</a></li>
+          <li><a href="/repo/chromedp/examples">A repository</a></li>
+          <li><a href="/repo/">All repositories</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Media">
+        <h2>Media</h2>
+        <ul>
+          <li><a href="/gallery">Image gallery</a></li>
+          <li><a href="/weather/jakarta">Weather forecast</a></li>
+          <li><a href="/map?lat=-6.2088&amp;lon=106.8456&amp;zoom=11">Map</a></li>
+          <li><a href="/studio">Studio landing page</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Devices">
+        <h2>Devices</h2>
+        <ul>
+          <li><a href="/ua">Browser details</a></li>
+          <li><a href="/viewport-test">Responsive page</a></li>
+          <li><a href="/print/report">Printed report</a></li>
+          <li><a href="/geoip">IP lookup</a></li>
+        </ul>
+      </nav>
+    </div>
+    <p class="footer-note">&copy; 2026 Harbour Labs. Test content, not for any other use.</p>
+  </div>
+</footer>
+<script src="/static/site.js" defer></script>
+{{range .JS}}<script src="/static/{{.}}" defer></script>
+{{end}}</body>
+</html>
+{{end}}

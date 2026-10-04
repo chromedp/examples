@@ -1,0 +1,18 @@
+{{define "content"}}
+<div class="page-head"><div class="container">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li>Gallery</li></ol></nav>
+  <h1>Gallery</h1>
+  <p>Twenty-four pictures in three formats. The pictures load when you scroll to them, and each one has several sizes for the browser to choose from. Open a picture to see the file.</p>
+</div></div>
+<div class="container section">
+  <ul class="gallery" id="gallery">
+    {{range $i, $g := .Data}}<li>
+      <figure>
+        <a href="/images/{{$g.Name}}" class="gallery-link"><img src="/images/{{$g.Name}}{{if and (ne $g.Kind "svg") (gt $g.W 800)}}?w=800{{end}}" srcset="{{$g.Srcset}}" sizes="(max-width: 600px) 100vw, (max-width: 1000px) 50vw, 300px" alt="{{$g.Alt}}" width="{{$g.W}}" height="{{$g.H}}" loading="lazy" decoding="async" data-name="{{$g.Name}}"></a>
+        <figcaption><strong>{{$g.Title}}</strong><br><span class="muted">{{$g.Caption}}</span>{{if $g.Large}} <span class="pill">large file</span>{{end}}</figcaption>
+      </figure>
+    </li>
+    {{end}}
+  </ul>
+</div>
+{{end}}

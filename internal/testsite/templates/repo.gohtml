@@ -1,0 +1,81 @@
+{{define "content"}}
+{{with .Data}}
+<div class="repo-head">
+  <div class="container">
+    <h1 class="repo-title"><span class="ico ico-book" aria-hidden="true"></span><a href="/repo/">{{.Owner}}</a> / <strong><a href="/repo/{{.Owner}}/{{.Name}}">{{.Name}}</a></strong> <span class="pill">Public</span></h1>
+    <div class="repo-actions">
+      <button type="button" class="btn secondary small"><span class="ico ico-star" aria-hidden="true"></span> Star <span class="count">{{fnum .Stars}}</span></button>
+      <button type="button" class="btn secondary small"><span class="ico ico-branch" aria-hidden="true"></span> Fork <span class="count">{{fnum .Forks}}</span></button>
+    </div>
+    <nav class="repo-tabs" aria-label="Repository">
+      <ul>
+        <li><a href="/repo/{{.Owner}}/{{.Name}}" aria-current="page">Code</a></li>
+        <li><a href="#issues">Issues <span class="count">{{.Issues}}</span></a></li>
+        <li><a href="#pulls">Pull requests <span class="count">{{.PRs}}</span></a></li>
+        <li><a href="#actions">Actions</a></li>
+        <li><a href="#wiki">Wiki</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#insights">Insights</a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<div class="container repo-layout">
+  <div class="repo-main">
+    <div class="repo-bar">
+      <button type="button" class="btn secondary small branch"><span class="ico ico-branch" aria-hidden="true"></span> {{.Branch}}</button>
+      <span class="muted">1 branch &middot; 12 tags</span>
+      <span class="spacer"></span>
+      <div class="code-menu">
+        <button type="button" class="btn small code-button" aria-haspopup="true" aria-expanded="false" aria-controls="code-dropdown"><span>Code</span></button>
+        <div class="dropdown" id="code-dropdown" hidden>
+          <h2>Clone</h2>
+          <input type="text" readonly value="https://example.test/{{.Owner}}/{{.Name}}.git" aria-label="Clone address">
+          <ul>
+            <li><a href="#desktop">Open with the desktop app</a></li>
+            <li><a href="{{.ZIPURL}}" download><span class="ico ico-download" aria-hidden="true"></span><span>Download ZIP</span></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="files" aria-label="Files">
+        <thead><tr><th scope="col" colspan="3"><span class="ico ico-user" aria-hidden="true"></span> <strong>{{.Owner}}</strong> Prepare the next release <span class="muted">&middot; {{.Commits}} commits</span></th></tr></thead>
+        <tbody>
+          {{range .Files}}<tr>
+            <td class="name"><span class="ico {{if .Dir}}ico-folder{{else}}ico-file{{end}}" aria-hidden="true"></span> <a href="#{{.Name}}">{{.Name}}</a></td>
+            <td class="msg">{{.Msg}}</td>
+            <td class="age">{{.Age}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+
+    <section class="readme" aria-label="README">
+      <h2 class="readme-title"><span class="ico ico-book" aria-hidden="true"></span> README.md</h2>
+      <div class="markdown-body">{{.Readme}}</div>
+    </section>
+  </div>
+
+  <aside class="repo-side" aria-label="About">
+    <h2>About</h2>
+    <p>{{.Desc}}</p>
+    <p>{{range .Topics}}<a class="topic" href="#topic-{{.}}">{{.}}</a> {{end}}</p>
+    <ul class="side-list">
+      <li><span class="ico ico-book" aria-hidden="true"></span> Readme</li>
+      <li><span class="ico ico-star" aria-hidden="true"></span> {{fnum .Stars}} stars</li>
+      <li><span class="ico ico-eye" aria-hidden="true"></span> {{fnum .Watchers}} watching</li>
+      <li><span class="ico ico-branch" aria-hidden="true"></span> {{fnum .Forks}} forks</li>
+    </ul>
+    <h2>Releases</h2>
+    <p><strong>v0.19.0</strong> <span class="pill">Latest</span><br><span class="muted">on 4 Oct 2026</span></p>
+    <h2>Languages</h2>
+    <div class="lang-bar" role="img" aria-label="{{.Lang}} 100 percent"><span style="width: 92%; background: #00add8"></span><span style="width: 5%; background: #f1e05a"></span><span style="width: 3%; background: #89e051"></span></div>
+    <p class="muted"><span class="dot" style="background: #00add8"></span> {{.Lang}} 92% <span class="dot" style="background: #f1e05a"></span> JavaScript 5% <span class="dot" style="background: #89e051"></span> Shell 3%</p>
+  </aside>
+</div>
+{{end}}
+{{end}}

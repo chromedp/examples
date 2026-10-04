@@ -1,0 +1,22 @@
+{{define "content"}}
+<section class="Homepage">
+  <div class="container narrow-hero">
+    <img class="Homepage-logo big" src="/static/logo.svg" alt="Harbour Labs packages" width="330" height="84">
+    <h1>Find a package</h1>
+    <p>Search the reference of the standard library, or open the one package that this site documents.</p>
+    <form class="search-form" action="/docs/time" method="get" role="search">
+      <label class="visually-hidden" for="pkg-search">Search packages</label>
+      <input id="pkg-search" name="q" type="search" placeholder="time, strings, net/http" autocomplete="off">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+</section>
+<div class="container section">
+  <h2>Popular packages</h2>
+  <div class="grid">
+    <a class="card" href="/docs/time"><span class="tag">std</span><h3>time</h3><p>Measure and show time, with timers, tickers and zones.</p></a>
+    <div class="card"><span class="tag">std</span><h3>strings</h3><p>Functions to work with UTF-8 text. Not documented on this site.</p></div>
+    <div class="card"><span class="tag">std</span><h3>net/http</h3><p>Clients and servers for HTTP. Not documented on this site.</p></div>
+  </div>
+</div>
+{{end}}
