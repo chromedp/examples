@@ -1,21 +1,23 @@
 // Command eventsiter is a chromedp example demonstrating how to listen to the
-// events of a page with iterators. chromedp.Events returns an iterator that
-// the program reads with a for loop. The program loads a local page that logs
-// to the console, loads an image and a script, and sends a request later with
-// a script. It collects the console messages, the network requests and the
+// events of a page with iterators. chromedp.Events returns an iterator that the
+// program reads with a for loop. The program loads a local page that logs to
+// the console, loads an image and a script, and sends a request later with a
+// script. It collects the console messages, the network requests and the
 // network responses. It waits for the network to be idle with the event
-// Page.lifecycleEvent. It then reads the console messages with a loop that ends with
-// break, and it waits for one console message that matches a condition with
-// WaitEvent. A listener stops when its context ends, so the program cancels the
-// context of the network listeners. It starts a local server and needs no
-// internet. Use -v to print the protocol messages and -visible to show the
-// browser window and leave it open.
+// Page.lifecycleEvent. It then reads the console messages with a loop that ends
+// with break, and it waits for one console message that matches a condition
+// with WaitEvent. A listener stops when its context ends, so the program
+// cancels the context of the network listeners. It starts a local server and
+// needs no internet. Use -v to print the protocol messages and -visible to show
+// the browser window and leave it open. Use -visible-on-terminal to draw the
+// page in the terminal with terminal graphics.
 package main
 
 import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -30,11 +32,14 @@ import (
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -58,13 +63,26 @@ func main() {
 		}()
 	}
 
-	if err := run(ctx, srv.URL); err != nil {
+	// draw the page in the terminal when the user asks for it. The stream
+	// starts the browser, so it starts before the first navigation
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
 		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	out := io.Writer(os.Stdout)
+	if s != nil {
+		out = s.LogWriter()
+	}
+
+	if err := run(ctx, out, srv.URL); err != nil {
+		s.Fatal(err)
 	}
 }
 
 // run loads the page, and reads the events of the load.
-func run(ctx context.Context, host string) error {
+func run(ctx context.Context, out io.Writer, host string) error {
 	// An empty Do starts the browser. The first call on a context binds the
 	// browser to it, and the program cancels some contexts below, so the
 	// first call must use the main context.
@@ -118,7 +136,7 @@ func run(ctx context.Context, host string) error {
 	if _, err := chromedp.Run(ctx, chromedp.WaitEvent(page.LifecycleEvent, idle, chromedp.Navigate(host+"/"))); err != nil {
 		return fmt.Errorf("waiting for the network to be idle: %w", err)
 	}
-	fmt.Printf("the network was idle after %s\n", time.Since(start).Round(100*time.Millisecond))
+	fmt.Fprintf(out, "the network was idle after %s\n", time.Since(start).Round(100*time.Millisecond))
 
 	// Cancel the context of the network listeners, and wait for their
 	// goroutines. Then the slices are safe to read.
@@ -126,24 +144,24 @@ func run(ctx context.Context, host string) error {
 	wg.Wait()
 	sort.Strings(requests)
 	sort.Strings(responses)
-	fmt.Printf("requests (%d):\n", len(requests))
+	fmt.Fprintf(out, "requests (%d):\n", len(requests))
 	for _, r := range requests {
-		fmt.Printf("  %s\n", r)
+		fmt.Fprintf(out, "  %s\n", r)
 	}
-	fmt.Printf("responses (%d):\n", len(responses))
+	fmt.Fprintf(out, "responses (%d):\n", len(responses))
 	for _, r := range responses {
-		fmt.Printf("  %s\n", r)
+		fmt.Fprintf(out, "  %s\n", r)
 	}
 
 	// The console iterator has buffered the messages. Read the first three,
 	// and leave the loop with break. The break ends this subscription.
-	fmt.Println("the first three console messages:")
+	fmt.Fprintln(out, "the first three console messages:")
 	count := 0
 	for ev, err := range console {
 		if err != nil {
 			return fmt.Errorf("reading the console: %w", err)
 		}
-		fmt.Printf("  console.%s: %s\n", ev.Type, arguments(ev.Args))
+		fmt.Fprintf(out, "  console.%s: %s\n", ev.Type, arguments(ev.Args))
 		if count++; count == 3 {
 			break
 		}
@@ -158,7 +176,7 @@ func run(ctx context.Context, host string) error {
 	if err != nil {
 		return fmt.Errorf("waiting for the message of the click: %w", err)
 	}
-	fmt.Printf("the message of the click: console.%s: %s\n", ev.Type, arguments(ev.Args))
+	fmt.Fprintf(out, "the message of the click: console.%s: %s\n", ev.Type, arguments(ev.Args))
 	return nil
 }
 
