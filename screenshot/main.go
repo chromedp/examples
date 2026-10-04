@@ -10,8 +10,9 @@
 // memory that the decoded image needs. The flag -url gives the full URL of one
 // page to read, for example a live site, and then the program does not start
 // the local site. The selectors are written for the local site, so a live site
-// can differ. Use -v to print the protocol messages and -visible to show the
-// browser window and leave it open.
+// can differ. Use -v to print the protocol messages, -visible to show the
+// browser window and leave it open, and -visible-on-terminal to draw the page in
+// the terminal with terminal graphics.
 package main
 
 import (
@@ -23,6 +24,7 @@ import (
 	"image/draw"
 	_ "image/jpeg" // the decoder, for image.DecodeConfig
 	"image/png"
+	"io"
 	"log"
 	"math"
 	"os"
@@ -35,6 +37,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
+	"github.com/chromedp/termcast"
 )
 
 // maxTexture is the largest side of a texture that the graphics code of Chrome
@@ -46,6 +49,11 @@ const maxTexture = 16384
 // maxTexture, so that the browser sends a small message for each strip.
 const tileHeight = 8192
 
+// out receives the results that the program prints. It is the standard output,
+// or the held writer of the stream when the flag -visible-on-terminal is on,
+// because the stream clears the terminal and would erase the results.
+var out io.Writer = os.Stdout
+
 // target is a page to read, and the name that its files get.
 type target struct {
 	Name string
@@ -54,9 +62,11 @@ type target struct {
 
 func main() {
 	urlstr := flag.String("url", "", "full URL of the page to read, for example a live site. The local test site starts when it is empty. The selectors are written for the local site and a live site can differ")
-	out := flag.String("out", ".", "directory for the image files")
+	outDir := flag.String("out", ".", "directory for the image files")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// choose the pages. Without -url, the program starts the local site
@@ -89,13 +99,25 @@ func main() {
 		}()
 	}
 
+	// start the stream before the first navigation, so that the frames show
+	// the pages while they load
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	if s != nil {
+		out = s.LogWriter()
+	}
+
 	// create a timeout, so that no wait loop can run forever. A local page
 	// is fast, but a full screenshot of a very tall page can take seconds
 	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	if err := run(ctx, targets, *out); err != nil {
-		log.Fatal(err)
+	if err := run(ctx, targets, *outDir); err != nil {
+		s.Fatal(err)
 	}
 }
 
@@ -169,7 +191,7 @@ func run(ctx context.Context, targets []target, dir string) error {
 	// needed from the system
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-	fmt.Printf("memory of the program: %.0f MB from the system, %.0f MB allocated in total\n",
+	fmt.Fprintf(out, "memory of the program: %.0f MB from the system, %.0f MB allocated in total\n",
 		mb(m.Sys), mb(m.TotalAlloc))
 	return nil
 }
@@ -198,7 +220,7 @@ func fullPage(ctx context.Context, t target, dir string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s is %d x %d px\n", t.Name, width, height)
+	fmt.Fprintf(out, "%s is %d x %d px\n", t.Name, width, height)
 
 	// FullScreenshot(100) makes a PNG, and a quality below 100 makes a JPEG.
 	// It sets CaptureBeyondViewport, so Chrome captures the whole page and
@@ -254,7 +276,7 @@ func fullPageTiles(ctx context.Context, t target, dir string, width, height int)
 	if err := png.Encode(&buf, whole); err != nil {
 		return fmt.Errorf("encoding the joined image of %s: %w", t.URL, err)
 	}
-	fmt.Printf("%s: joined %d strips of at most %d px\n", t.Name, strips, tileHeight)
+	fmt.Fprintf(out, "%s: joined %d strips of at most %d px\n", t.Name, strips, tileHeight)
 	return save(dir, fmt.Sprintf("full-%s-tiles.png", t.Name), buf.Bytes())
 }
 
@@ -299,7 +321,7 @@ func save(dir, name string, buf []byte) error {
 	if err != nil {
 		return fmt.Errorf("reading the size of %s: %w", path, err)
 	}
-	fmt.Printf("wrote %-28s %-4s %5d x %5d px %9d bytes, %4.0f MB when decoded\n",
+	fmt.Fprintf(out, "wrote %-28s %-4s %5d x %5d px %9d bytes, %4.0f MB when decoded\n",
 		path, format, cfg.Width, cfg.Height, len(buf), mb(uint64(cfg.Width)*uint64(cfg.Height)*4))
 	return nil
 }
