@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 30 example programs for [`chromedp`][1], a Go package that
+This repository holds 31 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -111,6 +111,7 @@ its frames into a new temporary directory, or into the directory of its flag
 | [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL                    |
 | [screencast](/screencast)         | record the screen of a page as a series of JPEG images                                          |
 | [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport                      |
+| [session](/session)               | save the state of a session and restore it in another browser                                   |
 | [submit](/submit)                 | fill out and submit a form                                                                      |
 | [subtree](/subtree)               | populate and travel a subtree of the DOM                                                        |
 | [tabs](/tabs)                     | use several tabs of one browser                                                                 |
@@ -164,6 +165,7 @@ because they need a live site that can change. No program was run with the flag
 | remote          | a Chrome with a debugging port   | works up to the terminal image                    | earlier test      |
 | screencast      | offline                          | works                                             | run on 2026-10-04 |
 | screenshot      | internet (pkg.go.dev, brank.as)  | works                                             | earlier test      |
+| session         | offline                          | works                                             | run on 2026-10-04 |
 | submit          | internet (wikipedia.org)         | works                                             | earlier test      |
 | subtree         | offline                          | works                                             | run on 2026-10-04 |
 | tabs            | offline                          | works                                             | run on 2026-10-04 |
