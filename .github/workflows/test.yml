@@ -1,0 +1,20 @@
+on: [push, pull_request]
+name: Test
+jobs:
+  build:
+    # The programs read live websites, so the workflow does not run them. A site
+    # can change, and then a program fails for a reason that is not in this
+    # repository. The workflow makes sure that every program builds against
+    # chromedp.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Build
+        run: go build ./...
+      - name: Vet
+        run: go vet ./...

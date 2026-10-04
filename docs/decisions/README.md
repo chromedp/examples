@@ -18,3 +18,4 @@ add.
 | Date | Decision | Status |
 | --- | --- | --- |
 | 2026-10-03 | [The programs use the new typed API](2026-10-03-the-programs-use-the-new-typed-api.md) | Decided |
+| 2026-10-04 | [The examples follow the version of chromedp](2026-10-04-the-examples-follow-the-chromedp-version.md) | Decided |

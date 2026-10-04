@@ -1,9 +1,18 @@
 # About chromedp examples
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
+</p>
+
 This repository holds 24 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
+
+[![Unit Tests][examples-ci-status]][examples-ci]
+[![Go Reference][goref-chromedp-status]][goref-chromedp]
+[![Releases][release-status]][releases]
+[![Discord Discussion][discord-status]][discord]
 
 The programs use the typed API of `chromedp` v0.18.0 and `cdproto` v0.157.4.
 The file `docs/API.md` in the `chromedp` repository shows the old code and the
@@ -17,6 +26,10 @@ The module needs Go 1.27. It requires `chromedp` v0.18.0, `cdproto` v0.157.4 and
 `chromedp/remote` v0.1.0, and Go downloads them when you build a program. The
 programs use `remote` for the flag `-visible`, which keeps the browser open, and
 for the `remote` program.
+
+The tags of this repository follow the tags of `chromedp`. The tag `v0.18.0` holds
+programs that use `chromedp` v0.18, and a tag such as `v0.18.1` is a later change in
+this repository.
 
 `chromedp` starts the browser. It finds Chrome or Chromium on the `PATH`. If
 Chrome has another name, link it to the name `google-chrome` in a folder on the
@@ -180,3 +193,11 @@ keep to the rules in `AGENTS.md`.
 [1]: https://github.com/chromedp/chromedp
 [2]: https://github.com/chromedp/chromedp/discussions
 [3]: https://github.com/chromedp/chromedp/issues
+[examples-ci]: https://github.com/chromedp/examples/actions/workflows/test.yml (Test CI)
+[examples-ci-status]: https://github.com/chromedp/examples/actions/workflows/test.yml/badge.svg (Test CI)
+[goref-chromedp]: https://pkg.go.dev/github.com/chromedp/chromedp
+[goref-chromedp-status]: https://pkg.go.dev/badge/github.com/chromedp/chromedp.svg
+[release-status]: https://img.shields.io/github/v/release/chromedp/examples?display_name=tag&sort=semver (Latest Release)
+[releases]: https://github.com/chromedp/examples/releases (Releases)
+[discord]: https://discord.gg/WDWAgXwJqN "Discord Discussion"
+[discord-status]: https://img.shields.io/discord/829150509658013727.svg?label=Discord&logo=Discord&colorB=7289da&style=flat-square "Discord Discussion"

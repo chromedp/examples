@@ -167,6 +167,19 @@ the links, the decision index, the document tables and the skill copies. It
 also tests the table of the programs in `README.md`. It applies the prose rules
 to the documents and to the Go comments.
 
+## Continuous integration and tags
+
+The workflow `.github/workflows/test.yml` builds and vets every program on each
+push and pull request. The workflow `.github/workflows/nightly.yml` does it every
+night at 05:17 UTC against the newest `main` of `chromedp` and of `chromedp/remote`,
+and the newest `cdproto`. Neither runs a program, because most programs read live
+websites. Do not add a test that runs a program in CI.
+
+The tags follow `chromedp`. The tag `v0.18.x` holds programs that use `chromedp`
+v0.18.x, and the patch number counts the changes of this repository. See
+`docs/decisions/2026-10-04-the-examples-follow-the-chromedp-version.md`. Do not
+create a tag. The maintainer does.
+
 ## Writing documentation
 
 Follow the `simple-english` skill for every word. Write sentences of 20 words
