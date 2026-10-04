@@ -42,6 +42,8 @@ Every page has a header with a menu, a footer and the style sheet `/static/site.
 | `/tiles/<z>/<x>/<y>.png` | A 256 by 256 tile that the server draws. The zoom goes from 0 to 19. | |
 | `/ua` and `/whoami` | The user agent, the viewport, the device pixel ratio and the touch support, in `#ua`, `#viewport`, `#dpr` and `#touch`. | `emulate` |
 | `/viewport-test` | A page that has three layouts, at 480 and 1099 pixels. `.vp-label` names the active one. | `emulate` |
+| `/news/` | A news front page, "The Harbour Courier", with a lead story, 7 story cards, a sidebar and five ad slots. See the section News and ads. | `extension` |
+| `/news/<slug>` | One story, with an ad slot inside the text. The slugs are in `news.go`, for example `harbour-line-night-trains`. | `extension` |
 | `/print/report` | A report with a cover, 8 chapters and 8 tables. See the section Print. | `pdf` |
 | `/print/report?paper=css` | The same report with a fixed A4 paper size and margins, and a header and a page number in the margin boxes. | `pdf` |
 | `/studio` | A tall landing page of a design studio. | `screenshot` |
@@ -54,6 +56,18 @@ Every page has a header with a menu, a footer and the style sheet `/static/site.
 The page has no fixed header or footer. Chrome does not support running elements, and an element with `position: fixed` repeats at the same place on each page but takes no room. It would land on the content.
 
 `/print/report?paper=css` loads the second style sheet `print-a4.css` after `print.css`. It has the rule `@page { size: A4; margin: 24mm 16mm 22mm }` and the margin boxes `@top-center` and `@bottom-center`, which Chrome supports from version 131. They print the title and the text `Page N of M` inside the margins, so they never cover the content. Chrome uses the paper size of the rule only with `PDFPreferCSSPageSize`. An `@page` size also makes `PDFLandscape` and `PDFPaper` have no effect, so only this page has it. The margin boxes add to the templates of `PDFHeaderTemplate` and `PDFFooterTemplate`, so a program uses one of the two ways.
+
+## News and ads
+
+The news pages are the one exception to the rule that a page never refers to another host. A content blocker only has something to block when a page asks for the real hosts of the ad networks, so the pages do. The markup is the one that a real site uses:
+
+- `#ad-top` and `#ad-bottom` are `.ad-slot.ad-leaderboard` with an `ins.adsbygoogle`.
+- `#ad-sidebar` is `.sidebar-ad` with `#div-gpt-ad-1700000000000-0`, which the Google Publisher Tag fills.
+- `#ad-box` is `.ad-slot.ad-box` with a second `ins.adsbygoogle`.
+- `.advert-banner` holds `img.ad-image`, which comes from `ad.doubleclick.net`.
+- The scripts come from `pagead2.googlesyndication.com`, `securepubads.g.doubleclick.net` and `www.googletagmanager.com`, and the pixel `img.pixel` comes from `www.google-analytics.com`.
+
+Without internet, the requests to these hosts fail and the slots stay empty. A program that needs filled slots answers the requests itself with the Fetch domain. The test `TestNewsPage` makes sure that the news pages refer to no other host than these five.
 
 ## Weather
 

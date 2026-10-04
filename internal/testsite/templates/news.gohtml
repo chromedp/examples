@@ -1,0 +1,69 @@
+{{define "content"}}
+{{with .Data}}
+<div class="news-masthead"><div class="container">
+  <p class="news-date">Sunday 4 October 2026</p>
+  <h1 class="news-title">The Harbour Courier</h1>
+  <nav class="news-sections" aria-label="Sections">
+    <ul>
+      <li><a href="/news/" aria-current="page">Front page</a></li>
+      {{range .Sections}}<li><a href="/news/#{{lower .}}">{{.}}</a></li>
+      {{end}}
+    </ul>
+  </nav>
+</div></div>
+<div class="container news-wrap">
+  {{.Top}}
+  <div class="news-layout">
+    <div class="news-main">
+      <article class="news-lead">
+        <a href="/news/{{.Lead.Slug}}"><img src="/images/{{.Lead.Image}}?w=800" alt="{{.Lead.Alt}}" width="800" height="420"></a>
+        <p class="news-kicker">{{.Lead.Section}}</p>
+        <h2><a href="/news/{{.Lead.Slug}}">{{.Lead.Title}}</a></h2>
+        <p class="news-deck">{{.Lead.Deck}}</p>
+        <p class="news-byline">By {{.Lead.Author}}, {{.Lead.Date}}</p>
+      </article>
+      <div class="news-grid">
+        {{range $i, $s := .Stories}}{{if eq $i 3}}{{$.Data.Middle}}{{end}}
+        <article class="news-card" id="{{lower $s.Section}}-{{$i}}">
+          <a href="/news/{{$s.Slug}}"><img src="/images/{{$s.Image}}?w=400" alt="{{$s.Alt}}" width="400" height="220"></a>
+          <p class="news-kicker">{{$s.Section}}</p>
+          <h3><a href="/news/{{$s.Slug}}">{{$s.Title}}</a></h3>
+          <p>{{$s.Deck}}</p>
+          <p class="news-byline">By {{$s.Author}}, {{$s.Date}}</p>
+        </article>
+        {{end}}
+      </div>
+    </div>
+    <aside class="news-side" aria-label="More from the Courier">
+      {{.Rect}}
+      <section class="news-box">
+        <h2>Most read</h2>
+        <ol>
+          {{range .MostRead}}<li><a href="/news/{{.Slug}}">{{.Title}}</a></li>
+          {{end}}
+        </ol>
+      </section>
+      <section class="news-box">
+        <h2>Markets</h2>
+        <table>
+          <tbody>
+            <tr><th scope="row">Harbour 100</th><td>8,412.6</td><td class="up">+0.8%</td></tr>
+            <tr><th scope="row">Freight index</th><td>1,204.1</td><td class="down">-0.3%</td></tr>
+            <tr><th scope="row">Euro in dollars</th><td>1.092</td><td class="up">+0.1%</td></tr>
+            <tr><th scope="row">Fuel, per barrel</th><td>81.40</td><td class="down">-1.2%</td></tr>
+          </tbody>
+        </table>
+      </section>
+      {{.Box}}
+      <section class="news-box">
+        <h2>Weather</h2>
+        <p>Cloud in the morning, then sun. High of 14 degrees, light wind from the west.</p>
+        <p><a href="/weather/london">All forecasts</a></p>
+      </section>
+    </aside>
+  </div>
+  {{.Bottom}}
+</div>
+{{.Scripts}}
+{{end}}
+{{end}}

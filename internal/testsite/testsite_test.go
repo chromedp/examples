@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/netip"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -68,7 +69,7 @@ func TestEveryPageIsValidAndLocal(t *testing.T) {
 	paths := []string{
 		"/", "/tools", "/studio", "/ua", "/whoami", "/viewport-test", "/print/report", "/docs/", "/docs/time", "/wiki/",
 		"/article/Harbour_Line", "/search?q=history", "/repo/", "/repo/chromedp/examples", "/gallery", "/weather/", "/weather/jakarta",
-		"/geoip", "/geoip?ip=10.0.1.5", "/map", "/map?lat=51.5&lon=-0.12&zoom=9",
+		"/geoip", "/geoip?ip=10.0.1.5", "/map", "/map?lat=51.5&lon=-0.12&zoom=9", "/news/", "/news/" + newsStories[0].Slug,
 	}
 	for _, w := range wikiTitles(s) {
 		paths = append(paths, "/article/"+w)
@@ -79,7 +80,8 @@ func TestEveryPageIsValidAndLocal(t *testing.T) {
 	for _, path := range paths {
 		body := page200(t, s, path)
 		mustContain(t, path, body, "<!doctype html>", `<html lang="`, `<meta name="viewport"`, "<title>", `<header class="site-header">`, "<main", "<footer")
-		if externalRE.MatchString(body) {
+		// The news pages are the one exception. TestNewsPage checks them.
+		if externalRE.MatchString(body) && !strings.HasPrefix(path, "/news/") {
 			t.Errorf("%s: the page refers to another host", path)
 		}
 		seen := map[string]bool{}
@@ -94,6 +96,52 @@ func TestEveryPageIsValidAndLocal(t *testing.T) {
 				t.Errorf("%s: an image has no alt text: %s", path, m)
 			}
 		}
+	}
+}
+
+// adHosts are the only other hosts that a news page can refer to. They are the
+// hosts of real ad networks, and a content blocker has filters for them.
+var adHosts = []string{
+	"pagead2.googlesyndication.com",
+	"securepubads.g.doubleclick.net",
+	"ad.doubleclick.net",
+	"www.googletagmanager.com",
+	"www.google-analytics.com",
+}
+
+// TestNewsPage checks the news pages. They hold the ad slots and the real hosts
+// of the ad networks, and nothing else is external.
+func TestNewsPage(t *testing.T) {
+	s := New()
+	defer s.Close()
+	paths := []string{"/news/"}
+	for _, st := range newsStories {
+		paths = append(paths, "/news/"+st.Slug)
+	}
+	hostRE := regexp.MustCompile(`(?:src|href)="(?:https?:)?//([^/"?:]+)`)
+	for _, path := range paths {
+		body := page200(t, s, path)
+		mustContain(t, path, body,
+			`class="ad-slot ad-leaderboard" id="ad-top"`, `id="ad-sidebar"`, `id="div-gpt-ad-1700000000000-0"`,
+			`<ins class="adsbygoogle"`, `class="advert-banner"`, `class="ad-slot ad-box"`,
+			"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+			"https://www.googletagmanager.com/gtag/js", "https://ad.doubleclick.net/ddm/ad/", "https://www.google-analytics.com/collect")
+		for _, m := range hostRE.FindAllStringSubmatch(body, -1) {
+			if !slices.Contains(adHosts, m[1]) {
+				t.Errorf("%s: the page refers to the host %q, which is not an ad host", path, m[1])
+			}
+		}
+	}
+	body := page200(t, s, "/news/")
+	if n := count(body, `<article class="news-card"`); n != len(newsStories)-1 {
+		t.Errorf("/news/ has %d story cards, want %d", n, len(newsStories)-1)
+	}
+	body = page200(t, s, "/news/"+newsStories[0].Slug)
+	if n := count(body, "<p>"); n < len(newsStories[0].Body) {
+		t.Errorf("an article has %d paragraphs, want at least %d", n, len(newsStories[0].Body))
+	}
+	if resp, _ := get(t, s, "/news/no-such-story"); resp.StatusCode != http.StatusNotFound {
+		t.Errorf("/news/no-such-story: status %d, want 404", resp.StatusCode)
 	}
 }
 

@@ -204,6 +204,7 @@ func (s *server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /print/report", s.printReport)
 	mux.HandleFunc("GET /docs/{$}", s.docsIndex)
 	mux.HandleFunc("GET /docs/time", s.docsTime)
+	s.newsRoutes(mux)
 	s.wikiRoutes(mux)
 	s.repoRoutes(mux)
 	s.galleryRoutes(mux)

@@ -1,0 +1,46 @@
+{{define "content"}}
+{{with .Data}}
+<div class="news-masthead"><div class="container">
+  <p class="news-date">Sunday 4 October 2026</p>
+  <p class="news-title"><a href="/news/">The Harbour Courier</a></p>
+</div></div>
+<div class="container news-wrap">
+  {{.Top}}
+  <div class="news-layout">
+    <article class="news-main news-story">
+      <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/news/">Front page</a></li><li>{{.Story.Section}}</li></ol></nav>
+      <h1>{{.Story.Title}}</h1>
+      <p class="news-deck">{{.Story.Deck}}</p>
+      <p class="news-byline">By {{.Story.Author}}, {{.Story.Date}}</p>
+      <figure>
+        <img src="/images/{{.Story.Image}}?w=800" alt="{{.Story.Alt}}" width="800" height="420">
+        <figcaption>{{.Story.Alt}}. Photo: the Courier.</figcaption>
+      </figure>
+      {{range $i, $p := .Story.Body}}{{if eq $i 2}}{{$.Data.Middle}}{{end}}
+      <p>{{$p}}</p>
+      {{end}}
+      <section class="news-more">
+        <h2>More stories</h2>
+        <ul>
+          {{range .More}}<li><a href="/news/{{.Slug}}">{{.Title}}</a></li>
+          {{end}}
+        </ul>
+      </section>
+    </article>
+    <aside class="news-side" aria-label="More from the Courier">
+      {{.Rect}}
+      <section class="news-box">
+        <h2>Most read</h2>
+        <ol>
+          {{range .MostRead}}<li><a href="/news/{{.Slug}}">{{.Title}}</a></li>
+          {{end}}
+        </ol>
+      </section>
+      {{.Box}}
+    </aside>
+  </div>
+  {{.Bottom}}
+</div>
+{{.Scripts}}
+{{end}}
+{{end}}
