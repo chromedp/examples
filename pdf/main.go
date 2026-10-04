@@ -1,16 +1,18 @@
 // Command pdf is a chromedp example demonstrating how to capture a PDF of a
 // page. It starts a local server and needs no internet. The program prints the
-// report /print/report of the local test site, which has a cover, 8 chapters and
-// 8 tables, in four ways: with no option, with the paper size and the margins
-// of the page itself (the address /print/report?paper=css), as A4 in portrait with margins, a header, a footer and
-// backgrounds, and as A4 in landscape. It writes the files to the directory of
-// the flag -out, which is the current directory by default, and for each file it
-// prints the number of pages, the paper size and the size in bytes. The flag
-// -url gives the full URL of the page to print, for example a live site, and
-// then the program does not start the local site and uses that page for all
-// four ways. A live site can give a different result, for example when it has
-// its own @page rule. Use -v to print the protocol messages and -visible to show
-// the browser window and leave it open.
+// report /print/report of the local test site, which has a cover, 8 chapters
+// and 8 tables, in four ways: with no option, with the paper size and the
+// margins of the page itself (the address /print/report?paper=css), as A4 in
+// portrait with margins, a header, a footer and backgrounds, and as A4 in
+// landscape. It writes the files to the directory of the flag -out, which is
+// the current directory by default, and for each file it prints the number of
+// pages, the paper size and the size in bytes. The flag -url gives the full URL
+// of the page to print, for example a live site, and then the program does not
+// start the local site and uses that page for all four ways. A live site can
+// give a different result, for example when it has its own @page rule. Use -v
+// to print the protocol messages, -visible to show the browser window and leave
+// it open, and -visible-on-terminal to draw the page in the terminal with
+// terminal graphics.
 package main
 
 import (
@@ -18,6 +20,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -28,6 +31,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
+	"github.com/chromedp/termcast"
 )
 
 // header has the title of the page, which the browser reads from the title
@@ -93,10 +97,12 @@ var variants = []variant{
 }
 
 func main() {
+	var tc termcast.Flags
 	urlstr := flag.String("url", "", "full URL of the page to print, for example a live site. The local test site starts when it is empty. The page of the local site has its own print rules and a live site can differ")
 	out := flag.String("out", ".", "directory for the PDF files")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// choose the pages. Without -url, the program starts the local site. A
@@ -126,17 +132,29 @@ func main() {
 		}()
 	}
 
+	// draw the page in the terminal if the flag -visible-on-terminal is set
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	stdout := io.Writer(os.Stdout)
+	if s != nil {
+		stdout = s.LogWriter()
+	}
+
 	// create a timeout, so that no wait loop can run forever
 	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	if err := run(ctx, *urlstr, cssURL, *out); err != nil {
-		log.Fatal(err)
+	if err := run(ctx, *urlstr, cssURL, *out, stdout); err != nil {
+		s.Fatal(err)
 	}
 }
 
 // run prints the page in each variant.
-func run(ctx context.Context, urlstr, cssURL, dir string) error {
+func run(ctx context.Context, urlstr, cssURL, dir string, stdout io.Writer) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("creating the directory %s: %w", dir, err)
 	}
@@ -166,7 +184,7 @@ func run(ctx context.Context, urlstr, cssURL, dir string) error {
 		if err != nil {
 			return fmt.Errorf("reading %s: %w", name, err)
 		}
-		fmt.Printf("wrote %-34s %2d pages of %3.0f x %3.0f pt (%.2f x %.2f in) %8d bytes\n",
+		fmt.Fprintf(stdout, "wrote %-34s %2d pages of %3.0f x %3.0f pt (%.2f x %.2f in) %8d bytes\n",
 			name, pages, width, height, width/72, height/72, len(buf))
 	}
 	return nil
