@@ -129,6 +129,21 @@ func TestStaticFiles(t *testing.T) {
 	}
 }
 
+// TestSearchBoxStaysOnNarrowScreens makes sure that the style sheet does not hide
+// the search box of the header on a narrow screen. A program that types in
+// #searchInput waits for the box to be visible, and the default headless window
+// is narrow.
+func TestSearchBoxStaysOnNarrowScreens(t *testing.T) {
+	s := New()
+	defer s.Close()
+
+	_, body := get(t, s, "/static/wiki.css")
+	css := string(body)
+	if strings.Contains(css, ".header-search { display: none; }") {
+		t.Error("the style sheet hides .header-search on a narrow screen")
+	}
+}
+
 func TestOtherOrigin(t *testing.T) {
 	s := New()
 	defer s.Close()

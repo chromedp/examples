@@ -74,5 +74,7 @@
   .infobox { float: none; width: 100%; margin: 12px 0; }
   .thumb, .tright, .tleft { float: none; width: 100%; margin-inline: 0; }
   .references, .see-also { columns: 1; }
-  .header-search { display: none; }
+  /* Keep the search box on a narrow screen: it takes the room that is left. */
+  .header-search { flex: 1 1 160px; min-width: 0; }
+  .header-search input { min-width: 0; width: 100%; }
 }

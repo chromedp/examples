@@ -89,9 +89,6 @@ type searchPage struct {
 func submit(ctx context.Context, urlstr, sel, q string) (*searchPage, error) {
 	const results = `ul.mw-search-results`
 	err := chromedp.Do(ctx,
-		// the header of the site hides the search box in a narrow window, so
-		// use a wide viewport
-		chromedp.EmulateViewport(1280, 800),
 		chromedp.Navigate(urlstr),
 		chromedp.WaitVisible(sel),
 		// SendKeys types the text as a person does
