@@ -6,14 +6,16 @@
 // returns. It uses the actions Text, Nodes and Attributes with these
 // selectors. It also uses ByFunc for a lookup of its own, and the options
 // AtLeast and NodeVisible, which change how long a query waits. It starts a
-// local server and needs no internet. Use -v to print the protocol messages and
-// -visible to show the browser window and leave it open.
+// local server and needs no internet. Use -v to print the protocol messages,
+// -visible to show the browser window and leave it open, and
+// -visible-on-terminal to draw the page in the terminal with terminal graphics.
 package main
 
 import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -25,11 +27,19 @@ import (
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
+
+// out receives the results that the program prints. It is the standard output,
+// or the held writer of the stream when the flag -visible-on-terminal is on,
+// because the stream clears the terminal and would erase the results.
+var out io.Writer = os.Stdout
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -53,14 +63,26 @@ func main() {
 		}()
 	}
 
-	if err := chromedp.Do(ctx, chromedp.Navigate(srv.URL+"/")); err != nil {
+	// start the stream before the first navigation, so that the frames show
+	// the page while it loads
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
 		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	if s != nil {
+		out = s.LogWriter()
+	}
+
+	if err := chromedp.Do(ctx, chromedp.Navigate(srv.URL+"/")); err != nil {
+		s.Fatal(err)
 	}
 	if err := types(ctx); err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 	if err := options(ctx); err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 }
 
@@ -73,7 +95,7 @@ func types(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("selecting with CSS: %w", err)
 	}
-	fmt.Printf("CSS(%q): %q\n", "li.fruit", text)
+	fmt.Fprintf(out, "CSS(%q): %q\n", "li.fruit", text)
 
 	// CSSAll selects every element that matches. An action that returns
 	// one value, such as Text, uses the first. Nodes and AttributesAll
@@ -82,13 +104,13 @@ func types(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("selecting with CSSAll: %w", err)
 	}
-	fmt.Printf("CSSAll(%q): %d nodes\n", "li.fruit", len(nodes))
+	fmt.Fprintf(out, "CSSAll(%q): %d nodes\n", "li.fruit", len(nodes))
 	attrs, err := chromedp.Run(ctx, chromedp.AttributesAll(chromedp.CSSAll("li.fruit")))
 	if err != nil {
 		return fmt.Errorf("reading the attributes with CSSAll: %w", err)
 	}
 	for _, a := range attrs {
-		fmt.Printf("  data-id %s, class %q\n", a["data-id"], a["class"])
+		fmt.Fprintf(out, "  data-id %s, class %q\n", a["data-id"], a["class"])
 	}
 
 	// ID selects the element with an id. The leading # is optional. Use it
@@ -97,14 +119,14 @@ func types(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("selecting with ID: %w", err)
 	}
-	fmt.Printf("ID(%q): %q\n", "title", text)
+	fmt.Fprintf(out, "ID(%q): %q\n", "title", text)
 
 	// Attributes returns the attributes of the element as a map.
 	link, err := chromedp.Run(ctx, chromedp.Attributes(chromedp.ID("cart")))
 	if err != nil {
 		return fmt.Errorf("reading the attributes: %w", err)
 	}
-	fmt.Printf("Attributes(ID(%q)): href %s\n", "cart", link["href"])
+	fmt.Fprintf(out, "Attributes(ID(%q)): href %s\n", "cart", link["href"])
 
 	// JSPath runs a JavaScript expression that returns an element. Use it
 	// for what a CSS selector cannot reach, such as an element in an open
@@ -115,7 +137,7 @@ func types(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("selecting with JSPath: %w", err)
 	}
-	fmt.Printf("JSPath(%q): %q\n", "...shadowRoot.querySelector(\"span\")", text)
+	fmt.Fprintf(out, "JSPath(%q): %q\n", "...shadowRoot.querySelector(\"span\")", text)
 
 	// NodeIDs selects elements that the program found before. QueryNodeIDs
 	// returns the ids. Use it to reuse a result of a query, for example to
@@ -128,7 +150,7 @@ func types(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("selecting with NodeIDs: %w", err)
 	}
-	fmt.Printf("NodeIDs(the second of %d ids): %q\n", len(ids), text)
+	fmt.Fprintf(out, "NodeIDs(the second of %d ids): %q\n", len(ids), text)
 
 	// A plain string is a Search. The browser reads it as an XPath query
 	// when it starts with a slash, as a CSS selector when it is one, and as
@@ -139,7 +161,7 @@ func types(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("searching for %q: %w", q, err)
 		}
-		fmt.Printf("Search(%q): %q\n", q, text)
+		fmt.Fprintf(out, "Search(%q): %q\n", q, text)
 	}
 
 	// A search for plain text matches the text node, which is not an element.
@@ -149,7 +171,7 @@ func types(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("searching for text: %w", err)
 	}
-	fmt.Printf("Search(%q): %d node, %s %q\n", "Banana", len(found), found[0].NodeName, found[0].NodeValue)
+	fmt.Fprintf(out, "Search(%q): %d node, %s %q\n", "Banana", len(found), found[0].NodeName, found[0].NodeValue)
 
 	// ByFunc replaces the lookup of the selector with a function of the
 	// program. The function gets the node where the query starts, and it
@@ -171,7 +193,7 @@ func types(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("selecting with ByFunc: %w", err)
 	}
-	fmt.Printf("ByFunc(the last li.fruit): %q\n", text)
+	fmt.Fprintf(out, "ByFunc(the last li.fruit): %q\n", text)
 	return nil
 }
 
@@ -184,14 +206,14 @@ func options(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("waiting for two rows: %w", err)
 	}
-	fmt.Printf("AtLeast(2): %d rows\n", len(nodes))
+	fmt.Fprintf(out, "AtLeast(2): %d rows\n", len(nodes))
 
 	// AtLeast(0) never waits. It is the way to ask whether elements exist.
 	ids, err := chromedp.Run(ctx, chromedp.QueryNodeIDs(chromedp.CSSAll(".missing"), chromedp.AtLeast(0)))
 	if err != nil {
 		return fmt.Errorf("querying a missing element: %w", err)
 	}
-	fmt.Printf("AtLeast(0) on .missing: %d elements\n", len(ids))
+	fmt.Fprintf(out, "AtLeast(0) on .missing: %d elements\n", len(ids))
 
 	// By default a query waits until the element is in the DOM, and it does
 	// not care whether the element is visible. NodeVisible also waits until
@@ -201,11 +223,11 @@ func options(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("selecting the hidden item: %w", err)
 	}
-	fmt.Printf("default condition: found the hidden item, %d node\n", len(hidden))
+	fmt.Fprintf(out, "default condition: found the hidden item, %d node\n", len(hidden))
 	short, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 	_, err = chromedp.Run(short, chromedp.Nodes(chromedp.CSS("li.hidden"), chromedp.NodeVisible))
-	fmt.Printf("NodeVisible on the hidden item: %v\n", err)
+	fmt.Fprintf(out, "NodeVisible on the hidden item: %v\n", err)
 
 	// The element #later shows 300 ms after the load, and NodeVisible waits
 	// for it. A click needs a visible element, and Click applies the same
@@ -214,7 +236,7 @@ func options(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("waiting for #later: %w", err)
 	}
-	fmt.Printf("NodeVisible on #later: %q\n", strings.TrimSpace(text))
+	fmt.Fprintf(out, "NodeVisible on #later: %q\n", strings.TrimSpace(text))
 	return nil
 }
 
