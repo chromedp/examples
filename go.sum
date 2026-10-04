@@ -4,8 +4,8 @@ github.com/chromedp/chromedp v0.19.0 h1:fmRpyKU7Y6mSvoVLK9olbzMVBcvw3KA996eKi4dU
 github.com/chromedp/chromedp v0.19.0/go.mod h1:4Rs9XtapAMgXxg0s1PpixyQHf37kdnSdu2ov5G4FsZ0=
 github.com/chromedp/chromedp/remote v0.1.0 h1:6won8bzvDGbbBw6NbshFaGJ5Ce1CPYqdftbcWN+CGxw=
 github.com/chromedp/chromedp/remote v0.1.0/go.mod h1:Cs94KW93gUpgYYS9pAVuO/TqjnXGvFxIfhHz6t27vww=
-github.com/chromedp/termcast v0.1.0 h1:rU4FdOGiou9Yw8vbKBxQHM3RMOIogcVyXQZi35tE9jc=
-github.com/chromedp/termcast v0.1.0/go.mod h1:XytGp+1nGfZOqNuyKIyWm6+X/xe0+jCdR68qEbok5qQ=
+github.com/chromedp/termcast v0.1.1 h1:BSHLFYEo08eL4qdAYlCmnHmQz1re1RZK06br99rBOgc=
+github.com/chromedp/termcast v0.1.1/go.mod h1:XytGp+1nGfZOqNuyKIyWm6+X/xe0+jCdR68qEbok5qQ=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/gobwas/httphead v0.1.0 h1:exrUm0f4YX0L7EBwZHuCF4GDp8aJfVeBrlLQrs6NqWU=

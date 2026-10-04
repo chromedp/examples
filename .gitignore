@@ -33,3 +33,4 @@
 /.claude/settings.local.json
 go.work
 go.work.sum
+/extension/ublock/

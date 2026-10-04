@@ -134,7 +134,29 @@ directory of their flag `-out`.
 
 The programs `fast`, `forecast`, `geoip` and `remote` draw an image in the
 terminal. Run them in a terminal that can show images. Most other programs have
-the flag `-visible-on-terminal` to draw the page in the terminal while they run.
+the flag `-visible-on-terminal`, which the section [Draw the page in the
+terminal](#draw-the-page-in-the-terminal) describes.
+
+## Draw the page in the terminal
+
+Most programs take the flag `-visible-on-terminal`. It draws the page of the
+program in the terminal while the program runs, with terminal graphics (Kitty,
+iTerm2 or Sixel). The flag also works with a headless browser over `ssh`. The
+package [`termcast`][termcast] does this work. It uses the screencast of the
+Chrome DevTools Protocol and 4 frames each second by default. Use the flag
+`-terminal-fps` to change the rate.
+
+```
+go run github.com/chromedp/examples/click@latest -visible-on-terminal
+```
+
+The stream clears the terminal at each redraw. It holds the log lines and the
+results of the program, and prints them after the final frame. The flag does not
+work with `-v`, and it stops with an error when the terminal has no graphics.
+The programs `tabs`, `popups`, `workers`, `multi`, `session`, `screencast`,
+`pdfstream`, `har` and `rawcall` do not have the flag. The program `termcast`
+shows how to use the package in your own code. It plays an animated SVG and
+streams it to the terminal.
 
 ## Verification
 
@@ -231,6 +253,7 @@ keep to the rules in `AGENTS.md`.
 | [docs/decisions/README.md](docs/decisions/README.md) | the index of the decisions |
 
 [1]: https://github.com/chromedp/chromedp
+[termcast]: https://github.com/chromedp/termcast
 [2]: https://github.com/chromedp/chromedp/discussions
 [3]: https://github.com/chromedp/chromedp/issues
 [examples-ci]: https://github.com/chromedp/examples/actions/workflows/test.yml (Test CI)
