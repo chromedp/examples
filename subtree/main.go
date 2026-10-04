@@ -1,7 +1,8 @@
 // Command subtree is a chromedp example demonstrating how to populate and travel
 // a subtree of the DOM. It starts a local server and needs no internet. Use -v
-// to print the protocol messages and -visible to show the browser window and
-// leave it open.
+// to print the protocol messages, -visible to show the browser window and leave
+// it open, and -visible-on-terminal to draw the page in the terminal with
+// terminal graphics.
 package main
 
 import (
@@ -18,11 +19,14 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// create a test server for the page
@@ -64,10 +68,26 @@ func main() {
 		}()
 	}
 
-	// run the actions
-	err := travelSubtree(ctx, ts.URL, chromedp.ID("title"))
+	// start the stream before the first navigation, so that the frames show
+	// the page while it loads
+	s, err := tc.Start(ctx, *verbose)
 	if err != nil {
 		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+
+	// While the stream runs, it holds what the program writes to out, and the
+	// stream prints it when it stops.
+	out := io.Writer(os.Stdout)
+	if s != nil {
+		out = s.LogWriter()
+	}
+
+	// run the actions
+	err = travelSubtree(ctx, out, ts.URL, chromedp.ID("title"))
+	if err != nil {
+		s.Fatal(err)
 	}
 }
 
@@ -80,7 +100,7 @@ func main() {
 // This example shows an easier way to travel a subtree of the DOM.
 //
 // https://github.com/chromedp/chromedp/issues/632#issuecomment-654213589
-func travelSubtree[S chromedp.Selectable](ctx context.Context, urlstr string, sel S, opts ...chromedp.QueryOption) error {
+func travelSubtree[S chromedp.Selectable](ctx context.Context, w io.Writer, urlstr string, sel S, opts ...chromedp.QueryOption) error {
 	// add the populate option to the passed opts
 	opts = append(opts, chromedp.Populate(-1, true, chromedp.PopulateWait(1*time.Second)))
 
@@ -94,7 +114,7 @@ func travelSubtree[S chromedp.Selectable](ctx context.Context, urlstr string, se
 	if err != nil {
 		return err
 	}
-	printNodes(os.Stdout, nodes, "", "  ")
+	printNodes(w, nodes, "", "  ")
 	return nil
 }
 
