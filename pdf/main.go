@@ -2,14 +2,14 @@
 // page. It starts a local server and needs no internet. The program prints the
 // report /print/report of the local test site, which has a cover, 8 chapters and
 // 8 tables, in four ways: with no option, with the paper size and the margins
-// of the page itself, as A4 in portrait with margins, a header, a footer and
+// of the page itself (the address /print/report?paper=css), as A4 in portrait with margins, a header, a footer and
 // backgrounds, and as A4 in landscape. It writes the files to the directory of
 // the flag -out, which is the current directory by default, and for each file it
 // prints the number of pages, the paper size and the size in bytes. The flag
 // -url gives the full URL of the page to print, for example a live site, and
-// then the program does not start the local site. The page of the local site
-// has the rules @page and @media print that suit it, so a live site can give a
-// different result. Use -v to print the protocol messages and -visible to show
+// then the program does not start the local site and uses that page for all
+// four ways. A live site can give a different result, for example when it has
+// its own @page rule. Use -v to print the protocol messages and -visible to show
 // the browser window and leave it open.
 package main
 
@@ -46,9 +46,9 @@ type variant struct {
 	// Name is the name of the file, without the extension.
 	Name string
 
-	// Neutral removes the print rules of the page before it prints, see
-	// neutralize.
-	Neutral bool
+	// CSSPage prints the page that sets its own paper size and margins with
+	// @page. The local site serves it as /print/report?paper=css.
+	CSSPage bool
 
 	// Options are the options of PrintToPDF.
 	Options []chromedp.PDFOption
@@ -62,18 +62,19 @@ var variants = []variant{
 	// paper and ignores the rule @page of the page.
 	{Name: "default"},
 
-	// The page has the rule @page { size: A4; margin: 24mm 16mm 22mm }. The
-	// browser uses it only with this option.
-	{Name: "css-page", Options: []chromedp.PDFOption{
+	// The page /print/report?paper=css has the rule @page { size: A4;
+	// margin: 24mm 16mm 22mm } and the margin boxes of a header and a
+	// footer. The browser uses the size of the rule only with this option.
+	{Name: "css-page", CSSPage: true, Options: []chromedp.PDFOption{
 		chromedp.PDFPreferCSSPageSize(),
 	}},
 
 	// A4 in portrait. The margins go in the order top, right, bottom and
 	// left. A header or a footer turns both on, and the browser draws them
 	// in the margins. The background colors and images print only with
-	// PDFPrintBackground. The page must not set its own paper size, so this
-	// variant is neutral.
-	{Name: "a4", Neutral: true, Options: []chromedp.PDFOption{
+	// PDFPrintBackground. The page /print/report sets no @page rule, so
+	// these options apply.
+	{Name: "a4", Options: []chromedp.PDFOption{
 		chromedp.PDFPaper(chromedp.PaperA4),
 		chromedp.PDFMargins(0.9, 0.6, 0.9, 0.6),
 		chromedp.PDFPrintBackground(),
@@ -81,10 +82,9 @@ var variants = []variant{
 		chromedp.PDFFooterTemplate(footer),
 	}},
 
-	// Landscape swaps the width and the height of the paper. With a rule
-	// @page that sets the size, the option has no effect, so this variant is
-	// neutral too.
-	{Name: "a4-landscape", Neutral: true, Options: []chromedp.PDFOption{
+	// Landscape swaps the width and the height of the paper. A page with an
+	// @page rule that sets the size would ignore this option.
+	{Name: "a4-landscape", Options: []chromedp.PDFOption{
 		chromedp.PDFPaper(chromedp.PaperA4),
 		chromedp.PDFLandscape(),
 		chromedp.PDFMargin(0.6),
@@ -99,11 +99,14 @@ func main() {
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	flag.Parse()
 
-	// choose the page. Without -url, the program starts the local site
+	// choose the pages. Without -url, the program starts the local site. A
+	// live site has only one address, so it serves both kinds of variants
+	cssURL := *urlstr
 	if *urlstr == "" {
 		site := testsite.New()
 		defer site.Close()
 		*urlstr = site.URL + "/print/report"
+		cssURL = *urlstr + "?paper=css"
 	}
 
 	// create context
@@ -127,36 +130,13 @@ func main() {
 	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	if err := run(ctx, *urlstr, *out); err != nil {
+	if err := run(ctx, *urlstr, cssURL, *out); err != nil {
 		log.Fatal(err)
 	}
 }
 
-// neutralize removes the rules @page of the page, and hides its own header and
-// footer. The page of the local site sets the paper size and the margins with
-// @page, and the browser lets such a rule win over PDFLandscape and the margins
-// of the options. The page also draws a running header and footer of its own,
-// which would collide with the ones of the options. The script reads the
-// style sheets of the page, which is possible because they come from the same
-// origin as the page. It returns the number of the rules that it removed.
-const neutralize = `(() => {
-	let removed = 0;
-	for (const sheet of document.styleSheets) {
-		for (let i = sheet.cssRules.length - 1; i >= 0; i--) {
-			if (sheet.cssRules[i] instanceof CSSPageRule) {
-				sheet.deleteRule(i);
-				removed++;
-			}
-		}
-	}
-	const style = document.createElement('style');
-	style.textContent = '.print-header, .print-footer { display: none !important }';
-	document.head.append(style);
-	return removed;
-})()`
-
 // run prints the page in each variant.
-func run(ctx context.Context, urlstr, dir string) error {
+func run(ctx context.Context, urlstr, cssURL, dir string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("creating the directory %s: %w", dir, err)
 	}
@@ -167,13 +147,12 @@ func run(ctx context.Context, urlstr, dir string) error {
 		// because PrintToPDF prints what the browser has now. Navigate
 		// returns after the load event, and the images of the page are
 		// part of it.
-		if err := chromedp.Do(ctx, chromedp.Navigate(urlstr)); err != nil {
-			return fmt.Errorf("loading %s: %w", urlstr, err)
+		page := urlstr
+		if v.CSSPage {
+			page = cssURL
 		}
-		if v.Neutral {
-			if _, err := chromedp.Run(ctx, chromedp.Evaluate[int](neutralize)); err != nil {
-				return fmt.Errorf("removing the print rules of %s: %w", urlstr, err)
-			}
+		if err := chromedp.Do(ctx, chromedp.Navigate(page)); err != nil {
+			return fmt.Errorf("loading %s: %w", page, err)
 		}
 		buf, err := chromedp.Run(ctx, chromedp.PrintToPDF(v.Options...))
 		if err != nil {

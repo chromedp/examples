@@ -42,9 +42,18 @@ Every page has a header with a menu, a footer and the style sheet `/static/site.
 | `/tiles/<z>/<x>/<y>.png` | A 256 by 256 tile that the server draws. The zoom goes from 0 to 19. | |
 | `/ua` and `/whoami` | The user agent, the viewport, the device pixel ratio and the touch support, in `#ua`, `#viewport`, `#dpr` and `#touch`. | `emulate` |
 | `/viewport-test` | A page that has three layouts, at 480 and 1099 pixels. `.vp-label` names the active one. | `emulate` |
-| `/print/report` | A report with a cover, 8 chapters, 8 tables, a running header and footer, and `@page` rules. It prints on more than 6 pages. | `pdf` |
+| `/print/report` | A report with a cover, 8 chapters and 8 tables. See the section Print. | `pdf` |
+| `/print/report?paper=css` | The same report with a fixed A4 paper size and margins, and a header and a page number in the margin boxes. | `pdf` |
 | `/studio` | A tall landing page of a design studio. | `screenshot` |
 | `/static/...` | Style sheets, scripts, icons, badges and the logo. | |
+
+## Print
+
+`/print/report` has a title block at the top of the first page, a page break before each chapter, and tables with a header row that repeats on each page (`thead { display: table-header-group }`). Its style sheet `print.css` sets no `@page` rule. The program that prints chooses the paper, the orientation and the margins with the options `PDFPaper`, `PDFLandscape` and `PDFMargins`, and it can add a header and a footer with `PDFHeaderTemplate` and `PDFFooterTemplate`. The report has about 9 pages on Letter paper and 17 pages on A4 with margins of 0.9 inch.
+
+The page has no fixed header or footer. Chrome does not support running elements, and an element with `position: fixed` repeats at the same place on each page but takes no room. It would land on the content.
+
+`/print/report?paper=css` loads the second style sheet `print-a4.css` after `print.css`. It has the rule `@page { size: A4; margin: 24mm 16mm 22mm }` and the margin boxes `@top-center` and `@bottom-center`, which Chrome supports from version 131. They print the title and the text `Page N of M` inside the margins, so they never cover the content. Chrome uses the paper size of the rule only with `PDFPreferCSSPageSize`. An `@page` size also makes `PDFLandscape` and `PDFPaper` have no effect, so only this page has it. The margin boxes add to the templates of `PDFHeaderTemplate` and `PDFFooterTemplate`, so a program uses one of the two ways.
 
 ## Weather
 

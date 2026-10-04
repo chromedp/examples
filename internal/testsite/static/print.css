@@ -1,6 +1,15 @@
-/* The printed report. The screen view looks like a document, and the print view uses pages. */
+/* The printed report. The screen view looks like a document, and the print view uses pages.
+
+   This file sets no @page rule, so the program that prints chooses the paper, the orientation and the margins
+   with the options of PrintToPDF (PDFPaper, PDFLandscape, PDFMargins). An @page size or margin would win over
+   these options. Chrome does not support running elements, and a position: fixed element repeats on every
+   page at the same place but takes no room, so it lands on the content. For this reason the report has no
+   fixed header or footer. It has a title block at the top of the document and a table header that
+   repeats on each page. A program that wants a header and a footer on each page passes PDFHeaderTemplate and
+   PDFFooterTemplate. The page /print/report?paper=css loads print-a4.css, which sets
+   the paper size and uses @page margin boxes. */
 .report { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
-.print-header, .print-footer { display: none; }
+.print-header { display: none; font-size: 8.5pt; }
 .cover { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 40px; margin-bottom: 28px; }
 .cover h1 { font-size: 3rem; margin: 0.1em 0; }
 .cover-sub { font-size: 1.4rem; color: var(--muted); margin-top: 0; }
@@ -12,18 +21,11 @@
 .chapter-no { color: var(--brand); font-variant-numeric: tabular-nums; }
 .note { font-size: 0.85rem; color: var(--muted); }
 
-@page { size: A4; margin: 24mm 16mm 22mm; }
-@page :first { margin-top: 16mm; }
-
 @media print {
   body { background: #fff; color: #000; font-size: 11pt; line-height: 1.45; }
   .site-header, .site-footer, .skip-link { display: none; }
   .report { max-width: none; padding: 0; margin: 0; }
-  .print-header, .print-footer {
-    display: block; position: fixed; left: 0; right: 0; font-size: 8.5pt; color: #555;
-  }
-  .print-header { top: -17mm; border-bottom: 0.5pt solid #999; padding-bottom: 2mm; }
-  .print-footer { bottom: -16mm; border-top: 0.5pt solid #999; padding-top: 2mm; text-align: right; }
+  .print-header { display: block; color: #555; border-bottom: 0.5pt solid #999; padding-bottom: 2mm; margin-bottom: 8mm; }
   .cover, .chapter { border: 0; border-radius: 0; padding: 0; margin: 0; background: none; }
   .cover { break-after: page; }
   .chapter { break-before: page; }

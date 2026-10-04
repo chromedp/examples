@@ -72,13 +72,20 @@ func newReport() reportData {
 	return d
 }
 
+// printReport serves the report. The query parameter paper=css adds the style
+// sheet print-a4.css, which sets the paper size and the margins with @page and
+// draws a header and a footer in the margin boxes.
 func (s *server) printReport(w http.ResponseWriter, r *http.Request) {
+	css, class := []string{"print.css"}, "report-page"
+	if r.URL.Query().Get("paper") == "css" {
+		css, class = append(css, "print-a4.css"), class+" paper-css"
+	}
 	s.render(w, "report", page{
 		Title:       "Quarterly report",
-		Description: "A report for printing, with a cover page, page breaks, running header and footer and tables.",
+		Description: "A report for printing, with a cover page, page breaks, a title block, a table header that repeats and tables.",
 		Active:      "/tools",
-		CSS:         []string{"print.css"},
-		Class:       "report-page",
+		CSS:         css,
+		Class:       class,
 		Data:        newReport(),
 	})
 }

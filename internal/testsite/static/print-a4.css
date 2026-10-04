@@ -1,0 +1,37 @@
+/* The fixed paper of the report. The page /print/report?paper=css loads this file after print.css.
+
+   The rule @page sets the size A4 and the margins. Chrome uses them only when the program passes
+   PDFPreferCSSPageSize. Without that option, the size of the paper comes from the options of PrintToPDF, but
+   the rule still sets the margins, and with an @page size the options PDFLandscape and PDFPaper have no effect.
+
+   The margin boxes @top-center and @bottom-center draw a header and a footer on each page, inside the
+   margins, so they never cover the content. Chrome supports them from version 131. They work with
+   PDFPreferCSSPageSize and with PDFMargins. They add to the header and the footer that PDFHeaderTemplate and
+   PDFFooterTemplate draw, so a program does not use both. The title block of print.css is hidden here,
+   because the top margin box repeats it on each page. */
+@page {
+  size: A4;
+  margin: 24mm 16mm 22mm;
+
+  @top-center {
+    content: "Parcel Group plc \00b7\0020Quarterly report, third quarter 2026";
+    font-size: 8.5pt;
+    color: #555;
+  }
+
+  @bottom-center {
+    content: "Page " counter(page) " of " counter(pages);
+    font-size: 8.5pt;
+    color: #555;
+  }
+}
+
+@page :first {
+  margin-top: 16mm;
+
+  @top-center { content: none; }
+}
+
+@media print {
+  .print-header { display: none; }
+}

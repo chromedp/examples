@@ -542,7 +542,19 @@ func TestDeviceAndPrintPages(t *testing.T) {
 		t.Errorf("%d tables, want at least 8", n)
 	}
 	_, css = get(t, s, "/static/print.css")
-	mustContain(t, "print.css", string(css), "@page", "break-before: page", "position: fixed", "@media print")
+	mustContain(t, "print.css", string(css), "break-before: page", "table-header-group", "@media print")
+	for _, bad := range []string{"@page {", "@page:", "position: fixed;"} {
+		if strings.Contains(string(css), bad) {
+			t.Errorf("print.css has %q, but the program that prints must choose the paper and the page has no fixed element", bad)
+		}
+	}
+	if strings.Contains(body, "print-a4.css") {
+		t.Error("/print/report loads print-a4.css without the query paper=css")
+	}
+	body = page200(t, s, "/print/report?paper=css")
+	mustContain(t, "report paper=css", body, "/static/print.css", "/static/print-a4.css", "paper-css")
+	_, css = get(t, s, "/static/print-a4.css")
+	mustContain(t, "print-a4.css", string(css), "@page {", "size: A4", "@top-center", "@bottom-center", "counter(pages)")
 	if body := page200(t, s, "/studio"); count(body, "<section") < 8 {
 		t.Error("the studio page is short")
 	}
