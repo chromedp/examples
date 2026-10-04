@@ -6,7 +6,8 @@
 // read, for example a live site, and the program does not start the local site
 // then. The selectors are written for the local site and a live site can
 // differ. Use -v to print the protocol messages and -visible to show the
-// browser window and leave it open.
+// browser window and leave it open. Use -visible-on-terminal to draw the page
+// in the terminal with terminal graphics.
 package main
 
 import (
@@ -20,6 +21,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
+	"github.com/chromedp/termcast"
 )
 
 // link is a link of the page. The names of the JSON fields are the names of the
@@ -41,6 +43,8 @@ func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	urlstr := flag.String("url", "", "full URL of the page to read, for example a live site (the selectors are written for the local site and a live site can differ); when empty, the program starts the local test site and reads /docs/time")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the local test site, unless the user gives a page to read
@@ -67,42 +71,51 @@ func main() {
 		}()
 	}
 
+	// draw the page in the terminal when the user asks for it. The stream
+	// starts the browser, so it starts before the first navigation
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+
 	// create a timeout
 	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
 	// navigate to the page and wait until it is loaded
-	err := chromedp.Do(ctx,
+	err = chromedp.Do(ctx,
 		chromedp.Navigate(*urlstr),
 		chromedp.WaitVisible(`body > footer`),
 	)
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 
 	// a script that returns a string. The type argument tells Evaluate how to
 	// decode the result
 	title, err := chromedp.Run(ctx, chromedp.Evaluate[string](`document.title`))
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 	log.Printf("the title of the page is %q", title)
 
 	// a script that returns a number
 	sections, err := chromedp.Run(ctx, chromedp.Evaluate[int](`document.querySelectorAll('section').length`))
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 	words, err := chromedp.Run(ctx, chromedp.Evaluate[int](`document.body.innerText.split(/\s+/).length`))
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 	log.Printf("the page has %d sections and about %d words", sections, words)
 
 	// a script that returns an array of strings. The array becomes a slice
 	keys, err := chromedp.Run(ctx, chromedp.Evaluate[[]string](`Object.keys(window);`))
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 	log.Printf("the window object has %d keys, the first ones are %v", len(keys), keys[:min(len(keys), 5)])
 
@@ -113,7 +126,7 @@ func main() {
 			href: a.href,
 		}))`))
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 	log.Printf("the index has %d links:", len(links))
 	for _, l := range links[:min(len(links), 3)] {
@@ -126,7 +139,7 @@ func main() {
 		return {font: s.fontFamily, color: s.color, display: s.display, width: s.width};
 	})()`))
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 	log.Printf("the style of the first paragraph: %+v", st)
 
@@ -137,7 +150,7 @@ func main() {
 		chromedp.EvalAwaitPromise,
 	))
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 	log.Printf("a request of the page to itself gives the status %d", status)
 }
