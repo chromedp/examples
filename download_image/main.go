@@ -2,16 +2,17 @@
 // image downloads. It starts a local server and needs no internet. The program
 // opens the page /gallery of the local test site, reads the addresses of its 24
 // pictures with Evaluate, and loads the large picture gallery-01.jpg in the
-// browser. It gets the bytes of the picture from the network response, checks the
-// type and the size with the package image, and writes the file named by the
-// flag -out, which is download.jpg by default. The flag -url gives the full URL
-// of the gallery page, for example a live site, and then the program does not
-// start the local site. The selectors are written for the local site, so a live
-// site can differ. For this technique to work, the file type must load inside
-// the browser window without a download. See the download_file example for how
-// to save a file that triggers the "Download / Save As" browser dialog. Use -v
-// to print the protocol messages and -visible to show the browser window and
-// leave it open.
+// browser. It gets the bytes of the picture from the network response, checks
+// the type and the size with the package image, and writes the file named by
+// the flag -out, which is download.jpg by default. The flag -url gives the full
+// URL of the gallery page, for example a live site, and then the program does
+// not start the local site. The selectors are written for the local site, so a
+// live site can differ. For this technique to work, the file type must load
+// inside the browser window without a download. See the download_file example
+// for how to save a file that triggers the "Download / Save As" browser dialog.
+// Use -v to print the protocol messages and -visible to show the browser window
+// and leave it open. Use -visible-on-terminal to draw the page in the terminal
+// with terminal graphics.
 package main
 
 import (
@@ -23,6 +24,7 @@ import (
 	_ "image/gif"  // the decoders, for image.Decode
 	_ "image/jpeg" // the decoders, for image.Decode
 	_ "image/png"  // the decoders, for image.Decode
+	"io"
 	"log"
 	"net/url"
 	"os"
@@ -34,6 +36,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/testsite"
+	"github.com/chromedp/termcast"
 )
 
 // wanted is the name of the picture that the program downloads. On the local
@@ -45,6 +48,8 @@ func main() {
 	out := flag.String("out", "download.jpg", "name of the image file to write")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// choose the page. Without -url, the program starts the local site
@@ -71,6 +76,19 @@ func main() {
 		}()
 	}
 
+	// draw the page in the terminal when the user asks for it. The stream
+	// starts the browser, so it starts before the first navigation
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	stdout := io.Writer(os.Stdout)
+	if s != nil {
+		stdout = s.LogWriter()
+	}
+
 	// create a timeout, so that no wait loop can run forever
 	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -78,11 +96,11 @@ func main() {
 	// read the addresses of the pictures from the gallery page
 	urls, err := imageURLs(ctx, *urlstr)
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
-	fmt.Printf("the page lists %d pictures, for example:\n", len(urls))
+	fmt.Fprintf(stdout, "the page lists %d pictures, for example:\n", len(urls))
 	for _, u := range urls[:min(3, len(urls))] {
-		fmt.Printf("  %s\n", u)
+		fmt.Fprintf(stdout, "  %s\n", u)
 	}
 
 	// find the large picture
@@ -93,13 +111,13 @@ func main() {
 		}
 	}
 	if imageURL == "" {
-		log.Fatalf("the page has no picture named %s", wanted)
+		s.Fatal(fmt.Errorf("the page has no picture named %s", wanted))
 	}
 
 	// download it through the network response
-	buf, err := download(ctx, imageURL)
+	buf, err := download(ctx, stdout, imageURL)
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 
 	// check what the bytes are. image.DecodeConfig reads the type and the size
@@ -107,21 +125,21 @@ func main() {
 	// file that is cut or damaged
 	cfg, format, err := image.DecodeConfig(bytes.NewReader(buf))
 	if err != nil {
-		log.Fatalf("the downloaded file is not an image: %v", err)
+		s.Fatal(fmt.Errorf("the downloaded file is not an image: %w", err))
 	}
 	img, _, err := image.Decode(bytes.NewReader(buf))
 	if err != nil {
-		log.Fatalf("decoding the downloaded image: %v", err)
+		s.Fatal(fmt.Errorf("decoding the downloaded image: %w", err))
 	}
-	fmt.Printf("downloaded %s: %s, %d x %d px, %d bytes, decoded size %v\n",
+	fmt.Fprintf(stdout, "downloaded %s: %s, %d x %d px, %d bytes, decoded size %v\n",
 		wanted, format, cfg.Width, cfg.Height, len(buf), img.Bounds().Size())
 
 	// write the file to disk. The program holds the bytes, so it chooses the
 	// name and the location
 	if err := os.WriteFile(*out, buf, 0o644); err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
-	fmt.Printf("wrote %s\n", *out)
+	fmt.Fprintf(stdout, "wrote %s\n", *out)
 }
 
 // imageURLs loads the gallery page and returns the full addresses of the files
@@ -146,7 +164,7 @@ func imageURLs(ctx context.Context, urlstr string) ([]string, error) {
 // download loads the address in the browser window and returns the bytes of the
 // response. The window keeps the body of a response until the page navigates
 // away, so the program can ask for it after the load has finished.
-func download(ctx context.Context, urlstr string) ([]byte, error) {
+func download(ctx context.Context, out io.Writer, urlstr string) ([]byte, error) {
 	// subscribe to the network events, so that the program can watch them
 	// after the navigation. The request ID filters out the events of other
 	// requests, and it finds the downloaded file later
@@ -166,7 +184,7 @@ func download(ctx context.Context, urlstr string) ([]byte, error) {
 		}
 		if ev.Request.URL == urlstr {
 			requestID = ev.RequestID
-			fmt.Printf("request %s: %s\n", ev.RequestID, ev.Request.URL)
+			fmt.Fprintf(out, "request %s: %s\n", ev.RequestID, ev.Request.URL)
 			break
 		}
 	}
@@ -177,7 +195,7 @@ func download(ctx context.Context, urlstr string) ([]byte, error) {
 			return nil, fmt.Errorf("waiting for the response: %w", err)
 		}
 		if ev.RequestID == requestID {
-			fmt.Printf("finished %s: %.0f bytes on the network\n", ev.RequestID, ev.EncodedDataLength)
+			fmt.Fprintf(out, "finished %s: %.0f bytes on the network\n", ev.RequestID, ev.EncodedDataLength)
 			break
 		}
 	}
