@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 32 example programs for `chromedp`, a Go package that
+This repository holds 33 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 32 programs |
+| `<name>/main.go` | one example program, for each of the 33 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -134,8 +134,8 @@ PATH=$TMP:$PATH go run ./<name>
 
 The offline programs are `cookie`, `dialogs`, `frames`, `har`, `headers`,
 `intercept`, `keys`, `multi`, `pdfstream`, `popups`, `proxy`, `screencast`,
-`session`, `subtree`, `upload` and `visible`. Run one with the command above and
-a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
+`session`, `structeval`, `subtree`, `upload` and `visible`. Run one with the
+command above and a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
@@ -154,6 +154,7 @@ that has no display.
 | `proxy` | no stdout. The log shows `proxy: not authorized` for the first request, then the requests with `Proxy-Authorization: Basic dTpw` |
 | `screencast` | `saving the frames in <dir>`, then about `30 frames in 3s, 10.0 frames per second`. It writes `frame-0001.jpg` and more files in `<dir>` |
 | `session` | the login line, `saved the state in <file> (N bytes)` with the cookie `session, HttpOnly: true`, then `second browser before the restore: please log in` and `second browser after the restore: hello ada, theme dark, cart 3 items`. It writes the state in a temporary file, or in the file of `-state` |
+| `structeval` | one line for each Go type (`struct: Ada, 36, [go javascript], lives in London`, `slice of structs: 3 items`, `map:`, `number: 3, decimal number: 43.75, boolean: true`), then the errors (`exception: Uncaught, description: TypeError: ...`, `ErrJSUndefined: true`, `a string into int`), and `a promise with AwaitPromise: "slow answer"` |
 | `subtree` | the tree of the element `h1`, with its attributes and its children `a`, `span` and a text |
 | `upload` | it logs `original size: N, upload size: N` with the same number twice |
 | `visible` | the log lines `waiting 3s for box to become visible`, `BOX1 IS VISIBLE` and `BOX2 IS VISIBLE`, after about 4 seconds |
