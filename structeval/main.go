@@ -6,8 +6,9 @@
 // It shows the Go errors for a JavaScript exception, for a result of undefined
 // or null, and for a result of the wrong type. It also shows how to wait for a
 // promise with an option for Evaluate. It starts a local server and needs no
-// internet. Use -v to print the protocol messages and -visible to show the
-// browser window and leave it open.
+// internet. Use -v to print the protocol messages, -visible to show the browser
+// window and leave it open, and -visible-on-terminal to draw the page in the
+// terminal with terminal graphics.
 package main
 
 import (
@@ -15,6 +16,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -25,6 +27,7 @@ import (
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 // User is the shape of the field user of the object of the page. The tags
@@ -46,9 +49,16 @@ type Item struct {
 	Price float64 `json:"price"`
 }
 
+// out receives the results that the program prints. It is the standard output,
+// or the held writer of the stream when the flag -visible-on-terminal is on,
+// because the stream clears the terminal and would erase the results.
+var out io.Writer = os.Stdout
+
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -72,17 +82,29 @@ func main() {
 		}()
 	}
 
-	if err := chromedp.Do(ctx, chromedp.Navigate(srv.URL+"/")); err != nil {
+	// start the stream before the first navigation, so that the frames show
+	// the page while it loads
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
 		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	if s != nil {
+		out = s.LogWriter()
+	}
+
+	if err := chromedp.Do(ctx, chromedp.Navigate(srv.URL+"/")); err != nil {
+		s.Fatal(err)
 	}
 	if err := values(ctx); err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 	if err := failures(ctx); err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 	if err := promises(ctx); err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 }
 
@@ -95,21 +117,21 @@ func values(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("reading the user: %w", err)
 	}
-	fmt.Printf("struct: %s, %d, %v, lives in %s\n", user.Name, user.Age, user.Langs, user.Address.City)
+	fmt.Fprintf(out, "struct: %s, %d, %v, lives in %s\n", user.Name, user.Age, user.Langs, user.Address.City)
 
 	// A slice of structs.
 	items, err := chromedp.Run(ctx, chromedp.Evaluate[[]Item](`page.items`))
 	if err != nil {
 		return fmt.Errorf("reading the items: %w", err)
 	}
-	fmt.Printf("slice of structs: %d items, the last is %+v\n", len(items), items[len(items)-1])
+	fmt.Fprintf(out, "slice of structs: %d items, the last is %+v\n", len(items), items[len(items)-1])
 
 	// A map. The keys of the JavaScript object become the keys of the map.
 	stock, err := chromedp.Run(ctx, chromedp.Evaluate[map[string]int](`page.stock`))
 	if err != nil {
 		return fmt.Errorf("reading the stock: %w", err)
 	}
-	fmt.Printf("map: %v\n", stock)
+	fmt.Fprintf(out, "map: %v\n", stock)
 
 	// A number, a decimal number and a boolean. An expression can compute the
 	// value in the browser.
@@ -125,7 +147,7 @@ func values(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("reading the flag: %w", err)
 	}
-	fmt.Printf("number: %d, decimal number: %.2f, boolean: %t\n", count, total, active)
+	fmt.Fprintf(out, "number: %d, decimal number: %.2f, boolean: %t\n", count, total, active)
 
 	// The type []byte gives the JSON text, and the type
 	// *runtime.RemoteObject gives the object of the protocol, which holds the
@@ -138,7 +160,7 @@ func values(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("reading the remote object: %w", err)
 	}
-	fmt.Printf("[]byte: %s, remote object: type %s, class %s\n", raw, obj.Type, obj.ClassName)
+	fmt.Fprintf(out, "[]byte: %s, remote object: type %s, class %s\n", raw, obj.Type, obj.ClassName)
 	return nil
 }
 
@@ -152,31 +174,31 @@ func failures(ctx context.Context) error {
 	if !errors.As(err, &exc) {
 		return fmt.Errorf("want an exception error, got %v", err)
 	}
-	fmt.Printf("exception: %s, description: %s\n", exc.Text, firstLine(exc.Exception.Description))
+	fmt.Fprintf(out, "exception: %s, description: %s\n", exc.Text, firstLine(exc.Exception.Description))
 
 	// The message of the error holds the same text.
-	fmt.Printf("error text: %v\n", firstLine(err.Error()))
+	fmt.Fprintf(out, "error text: %v\n", firstLine(err.Error()))
 
 	// A result of undefined has no value in a type that cannot be nil, such
 	// as int, and the error is a value that errors.Is can test.
 	_, err = chromedp.Run(ctx, chromedp.Evaluate[int](`undefined`))
-	fmt.Printf("undefined into int: %v, ErrJSUndefined: %t\n", err, errors.Is(err, chromedp.ErrJSUndefined))
+	fmt.Fprintf(out, "undefined into int: %v, ErrJSUndefined: %t\n", err, errors.Is(err, chromedp.ErrJSUndefined))
 
 	// A null gives the zero value of the type, and no error. So use a pointer
 	// type when null is a valid result and the program must tell it from 0.
 	n, err := chromedp.Run(ctx, chromedp.Evaluate[int](`null`))
-	fmt.Printf("null into int: %d, error: %v\n", n, err)
+	fmt.Fprintf(out, "null into int: %d, error: %v\n", n, err)
 
 	// A pointer, a map and a slice can be nil, so they take the null.
 	user, err := chromedp.Run(ctx, chromedp.Evaluate[*User](`null`))
 	if err != nil {
 		return fmt.Errorf("reading null into a pointer: %w", err)
 	}
-	fmt.Printf("null into *User: nil is %t\n", user == nil)
+	fmt.Fprintf(out, "null into *User: nil is %t\n", user == nil)
 
 	// A value of the wrong type is an error of the JSON decoder.
 	_, err = chromedp.Run(ctx, chromedp.Evaluate[int](`page.user.name`))
-	fmt.Printf("a string into int: %v\n", err)
+	fmt.Fprintf(out, "a string into int: %v\n", err)
 	return nil
 }
 
@@ -190,7 +212,7 @@ func promises(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("reading the promise: %w", err)
 	}
-	fmt.Printf("a promise without the option: %v\n", pending)
+	fmt.Fprintf(out, "a promise without the option: %v\n", pending)
 
 	// With AwaitPromise, the browser waits until the promise settles and
 	// gives its value. The field is a pointer, because false is a value.
@@ -199,7 +221,7 @@ func promises(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("reading the awaited promise: %w", err)
 	}
-	fmt.Printf("a promise with AwaitPromise: %q\n", text)
+	fmt.Fprintf(out, "a promise with AwaitPromise: %q\n", text)
 
 	// A promise that rejects is an exception.
 	_, err = chromedp.Run(ctx, chromedp.Evaluate[string](`Promise.reject(new Error("no luck"))`, awaitPromise))
@@ -207,7 +229,7 @@ func promises(ctx context.Context) error {
 	if !errors.As(err, &exc) {
 		return fmt.Errorf("want an exception error, got %v", err)
 	}
-	fmt.Printf("a rejected promise: %s\n", firstLine(exc.Exception.Description))
+	fmt.Fprintf(out, "a rejected promise: %s\n", firstLine(exc.Exception.Description))
 	return nil
 }
 
