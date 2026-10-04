@@ -1,16 +1,17 @@
 // Command exposefunc is a chromedp example demonstrating how to call Go
 // functions from a page with chromedp.ExposeFunc. The action makes a Go
 // function available as window.<name>, and a script of the page calls it like
-// an async function that returns a promise. The program exposes four
-// functions. The first gets an object and returns an object, with a lookup in
-// a Go map. The second gets several arguments and returns a number. The third
-// returns a Go error, so the promise rejects and the script catches it. The
-// fourth is slow, and the page calls it five times at the same time. The
-// program then navigates to a page with an iframe, and shows that the
-// functions are still there, in the page and in the iframe. For each call it
-// prints what the page got. It starts a local server and needs no internet.
-// Use -v to print the protocol messages and -visible to show the browser window
-// and leave it open.
+// an async function that returns a promise. The program exposes four functions.
+// The first gets an object and returns an object, with a lookup in a Go map.
+// The second gets several arguments and returns a number. The third returns a
+// Go error, so the promise rejects and the script catches it. The fourth is
+// slow, and the page calls it five times at the same time. The program then
+// navigates to a page with an iframe, and shows that the functions are still
+// there, in the page and in the iframe. For each call it prints what the page
+// got. It starts a local server and needs no internet. Use -v to print the
+// protocol messages and -visible to show the browser window and leave it open.
+// Use -visible-on-terminal to draw the page in the terminal with terminal
+// graphics.
 package main
 
 import (
@@ -29,6 +30,7 @@ import (
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 // query is the object that the page sends to getUser.
@@ -53,6 +55,8 @@ var users = map[string]user{
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -76,13 +80,26 @@ func main() {
 		}()
 	}
 
-	if err := run(ctx, srv.URL); err != nil {
+	// draw the page in the terminal when the user asks for it. The stream
+	// starts the browser, so it starts before the first navigation
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
 		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	out := io.Writer(os.Stdout)
+	if s != nil {
+		out = s.LogWriter()
+	}
+
+	if err := run(ctx, out, srv.URL); err != nil {
+		s.Fatal(err)
 	}
 }
 
 // run exposes the functions, and calls them from the page.
-func run(ctx context.Context, host string) error {
+func run(ctx context.Context, out io.Writer, host string) error {
 	// running and peak count the calls of slowSquare that run at the same
 	// time. ExposeFunc runs the function in a new goroutine for each call, so
 	// the function must be safe for that. The counters are atomic for it.
@@ -148,7 +165,7 @@ func run(ctx context.Context, host string) error {
 		if err != nil {
 			return fmt.Errorf("%s: %w", what, err)
 		}
-		fmt.Printf("%s: %s\n", what, got)
+		fmt.Fprintf(out, "%s: %s\n", what, got)
 		return nil
 	}
 
@@ -204,7 +221,7 @@ func run(ctx context.Context, host string) error {
 	})()`); err != nil {
 		return err
 	}
-	fmt.Printf("the largest number of calls that ran together in Go: %d\n", peak.Load())
+	fmt.Fprintf(out, "the largest number of calls that ran together in Go: %d\n", peak.Load())
 
 	// A navigation destroys the old document, and the new one gets the
 	// functions again, because the action runs its script in each new document.
