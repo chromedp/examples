@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 38 example programs for [`chromedp`][1], a Go package that
+This repository holds 39 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -88,6 +88,7 @@ its frames into a new temporary directory, or into the directory of its flag
 | Example                           | Description                                                                                     |
 |-----------------------------------|-------------------------------------------------------------------------------------------------|
 | [click](/click)                   | use a selector to click on an element                                                           |
+| [console](/console)               | read the console of a page and its uncaught exceptions with chromedp                            |
 | [cookie](/cookie)                 | set an HTTP cookie on requests                                                                  |
 | [dialogs](/dialogs)               | handle the JavaScript dialogs of a page                                                         |
 | [download_file](/download_file)   | do headless file downloads                                                                      |
@@ -149,6 +150,7 @@ because they need a live site that can change. No program was run with the flag
 | Example         | Needs                            | Result with the current API                       | Checked           |
 |-----------------|----------------------------------|---------------------------------------------------|-------------------|
 | click           | internet (pkg.go.dev)            | works                                             | run on 2026-10-04 |
+| console         | offline                          | works with chromedp v0.19.0                       | run on 2026-10-04 |
 | cookie          | offline                          | works                                             | run on 2026-10-04 |
 | dialogs         | offline                          | works                                             | run on 2026-10-04 |
 | download_file   | internet (github.com)            | fails, times out after 60 seconds                 | earlier test      |

@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 38 example programs for `chromedp`, a Go package that
+This repository holds 39 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -89,7 +89,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 38 programs |
+| `<name>/main.go` | one example program, for each of the 39 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -132,16 +132,17 @@ PATH=$TMP:$PATH go run ./<name>
 
 ## Verify an offline program
 
-The offline programs are `cookie`, `dialogs`, `dragdrop`, `eventsiter`,
-`frames`, `har`, `headers`, `intercept`, `keys`, `multi`, `pdfstream`, `popups`,
-`proxy`, `rawcall`, `screencast`, `selectors`, `session`, `structeval`,
-`subtree`, `upload`, `visible` and `workers`. Run one with the command above and
-a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
+The offline programs are `console`, `cookie`, `dialogs`, `dragdrop`,
+`eventsiter`, `frames`, `har`, `headers`, `intercept`, `keys`, `multi`,
+`pdfstream`, `popups`, `proxy`, `rawcall`, `screencast`, `selectors`, `session`,
+`structeval`, `subtree`, `upload`, `visible` and `workers`. Run one with the
+command above and a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
 paths of temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
 | Program | Expected output |
 | --- | --- |
+| `console` | the heading `all the messages:` with the messages in order. Each one has a line with its type and text and a line with its place. They are `log page loaded version 3`, `log user {name: "Ada", age: 36}`, a `warning`, an `error` with `code 7`, the `error` of the missing image with `[network]`, the exception `Uncaught Error: boom` with two `stack:` lines, the exception `Uncaught (in promise) Error: nobody handles this` and `log end of the run`. Then the heading `only the errors and the exceptions:` with the missing image and the two exceptions again, then `stopped: context deadline exceeded` |
 | `cookie` | the log lines `server received cookie 0: cookie1=value1` and `cookie 1: cookie2=value2`, each one twice, then two `chrome cookie` lines and `chrome received cookies` |
 | `dialogs` | four dialogs: `alert dialog, message "Hello from the page": accepted`, `confirm gave false`, `prompt gave Ada` and a `beforeunload` dialog with an empty message, then `the browser is now on the page that says "the next page"` |
 | `dragdrop` | three lines for the slider (`value 75`, `value 34` and `value 100`, with the handle at 277, 127 and 370 px), the list order after two drags (`beta, gamma, alpha, delta`, then `delta, beta, gamma, alpha`), two lines for the HTML5 drops (`"buy milk"` on `done` and `"call Ann"` on `later`, with the data type `text/plain`), and the card count of each zone |
