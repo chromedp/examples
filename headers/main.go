@@ -1,7 +1,8 @@
 // Command headers is a chromedp example demonstrating how to add extra HTTP
 // headers to browser requests. It starts a local server and needs no internet.
-// Use -v to print the protocol messages and -visible to show the browser window
-// and leave it open.
+// Use -v to print the protocol messages, -visible to show the browser window
+// and leave it open, and -visible-on-terminal to draw the page in the terminal
+// with terminal graphics.
 package main
 
 import (
@@ -17,12 +18,15 @@ import (
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 func main() {
+	var tc termcast.Flags
 	port := flag.Int("port", 8544, "port of the local web server")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -45,6 +49,14 @@ func main() {
 		}()
 	}
 
+	// draw the page in the terminal if the flag -visible-on-terminal is set
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+
 	// run the actions
 	res, err := setheaders(
 		ctx,
@@ -54,7 +66,7 @@ func main() {
 		},
 	)
 	if err != nil {
-		log.Fatal(err)
+		s.Fatal(err)
 	}
 
 	log.Printf("received headers: %s", res)
