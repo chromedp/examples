@@ -9,13 +9,15 @@
 // page, and so it blocks the click that opens it. The goroutine must answer
 // while the click waits. It starts a local server and needs no internet. Use -v
 // to print the protocol messages and -visible to show the browser window and
-// leave it open.
+// leave it open. Use -visible-on-terminal to draw the page in the terminal with
+// terminal graphics.
 package main
 
 import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -24,11 +26,14 @@ import (
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	var tc termcast.Flags
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -52,8 +57,21 @@ func main() {
 		}()
 	}
 
-	if err := run(ctx, srv.URL); err != nil {
+	// draw the page in the terminal when the user asks for it. The stream
+	// starts the browser, so it starts before the first navigation
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
 		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	out := io.Writer(os.Stdout)
+	if s != nil {
+		out = s.LogWriter()
+	}
+
+	if err := run(ctx, out, srv.URL); err != nil {
+		s.Fatal(err)
 	}
 }
 
@@ -64,7 +82,7 @@ type answer struct {
 }
 
 // run opens each kind of dialog, and prints what the handler did.
-func run(ctx context.Context, host string) error {
+func run(ctx context.Context, out io.Writer, host string) error {
 	// Load the page first. This call starts the browser. The events below use
 	// the same context, and they end when the program ends.
 	if err := chromedp.Do(ctx, chromedp.Navigate(host+"/")); err != nil {
@@ -94,14 +112,14 @@ func run(ctx context.Context, host string) error {
 		if err := chromedp.Do(ctx, chromedp.Click(chromedp.ID(id))); err != nil {
 			return fmt.Errorf("clicking %s: %w", id, err)
 		}
-		if err := report(ctx, answers); err != nil {
+		if err := report(ctx, out, answers); err != nil {
 			return err
 		}
 		text, err := chromedp.Run(ctx, chromedp.Text(chromedp.ID("result")))
 		if err != nil {
 			return fmt.Errorf("reading the result of %s: %w", id, err)
 		}
-		fmt.Printf("  the page says %q\n", text)
+		fmt.Fprintf(out, "  the page says %q\n", text)
 	}
 
 	// A page can ask the user to confirm that it can unload. Chrome opens the
@@ -111,14 +129,14 @@ func run(ctx context.Context, host string) error {
 	if err := chromedp.Do(ctx, chromedp.Navigate(host+"/next")); err != nil {
 		return fmt.Errorf("leaving the page: %w", err)
 	}
-	if err := report(ctx, answers); err != nil {
+	if err := report(ctx, out, answers); err != nil {
 		return err
 	}
 	text, err := chromedp.Run(ctx, chromedp.Text(chromedp.CSS("body")))
 	if err != nil {
 		return fmt.Errorf("reading the next page: %w", err)
 	}
-	fmt.Printf("  the browser is now on the page that says %q\n", text)
+	fmt.Fprintf(out, "  the browser is now on the page that says %q\n", text)
 	return nil
 }
 
@@ -148,13 +166,13 @@ func respond(ctx context.Context, ev *page.EventJavascriptDialogOpening) (string
 }
 
 // report waits for the answer of the handler, and prints it.
-func report(ctx context.Context, answers <-chan answer) error {
+func report(ctx context.Context, out io.Writer, answers <-chan answer) error {
 	select {
 	case a := <-answers:
 		if a.err != nil {
 			return a.err
 		}
-		fmt.Println(a.line)
+		fmt.Fprintln(out, a.line)
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
