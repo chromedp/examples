@@ -51,7 +51,7 @@ const tileHeight = 8192
 
 // out receives the results that the program prints. It is the standard output,
 // or the held writer of the stream when the flag -visible-on-terminal is on,
-// because the stream clears the terminal and would erase the results.
+// because the stream clears the terminal and erases the results.
 var out io.Writer = os.Stdout
 
 // target is a page to read, and the name that its files get.
@@ -206,7 +206,7 @@ func fullPage(ctx context.Context, t target, dir string) error {
 
 	// Chrome loads an image with loading="lazy" only when it comes near the
 	// viewport. A page with such images grows while it loads them, so the
-	// measure of the height and the screenshot would not match. Ask Chrome
+	// measure of the height and the screenshot do not match. Ask Chrome
 	// to load all images now, and wait until they are decoded.
 	if _, err := chromedp.Run(ctx, chromedp.Evaluate[bool](`
 		Promise.all(Array.from(document.images, img => {

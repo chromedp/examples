@@ -32,7 +32,7 @@ import (
 
 // out receives the results that the program prints. It is the standard output,
 // or the held writer of the stream when the flag -visible-on-terminal is on,
-// because the stream clears the terminal and would erase the results.
+// because the stream clears the terminal and erases the results.
 var out io.Writer = os.Stdout
 
 func main() {

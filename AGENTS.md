@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 41 example programs for `chromedp`, a Go package that
+This repository holds 43 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -84,13 +84,23 @@ you trust it, because a later decision can amend or replace it.
     print the protocol messages and -visible to show the browser window and
     leave it open." Use the help text "print the protocol messages" for the flag
     `-v`, and "show the browser window and leave it open" for the flag
-    `-visible`.
+    `-visible`. The program `extension` is the exception: it uses
+    `chromedp.VisibleWindow` and `chromedp.WaitClosed`, because `KeepOpen` uses a
+    websocket and the extension commands need the pipe.
+13. Every program that has a page to show has the flag `-visible-on-terminal`
+    and the flag `-terminal-fps`. Register them with `termcast.Flags` from
+    `github.com/chromedp/termcast`, and start the stream after the browser
+    starts. After the stream starts, call `s.Fatal` and not `log.Fatal`, and
+    send the results through `s.LogWriter()`. The flag does not work with
+    `-v`. The programs `tabs`, `popups`, `workers`, `multi`, `session`,
+    `screencast`, `pdfstream`, `har`, `rawcall`, `extension` and `termcast` do not
+    have the flag.
 
 ## Layout
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 41 programs |
+| `<name>/main.go` | one example program, for each of the 43 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -212,7 +222,8 @@ Follow these rules when you work on the site or on a program that uses it.
 
 1. Keep every page local. A page must not load a font, an image, a script or a
    style sheet from another host. `go test ./internal/testsite/` fails when it
-   does.
+   does. The page `/news/` is the one exception. It loads five ad scripts, and
+   the program `extension` intercepts them.
 2. Write original text. Do not copy text or images from a real site.
 3. Do not change a route, an id, a class or a selector that
    `internal/testsite/README.md` lists without checking the programs that use

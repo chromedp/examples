@@ -66,8 +66,8 @@ var variants = []variant{
 	// paper and ignores the rule @page of the page.
 	{Name: "default"},
 
-	// The page /print/report?paper=css has the rule @page { size: A4;
-	// margin: 24mm 16mm 22mm } and the margin boxes of a header and a
+	// The page /print/report?paper=css has an @page rule with the size A4 and
+	// the margin 24mm 16mm 22mm. It has the margin boxes of a header and a
 	// footer. The browser uses the size of the rule only with this option.
 	{Name: "css-page", CSSPage: true, Options: []chromedp.PDFOption{
 		chromedp.PDFPreferCSSPageSize(),
@@ -87,7 +87,7 @@ var variants = []variant{
 	}},
 
 	// Landscape swaps the width and the height of the paper. A page with an
-	// @page rule that sets the size would ignore this option.
+	// @page rule that sets the size ignores this option.
 	{Name: "a4-landscape", Options: []chromedp.PDFOption{
 		chromedp.PDFPaper(chromedp.PaperA4),
 		chromedp.PDFLandscape(),

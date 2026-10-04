@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 41 example programs for [`chromedp`][1], a Go package that
+This repository holds 43 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Some of
 them need the internet or an external component.
@@ -85,53 +85,56 @@ directory of their flag `-out`.
 
 <!-- the following section is updated by running `go run gen.go` -->
 <!-- START EXAMPLES -->
-| Example                           | Description                                                                                     |
-|-----------------------------------|-------------------------------------------------------------------------------------------------|
-| [click](/click)                   | use a selector to click on an element                                                           |
-| [console](/console)               | read the console of a page and its uncaught exceptions with chromedp                            |
-| [cookie](/cookie)                 | set an HTTP cookie on requests                                                                  |
-| [dialogs](/dialogs)               | handle the JavaScript dialogs of a page                                                         |
-| [download_file](/download_file)   | do headless file downloads                                                                      |
-| [download_image](/download_image) | do headless image downloads                                                                     |
-| [dragdrop](/dragdrop)             | drag and drop with the actions DragAndDrop and DragAndDropXY                                    |
-| [emulate](/emulate)               | emulate a specific device such as an iPhone                                                     |
-| [eval](/eval)                     | evaluate JavaScript and retrieve the result                                                     |
-| [eventsiter](/eventsiter)         | listen to the events of a page with iterators                                                   |
-| [exposefunc](/exposefunc)         | call Go functions from a page with chromedp                                                     |
-| [fast](/fast)                     | measure the speed of the internet connection and show the result in the terminal                |
-| [forecast](/forecast)             | render the weather forecast of Google in the terminal                                           |
-| [frames](/frames)                 | reach elements inside an iframe and inside a shadow root                                        |
-| [geoip](/geoip)                   | look up the location of an IP address and show its map in the terminal                          |
-| [har](/har)                       | generate a HAR file from the network events of a page                                           |
-| [headers](/headers)               | add extra HTTP headers to browser requests                                                      |
-| [intercept](/intercept)           | block, mock and change the requests of a page with the Fetch domain                             |
-| [keys](/keys)                     | send key events to an element                                                                   |
-| [latlon](/latlon)                 | retrieve the latitude and the longitude from Google Maps with the navigation events of the page |
-| [logic](/logic)                   | combine actions and Go code in a function that reads a list from a page                         |
-| [multi](/multi)                   | use headless-shell and a container (Docker, Podman, other)                                      |
-| [pdf](/pdf)                       | capture a PDF of a page                                                                         |
-| [pdfoptions](/pdfoptions)         | print a page to PDF files with different options of chromedp                                    |
-| [pdfstream](/pdfstream)           | print a page to a PDF file with a stream                                                        |
-| [popups](/popups)                 | work with the popups of a page and with several targets                                         |
-| [proxy](/proxy)                   | authenticate to a proxy server that requires authentication                                     |
-| [rawcall](/rawcall)               | send protocol commands that chromedp has no action for                                          |
-| [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL                    |
-| [screencast](/screencast)         | record the screen of a page as a series of JPEG images                                          |
-| [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport                      |
-| [selectors](/selectors)           | choose the elements of a page with the typed selectors                                          |
-| [session](/session)               | save the state of a session and restore it in another browser                                   |
-| [structeval](/structeval)         | evaluate JavaScript into typed Go values                                                        |
-| [submit](/submit)                 | fill out and submit a form                                                                      |
-| [subtree](/subtree)               | populate and travel a subtree of the DOM                                                        |
-| [tabs](/tabs)                     | use several tabs of one browser                                                                 |
-| [text](/text)                     | extract text from a specific element                                                            |
-| [upload](/upload)                 | upload a file on a form                                                                         |
-| [visible](/visible)               | wait until an element is visible                                                                |
-| [workers](/workers)               | run many jobs at the same time in one browser with a pool of goroutines                         |
+| Example                           | Description                                                                                                                              |
+|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| [click](/click)                   | use a selector to click on an element                                                                                                    |
+| [console](/console)               | read the console of a page and its uncaught exceptions with chromedp                                                                     |
+| [cookie](/cookie)                 | set an HTTP cookie on requests                                                                                                           |
+| [dialogs](/dialogs)               | handle the JavaScript dialogs of a page                                                                                                  |
+| [download_file](/download_file)   | do headless file downloads                                                                                                               |
+| [download_image](/download_image) | do headless image downloads                                                                                                              |
+| [dragdrop](/dragdrop)             | drag and drop with the actions DragAndDrop and DragAndDropXY                                                                             |
+| [emulate](/emulate)               | emulate a specific device such as an iPhone                                                                                              |
+| [eval](/eval)                     | evaluate JavaScript and retrieve the result                                                                                              |
+| [eventsiter](/eventsiter)         | listen to the events of a page with iterators                                                                                            |
+| [exposefunc](/exposefunc)         | call Go functions from a page with chromedp                                                                                              |
+| [extension](/extension)           | install a browser extension, uBlock Origin Lite, into the browser that chromedp starts, and how to show that it blocks the ads of a page |
+| [fast](/fast)                     | measure the speed of the internet connection and show the result in the terminal                                                         |
+| [forecast](/forecast)             | render the weather forecast of a city in the terminal                                                                                    |
+| [frames](/frames)                 | reach elements inside an iframe and inside a shadow root                                                                                 |
+| [geoip](/geoip)                   | look up the location of an IP address and show its map in the terminal                                                                   |
+| [har](/har)                       | generate a HAR file from the network events of a page                                                                                    |
+| [headers](/headers)               | add extra HTTP headers to browser requests                                                                                               |
+| [intercept](/intercept)           | block, mock and change the requests of a page with the Fetch domain                                                                      |
+| [keys](/keys)                     | send key events to an element                                                                                                            |
+| [latlon](/latlon)                 | retrieve the latitude and the longitude of a map from the URL of the page with the navigation events of the page                         |
+| [logic](/logic)                   | combine actions and Go code in a function that reads a list from a page                                                                  |
+| [multi](/multi)                   | use headless-shell and a container (Docker, Podman, other)                                                                               |
+| [pdf](/pdf)                       | capture a PDF of a page                                                                                                                  |
+| [pdfoptions](/pdfoptions)         | print a page to PDF files with different options of chromedp                                                                             |
+| [pdfstream](/pdfstream)           | print a page to a PDF file with a stream                                                                                                 |
+| [popups](/popups)                 | work with the popups of a page and with several targets                                                                                  |
+| [proxy](/proxy)                   | authenticate to a proxy server that requires authentication                                                                              |
+| [rawcall](/rawcall)               | send protocol commands that chromedp has no action for                                                                                   |
+| [remote](/remote)                 | connect to an existing Chrome DevTools instance using a remote WebSocket URL                                                             |
+| [screencast](/screencast)         | record the screen of a page as a series of JPEG images                                                                                   |
+| [screenshot](/screenshot)         | take a screenshot of a specific element and of the entire browser viewport                                                               |
+| [selectors](/selectors)           | choose the elements of a page with the typed selectors                                                                                   |
+| [session](/session)               | save the state of a session and restore it in another browser                                                                            |
+| [structeval](/structeval)         | evaluate JavaScript into typed Go values                                                                                                 |
+| [submit](/submit)                 | fill out and submit a form                                                                                                               |
+| [subtree](/subtree)               | populate and travel a subtree of the DOM                                                                                                 |
+| [tabs](/tabs)                     | use several tabs of one browser                                                                                                          |
+| [termcast](/termcast)             | stream the screen of the browser to the terminal with terminal graphics                                                                  |
+| [text](/text)                     | extract text from a specific element                                                                                                     |
+| [upload](/upload)                 | upload a file on a form                                                                                                                  |
+| [visible](/visible)               | wait until an element is visible                                                                                                         |
+| [workers](/workers)               | run many jobs at the same time in one browser with a pool of goroutines                                                                  |
 <!-- END EXAMPLES -->
 
 The programs `fast`, `forecast`, `geoip` and `remote` draw an image in the
-terminal. Run them in a terminal that can show images.
+terminal. Run them in a terminal that can show images. Most other programs have
+the flag `-visible-on-terminal` to draw the page in the terminal while they run.
 
 ## Verification
 
@@ -151,29 +154,30 @@ because they need a live site that can change. No program was run with the flag
 
 | Example         | Needs                            | Result with the current API                       | Checked           |
 |-----------------|----------------------------------|---------------------------------------------------|-------------------|
-| click           | internet (pkg.go.dev)            | works                                             | run on 2026-10-04 |
+| click           | offline                          | works                                             | run on 2026-10-04 |
 | console         | offline                          | works                                             | run on 2026-10-04 |
 | cookie          | offline                          | works                                             | run on 2026-10-04 |
 | dialogs         | offline                          | works                                             | run on 2026-10-04 |
-| download_file   | internet (github.com)            | fails, times out after 60 seconds                 | earlier test      |
-| download_image  | internet (githubusercontent.com) | works, writes 38371 bytes                         | earlier test      |
+| download_file   | offline                          | works                                             | run on 2026-10-04 |
+| download_image  | offline                          | works                                             | run on 2026-10-04 |
 | dragdrop        | offline                          | works                                             | run on 2026-10-04 |
-| emulate         | internet (whatsmyua.info)        | works                                             | earlier test      |
-| eval            | internet (google.com)            | works                                             | earlier test      |
+| emulate         | offline                          | works                                             | run on 2026-10-04 |
+| eval            | offline                          | works                                             | run on 2026-10-04 |
 | eventsiter      | offline                          | works                                             | run on 2026-10-04 |
 | exposefunc      | offline                          | works                                             | run on 2026-10-04 |
-| fast            | internet (fast.com), terminal    | fails at the end without a terminal image         | earlier test      |
-| forecast        | internet (google.com), terminal  | fails, times out                                  | earlier test      |
+| extension       | offline, the uBlock Origin Lite files on disk | works                                             | run on 2026-10-04 |
+| fast            | internet (fast.com), terminal    | needs a terminal that shows images                | earlier test |
+| forecast        | terminal                         | works in a terminal, stops without one            | run on 2026-10-04 |
 | frames          | offline                          | works                                             | run on 2026-10-04 |
-| geoip           | internet (google.com maps)       | the lookup works, the map times out               | earlier test      |
+| geoip           | terminal                         | works in a terminal, stops without one            | run on 2026-10-04 |
 | har             | offline                          | works                                             | run on 2026-10-04 |
 | headers         | offline                          | works                                             | run on 2026-10-04 |
 | intercept       | offline                          | works                                             | run on 2026-10-04 |
 | keys            | offline                          | works                                             | run on 2026-10-04 |
-| latlon          | internet (google.com maps)       | works                                             | earlier test      |
-| logic           | internet (github.com)            | works                                             | earlier test      |
-| multi           | offline with a `data:` URL       | works                                             | run on 2026-10-04 |
-| pdf             | internet (google.com)            | works                                             | earlier test      |
+| latlon          | offline                          | works                                             | run on 2026-10-04 |
+| logic           | offline                          | works                                             | run on 2026-10-04 |
+| multi           | offline                          | works                                             | run on 2026-10-04 |
+| pdf             | offline                          | works                                             | run on 2026-10-04 |
 | pdfoptions      | offline                          | works                                             | run on 2026-10-04 |
 | pdfstream       | offline                          | works                                             | run on 2026-10-04 |
 | popups          | offline                          | works                                             | run on 2026-10-04 |
@@ -181,37 +185,37 @@ because they need a live site that can change. No program was run with the flag
 | rawcall         | offline                          | works                                             | run on 2026-10-04 |
 | remote          | a Chrome with a debugging port   | works up to the terminal image                    | earlier test      |
 | screencast      | offline                          | works                                             | run on 2026-10-04 |
-| screenshot      | internet (pkg.go.dev, brank.as)  | works                                             | earlier test      |
+| screenshot      | offline                          | works                                             | run on 2026-10-04 |
 | selectors       | offline                          | works                                             | run on 2026-10-04 |
 | session         | offline                          | works                                             | run on 2026-10-04 |
 | structeval      | offline                          | works                                             | run on 2026-10-04 |
-| submit          | internet (wikipedia.org)         | works                                             | earlier test      |
+| submit          | offline                          | works                                             | run on 2026-10-04 |
 | subtree         | offline                          | works                                             | run on 2026-10-04 |
 | tabs            | offline                          | works                                             | run on 2026-10-04 |
-| text            | internet (pkg.go.dev)            | works                                             | earlier test      |
+| termcast        | offline, a terminal              | works in a terminal, stops without one            | run on 2026-10-04 |
+| text            | offline                          | works                                             | run on 2026-10-04 |
 | upload          | offline                          | works                                             | run on 2026-10-04 |
-| visible         | offline                          | works                                             | run on 2026-10-04 |
+| visible         | offline, a window                | works                                             | earlier test      |
 | workers         | offline                          | works                                             | run on 2026-10-04 |
 
 Notes:
 
-1. The programs `fast`, `geoip` and `remote` draw the image with `rasterm`. In
-   the earlier test the output was not a terminal, and each program ended with
-   the error `term graphics not available`. Run them in a terminal that can show
-   images.
+1. The programs `forecast` and `geoip` draw an image with `rasterm`. Without a
+   terminal that shows images, they stop with the error `term graphics not
+   available`. `fast` does the same, and it reads the live site `fast.com`.
 2. The programs `geoip` and `forecast` embed their data files, `GeoLite2-City.mmdb`
    and `hl.json`, so they run from any folder.
-3. The `remote` test used `chrome --headless --remote-debugging-port=9222` and a
-   local web server. Without the flag `-nav`, `remote` reads the internet.
-4. The failures of `click`, `download_file` and `forecast` can come from a
-   change of the live site. The cause is not known.
+3. `remote` needs a Chrome that runs with a debugging port, for example
+   `chrome --headless --remote-debugging-port=9222`. Use the flag `-start` to
+   let `remote` start that Chrome.
+4. Every other program reads the local test site in `internal/testsite`. Use the
+   flag `-url` to read another site.
+5. `extension` needs the files of uBlock Origin Lite on disk. Use the flag
+   `-ext`.
 
 ## Live sites can change
 
-Most programs read live websites such as `pkg.go.dev`, `github.com` and
-`google.com`. When a site changes its HTML, the selectors of a program stop
-matching, and the program fails. The results in the table can be different on
-another day.
+Only `fast` reads a live site. The result can be different on another day.
 
 ## Questions, bugs and changes
 
