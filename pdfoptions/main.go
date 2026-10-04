@@ -1,16 +1,17 @@
-// Command pdfoptions is a chromedp example demonstrating how to print a page
-// to PDF files with different options of chromedp.PrintToPDF. The program
-// serves a document of five pages from a local server and prints it in several
-// variants: the default, landscape, A4 with margins and backgrounds, a header
-// and a footer with the title and the page number, a scale of 2, only the pages
-// 2 to 3, and a file with an outline and tags that the browser sends as a
-// stream. It also prints a page that sets its own paper size with the CSS rule
-// @page, and uses the option PDFPreferCSSPageSize for it. The program writes the
-// files in the directory of the flag -out, or in a new temporary directory
-// that it prints. For each file it prints the number of pages and the size of
-// the first page, which it reads from the file itself. It starts a local
-// server and needs no internet. Use -v to print the protocol messages and
-// -visible to show the browser window and leave it open.
+// Command pdfoptions is a chromedp example demonstrating how to print a page to
+// PDF files with different options of chromedp.PrintToPDF. The program serves a
+// document of five pages from a local server and prints it in several variants:
+// the default, landscape, A4 with margins and backgrounds, a header and a
+// footer with the title and the page number, a scale of 2, only the pages 2 to
+// 3, and a file with an outline and tags that the browser sends as a stream. It
+// also prints a page that sets its own paper size with the CSS rule @page, and
+// uses the option PDFPreferCSSPageSize for it. The program writes the files in
+// the directory of the flag -out, or in a new temporary directory that it
+// prints. For each file it prints the number of pages and the size of the first
+// page, which it reads from the file itself. It starts a local server and needs
+// no internet. Use -v to print the protocol messages, -visible to show the
+// browser window and leave it open, and -visible-on-terminal to draw the page
+// in the terminal with terminal graphics.
 package main
 
 import (
@@ -30,6 +31,7 @@ import (
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/termcast"
 )
 
 // variant is one way to print a page.
@@ -108,9 +110,11 @@ var variants = []variant{
 }
 
 func main() {
+	var tc termcast.Flags
 	out := flag.String("out", "", "directory for the PDF files, a new temporary directory by default")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
+	tc.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -134,13 +138,25 @@ func main() {
 		}()
 	}
 
-	if err := run(ctx, srv.URL, *out); err != nil {
+	// draw the page in the terminal if the flag -visible-on-terminal is set
+	s, err := tc.Start(ctx, *verbose)
+	if err != nil {
 		log.Fatal(err)
+	}
+	defer s.Stop()
+	log.SetOutput(s.LogWriter())
+	stdout := io.Writer(os.Stdout)
+	if s != nil {
+		stdout = s.LogWriter()
+	}
+
+	if err := run(ctx, srv.URL, *out, stdout); err != nil {
+		s.Fatal(err)
 	}
 }
 
 // run prints each variant to a file, and reports what the file holds.
-func run(ctx context.Context, host, dir string) error {
+func run(ctx context.Context, host, dir string, stdout io.Writer) error {
 	if dir == "" {
 		d, err := os.MkdirTemp("", "pdfoptions-")
 		if err != nil {
@@ -150,7 +166,7 @@ func run(ctx context.Context, host, dir string) error {
 	} else if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("creating the directory %s: %w", dir, err)
 	}
-	fmt.Printf("writing the PDF files in %s\n", dir)
+	fmt.Fprintf(stdout, "writing the PDF files in %s\n", dir)
 
 	for _, v := range variants {
 		// Wait until the page has loaded, because PrintToPDF prints what
@@ -170,7 +186,7 @@ func run(ctx context.Context, host, dir string) error {
 		if err != nil {
 			return fmt.Errorf("reading %s: %w", name, err)
 		}
-		fmt.Printf("%-19s %2d %-5s %3.0f x %3.0f pt (%.2f x %.2f in), outline %-5t tagged %t\n",
+		fmt.Fprintf(stdout, "%-19s %2d %-5s %3.0f x %3.0f pt (%.2f x %.2f in), outline %-5t tagged %t\n",
 			v.Name+".pdf", info.Pages, plural(info.Pages), info.Width, info.Height, info.Width/72, info.Height/72, info.Outline, info.Tagged)
 	}
 	return nil
