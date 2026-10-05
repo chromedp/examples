@@ -34,3 +34,6 @@
 go.work
 go.work.sum
 /extension/ublock/
+
+# The test site needs its PNG images.
+!/internal/testsite/images/*.png
