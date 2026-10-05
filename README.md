@@ -6,15 +6,17 @@
 
 This repository holds 43 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
-has small examples that are self-contained. These programs are larger. Some of
-them need the internet or an external component.
+has small examples that are self-contained. These programs are larger. Only the
+program `fast` needs the internet. The program `extension` needs the files of
+uBlock Origin Lite on disk. The program `remote` needs a Chrome with a debugging
+port, unless you use its flag `-start`.
 
 [![Unit Tests][examples-ci-status]][examples-ci]
 [![Go Reference][goref-chromedp-status]][goref-chromedp]
 [![Releases][release-status]][releases]
 [![Discord Discussion][discord-status]][discord]
 
-The programs use the typed API of `chromedp` v0.19.0 and `cdproto` v0.157.5.
+The programs use the typed API of `chromedp` v0.20.0 and `cdproto` v0.157.8.
 The file `docs/API.md` in the `chromedp` repository shows the old code and the
 new code side by side. The file `docs/MIGRATION.md` in the same folder lists
 every name that changed. See
@@ -22,13 +24,15 @@ every name that changed. See
 
 ## Build and run
 
-The module needs Go 1.27. It requires `chromedp` v0.19.0, `cdproto` v0.157.5 and
-`chromedp/remote` v0.1.0, and Go downloads them when you build a program. The
-programs use `remote` for the flag `-visible`, which keeps the browser open, and
-for the `remote` program.
+The module needs Go 1.27. The packages `chromedp`, `cdproto` and `termcast` need
+only Go 1.25 or later. The module requires `chromedp` v0.20.0, `cdproto` v0.157.8,
+`chromedp/remote` v0.2.0 and `termcast` v0.2.1, and Go downloads them when you
+build a program. The programs use `remote` for the flag `-visible`, which keeps
+the browser open, and for the `remote` program. They use `termcast` for the flag
+`-visible-on-terminal`.
 
-The tags of this repository follow the tags of `chromedp`. The tag `v0.19.0` holds
-programs that use `chromedp` v0.19, and a tag such as `v0.19.1` is a later change in
+The tags of this repository follow the tags of `chromedp`. The tag `v0.20.0` holds
+programs that use `chromedp` v0.20, and a tag such as `v0.20.1` is a later change in
 this repository.
 
 `chromedp` starts the browser. It finds Chrome or Chromium on the `PATH`. If
@@ -71,7 +75,9 @@ Some programs need arguments:
 - `forecast` needs the flag `-q`, for example `go run ./forecast -q Jakarta`.
 - `geoip` takes IP addresses, for example `go run ./geoip 8.8.8.8`.
 - `multi` takes URLs. See [multi/README.md](multi/README.md).
-- `remote` needs a running browser. See [remote/README.md](remote/README.md).
+- `remote` needs a running browser, or the flag `-start`. See
+  [remote/README.md](remote/README.md).
+- `extension` needs the flag `-ext` with the files of uBlock Origin Lite.
 - `upload` uploads its own source file, so you can run it from any folder.
 
 The programs `download_file`, `download_image`, `emulate`, `har`, `pdf`,
@@ -155,8 +161,8 @@ results of the program, and prints them after the final frame. The flag does not
 work with `-v`, and it stops with an error when the terminal has no graphics.
 The programs `tabs`, `popups`, `workers`, `multi`, `session`, `screencast`,
 `pdfstream`, `har` and `rawcall` do not have the flag. The program `termcast`
-shows how to use the package in your own code. It plays an animated SVG and
-streams it to the terminal.
+has the flag `-fps` and not the two flags. It shows how to use the package in
+your own code. It plays an animated SVG and streams it to the terminal.
 
 ## Verification
 
@@ -187,7 +193,7 @@ because they need a live site that can change. No program was run with the flag
 | eval            | offline                          | works                                             | run on 2026-10-04 |
 | eventsiter      | offline                          | works                                             | run on 2026-10-04 |
 | exposefunc      | offline                          | works                                             | run on 2026-10-04 |
-| extension       | offline, the uBlock Origin Lite files on disk | works                                             | run on 2026-10-04 |
+| extension       | offline, the uBlock Origin Lite files on disk | works                          | run on 2026-10-04 |
 | fast            | internet (fast.com), terminal    | needs a terminal that shows images                | earlier test |
 | forecast        | terminal                         | works in a terminal, stops without one            | run on 2026-10-04 |
 | frames          | offline                          | works                                             | run on 2026-10-04 |
@@ -205,7 +211,7 @@ because they need a live site that can change. No program was run with the flag
 | popups          | offline                          | works                                             | run on 2026-10-04 |
 | proxy           | offline                          | works                                             | run on 2026-10-04 |
 | rawcall         | offline                          | works                                             | run on 2026-10-04 |
-| remote          | a Chrome with a debugging port   | works up to the terminal image                    | earlier test      |
+| remote          | a Chrome with a debugging port, or -start | works up to the terminal image                    | earlier test      |
 | screencast      | offline                          | works                                             | run on 2026-10-04 |
 | screenshot      | offline                          | works                                             | run on 2026-10-04 |
 | selectors       | offline                          | works                                             | run on 2026-10-04 |
@@ -217,7 +223,7 @@ because they need a live site that can change. No program was run with the flag
 | termcast        | offline, a terminal              | works in a terminal, stops without one            | run on 2026-10-04 |
 | text            | offline                          | works                                             | run on 2026-10-04 |
 | upload          | offline                          | works                                             | run on 2026-10-04 |
-| visible         | offline, a window                | works                                             | earlier test      |
+| visible         | offline                          | works                                             | earlier test      |
 | workers         | offline                          | works                                             | run on 2026-10-04 |
 
 Notes:
@@ -230,8 +236,12 @@ Notes:
 3. `remote` needs a Chrome that runs with a debugging port, for example
    `chrome --headless --remote-debugging-port=9222`. Use the flag `-start` to
    let `remote` start that Chrome.
-4. Every other program reads the local test site in `internal/testsite`. Use the
-   flag `-url` to read another site.
+4. Every other program reads local content. These programs read the local test
+   site in `internal/testsite`, and they take the flag `-url` to read another
+   site: `click`, `download_file`, `download_image`, `emulate`, `eval`,
+   `extension`, `forecast`, `geoip`, `latlon`, `logic`, `pdf`, `screenshot`,
+   `submit`, `termcast` and `text`. The program `remote` takes the flag `-nav`.
+   The other programs serve their own page from a local server.
 5. `extension` needs the files of uBlock Origin Lite on disk. Use the flag
    `-ext`.
 

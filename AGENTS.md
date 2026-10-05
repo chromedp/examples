@@ -6,7 +6,7 @@ than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
 proxy and more. The module is `github.com/chromedp/examples`.
 
-The programs use the typed API of `chromedp` v0.19.0 and `cdproto` v0.157.5. See
+The programs use the typed API of `chromedp` v0.20.0 and `cdproto` v0.157.8. See
 `docs/decisions/2026-10-03-the-programs-use-the-new-typed-api.md`.
 
 ## Standing rules
@@ -111,7 +111,7 @@ you trust it, because a later decision can amend or replace it.
 | `docs/docs_test.go` | the test of the documents and the Go comments |
 | `.agents/skills/` and `.claude/skills/` | the two agent skills, as copies |
 | `skills-lock.json` | the source of each skill |
-| `go.mod`, `go.sum` | the module, which needs Go 1.27 |
+| `go.mod`, `go.sum` | the module, which needs Go 1.27. `chromedp`, `cdproto` and `termcast` need only Go 1.25 |
 
 The root of the repository holds `README.md`, `AGENTS.md`, `CLAUDE.md`,
 `CONTRIBUTING.md` and `LICENSE` as text documents. Every other document goes in
@@ -131,8 +131,9 @@ Add `-v` to any program to print the protocol messages. Add `-visible` to show
 the browser window and leave it open. The variable `CHROMEDP_VISIBLEWINDOW=1`
 shows the window with no flag. A visible window needs a display.
 
-Go downloads `chromedp` v0.19.0 and `cdproto` v0.157.5 when it builds a program.
-Do not edit `go.mod` or `go.sum` unless the maintainer asks.
+Go downloads `chromedp` v0.20.0, `cdproto` v0.157.8, `chromedp/remote` v0.2.0 and
+`termcast` v0.2.1 when it builds a program. Do not edit `go.mod` or `go.sum`
+unless the maintainer asks.
 
 A program that needs a browser starts it. If Chrome is not on the `PATH` under
 the name `google-chrome`, `chromium` or `chrome`, link it there:
@@ -144,12 +145,15 @@ PATH=$TMP:$PATH go run ./<name>
 
 ## Verify an offline program
 
-The offline programs are `console`, `cookie`, `dialogs`, `dragdrop`,
-`eventsiter`, `exposefunc`, `frames`, `har`, `headers`, `intercept`, `keys`,
-`multi`, `pdfoptions`, `pdfstream`, `popups`, `proxy`, `rawcall`, `screencast`,
-`selectors`, `session`, `structeval`, `subtree`, `upload`, `visible` and
-`workers`. Run one with the command above and a time limit, for example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare the output with the table that follows. Timestamps, ports and the
-paths of temporary files differ on each run. Do not run `-visible` in a session
+Every program except `fast` runs offline. These programs print an output that
+you can compare with the table that follows: `console`, `cookie`, `dialogs`,
+`dragdrop`, `eventsiter`, `exposefunc`, `frames`, `har`, `headers`, `intercept`,
+`keys`, `multi`, `pdfoptions`, `pdfstream`, `popups`, `proxy`, `rawcall`,
+`screencast`, `selectors`, `session`, `structeval`, `subtree`, `upload`,
+`visible` and `workers`. Run one with the command above and a time limit, for
+example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare
+the output with the table that follows. Timestamps, ports and the paths of
+temporary files differ on each run. Do not run `-visible` in a session
 that has no display.
 
 | Program | Expected output |
@@ -200,8 +204,10 @@ to the documents and to the Go comments.
 ## The local test site
 
 Every program except `fast` reads local content and not a live site. See
-`docs/decisions/2026-10-04-the-examples-use-a-local-test-site.md`. The package
-`internal/testsite` serves the content. `internal/testsite/README.md` lists
+`docs/decisions/2026-10-04-the-examples-use-a-local-test-site.md`. Sixteen
+programs read the shared site in `internal/testsite`. The other programs serve
+a page of their own from a local server. The package `internal/testsite` serves
+the shared content. `internal/testsite/README.md` lists
 every route, every selector that a program can use and the size of each page.
 
 Start the site in a program like this:
@@ -214,9 +220,10 @@ defer site.Close()
 `site.URL` is the base address, such as `http://127.0.0.1:41233`. `site.OtherURL`
 is the same server under the name `localhost`, and a browser treats it as
 another site. Use it for a cross-site frame or a cross-origin request. Each
-program that reads the site has the flag `-url`. When the flag is empty, the
-program starts the test site. When it holds an address, the program reads that
-site, so a person can point it at a live site with the same structure.
+program that reads the site has the flag `-url`, except `remote`, which has the
+flag `-nav`. When the flag is empty, the program starts the test site. When it
+holds an address, the program reads that site, so a person can point it at a
+live site with the same structure.
 
 Follow these rules when you work on the site or on a program that uses it.
 
@@ -240,11 +247,11 @@ Follow these rules when you work on the site or on a program that uses it.
 The workflow `.github/workflows/test.yml` builds and vets every program on each
 push and pull request. The workflow `.github/workflows/nightly.yml` does it every
 night at 05:17 UTC against the newest `main` of `chromedp` and of `chromedp/remote`,
-and the newest `cdproto`. Neither runs a program, because most programs read live
-websites. Do not add a test that runs a program in CI.
+and the newest `cdproto`. Neither runs a program, because `fast` reads a live
+website and a site can change. Do not add a test that runs a program in CI.
 
-The tags follow `chromedp`. The tag `v0.19.x` holds programs that use `chromedp`
-v0.19.x, and the patch number counts the changes of this repository. See
+The tags follow `chromedp`. The tag `v0.20.x` holds programs that use `chromedp`
+v0.20.x, and the patch number counts the changes of this repository. See
 `docs/decisions/2026-10-04-the-examples-follow-the-chromedp-version.md`. Do not
 create a tag. The maintainer does.
 

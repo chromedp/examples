@@ -23,6 +23,8 @@ The workflow `.github/workflows/test.yml` builds and vets all the programs on
 every push and pull request. The workflow `.github/workflows/nightly.yml` does
 the same every night at 05:17 UTC, against the newest `main` of `chromedp` and
 of its `remote` module, and the newest `cdproto`. Neither workflow runs the
-programs. Most programs read a live website. When one fails, the cause can be a
-site that changed, and not a fault in this repository. A build that fails shows
-a real break of the API.
+programs. When this decision was made, most programs read a live website. Now
+only `fast` does, because of
+`2026-10-04-the-examples-use-a-local-test-site.md`. When a program fails, the
+cause can be a site that changed, and not a fault in this repository. A build
+that fails shows a real break of the API.
