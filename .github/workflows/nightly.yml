@@ -17,11 +17,11 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version: stable
-      - name: Use the newest chromedp, cdproto and remote
+      - name: Use the newest chromedp and cdproto
         run: |
-          go get github.com/chromedp/chromedp@main github.com/chromedp/chromedp/remote@main github.com/chromedp/cdproto@latest
+          go get github.com/chromedp/chromedp@main github.com/chromedp/cdproto@latest
           go mod tidy
-          go list -m github.com/chromedp/chromedp github.com/chromedp/chromedp/remote github.com/chromedp/cdproto
+          go list -m github.com/chromedp/chromedp github.com/chromedp/cdproto
       - name: Build
         run: go build ./...
       - name: Vet

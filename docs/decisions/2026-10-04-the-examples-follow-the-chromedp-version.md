@@ -22,7 +22,8 @@ gets the minor version 0.19, this repository gets the tag `v0.19.0` after the
 The workflow `.github/workflows/test.yml` builds and vets all the programs on
 every push and pull request. The workflow `.github/workflows/nightly.yml` does
 the same every night at 05:17 UTC, against the newest `main` of `chromedp` and
-of its `remote` module, and the newest `cdproto`. Neither workflow runs the
+the newest `cdproto`. Before `chromedp` v0.21.0 the package `remote` was a
+module of its own, and the workflow also used its newest `main`. Neither workflow runs the
 programs. When this decision was made, most programs read a live website. Now
 only `fast` does, because of
 `2026-10-04-the-examples-use-a-local-test-site.md`. When a program fails, the

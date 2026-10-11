@@ -16,7 +16,7 @@ port, unless you use its flag `-start`.
 [![Releases][release-status]][releases]
 [![Discord Discussion][discord-status]][discord]
 
-The programs use the typed API of `chromedp` v0.20.0 and `cdproto` v0.157.8.
+The programs use the typed API of `chromedp` v0.21.0 and `cdproto` v0.157.8.
 The file `docs/API.md` in the `chromedp` repository shows the old code and the
 new code side by side. The file `docs/MIGRATION.md` in the same folder lists
 every name that changed. See
@@ -25,14 +25,14 @@ every name that changed. See
 ## Build and run
 
 The module needs Go 1.27. The packages `chromedp`, `cdproto` and `termcast` need
-only Go 1.25 or later. The module requires `chromedp` v0.20.0, `cdproto` v0.157.8,
-`chromedp/remote` v0.2.0 and `termcast` v0.2.1, and Go downloads them when you
-build a program. The programs use `remote` for the flag `-visible`, which keeps
-the browser open, and for the `remote` program. They use `termcast` for the flag
-`-visible-on-terminal`.
+only Go 1.25 or later. The module requires `chromedp` v0.21.0, `cdproto` v0.157.8
+and `termcast` v0.2.2, and Go downloads them when you build a program. The
+programs use the package `chromedp/remote`, which is part of `chromedp`, for the
+flag `-visible`, which keeps the browser open, and for the `remote` program.
+They use `termcast` for the flag `-visible-on-terminal`.
 
-The tags of this repository follow the tags of `chromedp`. The tag `v0.20.0` holds
-programs that use `chromedp` v0.20, and a tag such as `v0.20.1` is a later change in
+The tags of this repository follow the tags of `chromedp`. The tag `v0.21.0` holds
+programs that use `chromedp` v0.21, and a tag such as `v0.21.1` is a later change in
 this repository.
 
 `chromedp` starts the browser. It finds Chrome or Chromium on the `PATH`. If
