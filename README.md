@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 43 example programs for [`chromedp`][1], a Go package that
+This repository holds 44 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Only the
 program `fast` needs the internet. The program `extension` needs the files of
@@ -97,6 +97,7 @@ directory of their flag `-out`.
 | [console](/console)               | read the console of a page and its uncaught exceptions with chromedp                                                                     |
 | [cookie](/cookie)                 | set an HTTP cookie on requests                                                                                                           |
 | [dialogs](/dialogs)               | handle the JavaScript dialogs of a page                                                                                                  |
+| [distrust](/distrust)             | check that a browser rejects the certificates of a compromised certificate authority                                                     |
 | [download_file](/download_file)   | do headless file downloads                                                                                                               |
 | [download_image](/download_image) | do headless image downloads                                                                                                              |
 | [dragdrop](/dragdrop)             | drag and drop with the actions DragAndDrop and DragAndDropXY                                                                             |
@@ -186,6 +187,7 @@ because they need a live site that can change. No program was run with the flag
 | console         | offline                          | works                                             | run on 2026-10-04 |
 | cookie          | offline                          | works                                             | run on 2026-10-04 |
 | dialogs         | offline                          | works                                             | run on 2026-10-04 |
+| distrust        | internet, Podman                 | works, the browser connected to 7 of 14 hosts     | run on 2026-10-26 |
 | download_file   | offline                          | works                                             | run on 2026-10-04 |
 | download_image  | offline                          | works                                             | run on 2026-10-04 |
 | dragdrop        | offline                          | works                                             | run on 2026-10-04 |
@@ -236,7 +238,7 @@ Notes:
 3. `remote` needs a Chrome that runs with a debugging port, for example
    `chrome --headless --remote-debugging-port=9222`. Use the flag `-start` to
    let `remote` start that Chrome.
-4. Every other program reads local content. These programs read the local test
+4. Every other program except `distrust` reads local content. These programs read the local test
    site in `internal/testsite`, and they take the flag `-url` to read another
    site: `click`, `download_file`, `download_image`, `emulate`, `eval`,
    `extension`, `forecast`, `geoip`, `latlon`, `logic`, `pdf`, `screenshot`,
@@ -244,10 +246,19 @@ Notes:
    The other programs serve their own page from a local server.
 5. `extension` needs the files of uBlock Origin Lite on disk. Use the flag
    `-ext`.
+6. `distrust` starts the image `headless-shell` in a container with Podman,
+   and reads the test page `emudhra.we-have-a-problem.com` and its test hosts.
+   Use the flag `-podman` to name another command, such as `docker`. On
+   2026-10-26 the image `latest` was Chrome 157.0.8103.15. The browser connected
+   to the 7 hosts that chain to the root of eMudhra, so it still trusted the
+   compromised intermediate certificates, and the program ended with the
+   status 1. Chrome blocks these certificates with an update of its CRLSet,
+   and the image does not receive that update.
 
 ## Live sites can change
 
-Only `fast` reads a live site. The result can be different on another day.
+`fast` reads the live site `fast.com`, and `distrust` reads the test page
+`emudhra.we-have-a-problem.com`. Their results can be different on another day.
 
 ## Questions, bugs and changes
 

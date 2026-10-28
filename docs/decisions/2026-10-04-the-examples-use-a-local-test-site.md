@@ -14,7 +14,7 @@ A tiny page does not solve this. A program that takes a screenshot, prints a PDF
 
 The repository has a shared test site in `internal/testsite`. It serves long, real looking pages from embedded files and from Go code. The pages cover a package reference, an encyclopedia with a search, a repository with a ZIP download, an image gallery, weather forecasts, an IP lookup, a map with tiles, a page for device emulation and a report for printing. All content is original, and no page loads a font, an image or a script from the internet.
 
-Every program uses the test site instead of a live site, with one exception. The program `fast` keeps reading the internet. It measures a real connection, and the maintainer runs it on remote systems.
+Every program uses the test site instead of a live site, with one exception. The program `fast` keeps reading the internet. It measures a real connection, and the maintainer runs it on remote systems. On 2026-10-26 the maintainer added a second exception. The program `distrust` reads a public test page, because it checks whether a browser in a container rejects the certificates of a compromised certificate authority, and only a live host can show that.
 
 A program that reads the test site takes the flag `-url`. The flag holds the base address of a site. When the flag is empty, the program starts the test site and uses it. A person can give the address of a live site to see the program work on the real thing. The live site must then have the same structure.
 

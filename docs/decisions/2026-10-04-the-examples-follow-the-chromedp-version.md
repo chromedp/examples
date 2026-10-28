@@ -25,7 +25,7 @@ the same every night at 05:17 UTC, against the newest `main` of `chromedp` and
 the newest `cdproto`. Before `chromedp` v0.21.0 the package `remote` was a
 module of its own, and the workflow also used its newest `main`. Neither workflow runs the
 programs. When this decision was made, most programs read a live website. Now
-only `fast` does, because of
+only `fast` and `distrust` do, because of
 `2026-10-04-the-examples-use-a-local-test-site.md`. When a program fails, the
 cause can be a site that changed, and not a fault in this repository. A build
 that fails shows a real break of the API.

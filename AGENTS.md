@@ -1,6 +1,6 @@
 # chromedp examples
 
-This repository holds 43 example programs for `chromedp`, a Go package that
+This repository holds 44 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
@@ -86,7 +86,8 @@ you trust it, because a later decision can amend or replace it.
     `-v`, and "show the browser window and leave it open" for the flag
     `-visible`. The program `extension` is the exception: it uses
     `chromedp.VisibleWindow` and `chromedp.WaitClosed`, because `KeepOpen` uses a
-    websocket and the extension commands need the pipe.
+    websocket and the extension commands need the pipe. The program `distrust`
+    has no `-visible`, because its browser runs in a container.
 13. Every program that has a page to show has the flag `-visible-on-terminal`
     and the flag `-terminal-fps`. Register them with `termcast.Flags` from
     `github.com/chromedp/termcast`, and start the stream after the browser
@@ -100,7 +101,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 43 programs |
+| `<name>/main.go` | one example program, for each of the 44 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -145,7 +146,7 @@ PATH=$TMP:$PATH go run ./<name>
 
 ## Verify an offline program
 
-Every program except `fast` runs offline. These programs print an output that
+Every program except `fast` and `distrust` runs offline. These programs print an output that
 you can compare with the table that follows: `console`, `cookie`, `dialogs`,
 `dragdrop`, `eventsiter`, `exposefunc`, `frames`, `har`, `headers`, `intercept`,
 `keys`, `multi`, `pdfoptions`, `pdfstream`, `popups`, `proxy`, `rawcall`,
@@ -203,7 +204,7 @@ to the documents and to the Go comments.
 
 ## The local test site
 
-Every program except `fast` reads local content and not a live site. See
+Every program except `fast` and `distrust` reads local content and not a live site. See
 `docs/decisions/2026-10-04-the-examples-use-a-local-test-site.md`. Sixteen
 programs read the shared site in `internal/testsite`. The other programs serve
 a page of their own from a local server. The package `internal/testsite` serves

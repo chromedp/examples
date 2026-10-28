@@ -47,7 +47,10 @@ var proseRules = map[string]*regexp.Regexp{
 var notProse = regexp.MustCompile("(?s)```.*?```|`[^`\n]*`|\"[^\"\n]*\"|\\]\\([^)]*\\)|https?://\\S+")
 
 // skipDirs are the directories that hold no text of this project.
-var skipDirs = map[string]bool{".git": true, ".agents": true, ".claude": true}
+// skipDirs are the directories that the tests do not read. The directory
+// ublock holds a copy of uBlock Origin Lite for the program extension, and
+// git ignores it.
+var skipDirs = map[string]bool{".git": true, ".agents": true, ".claude": true, "ublock": true}
 
 func TestMarkdownLinksResolve(t *testing.T) {
 	for _, path := range find(t, ".md") {
