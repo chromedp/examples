@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 44 example programs for [`chromedp`][1], a Go package that
+This repository holds 45 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Only the
 program `fast` needs the internet. The program `extension` needs the files of
@@ -16,7 +16,7 @@ port, unless you use its flag `-start`.
 [![Releases][release-status]][releases]
 [![Discord Discussion][discord-status]][discord]
 
-The programs use the typed API of `chromedp` v0.21.0 and `cdproto` v0.157.8.
+The programs use the typed API of `chromedp` v0.22.0 and `cdproto` v0.159.0.
 The file `docs/API.md` in the `chromedp` repository shows the old code and the
 new code side by side. The file `docs/MIGRATION.md` in the same folder lists
 every name that changed. See
@@ -31,8 +31,8 @@ programs use the package `chromedp/remote`, which is part of `chromedp`, for the
 flag `-visible`, which keeps the browser open, and for the `remote` program.
 They use `termcast` for the flag `-visible-on-terminal`.
 
-The tags of this repository follow the tags of `chromedp`. The tag `v0.21.0` holds
-programs that use `chromedp` v0.21, and a tag such as `v0.21.1` is a later change in
+The tags of this repository follow the tags of `chromedp`. The tag `v0.22.0` holds
+programs that use `chromedp` v0.22, and a tag such as `v0.22.1` is a later change in
 this repository.
 
 `chromedp` starts the browser. It finds Chrome or Chromium on the `PATH`. If
@@ -134,6 +134,7 @@ directory of their flag `-out`.
 | [tabs](/tabs)                     | use several tabs of one browser                                                                                                          |
 | [termcast](/termcast)             | stream the screen of the browser to the terminal with terminal graphics                                                                  |
 | [text](/text)                     | extract text from a specific element                                                                                                     |
+| [timeline](/timeline)             | see the events of a page of every type in the order in which Chrome sent them                                                            |
 | [upload](/upload)                 | upload a file on a form                                                                                                                  |
 | [visible](/visible)               | wait until an element is visible                                                                                                         |
 | [workers](/workers)               | run many jobs at the same time in one browser with a pool of goroutines                                                                  |
@@ -200,7 +201,7 @@ because they need a live site that can change. No program was run with the flag
 | forecast        | terminal                         | works in a terminal, stops without one            | run on 2026-10-04 |
 | frames          | offline                          | works                                             | run on 2026-10-04 |
 | geoip           | terminal                         | works in a terminal, stops without one            | run on 2026-10-04 |
-| har             | offline                          | works                                             | run on 2026-10-04 |
+| har             | offline                          | works, now with chromedp.Listen                   | run on 2026-11-04 |
 | headers         | offline                          | works                                             | run on 2026-10-04 |
 | intercept       | offline                          | works                                             | run on 2026-10-04 |
 | keys            | offline                          | works                                             | run on 2026-10-04 |
@@ -224,6 +225,7 @@ because they need a live site that can change. No program was run with the flag
 | tabs            | offline                          | works                                             | run on 2026-10-04 |
 | termcast        | offline, a terminal              | works in a terminal, stops without one            | run on 2026-10-04 |
 | text            | offline                          | works                                             | run on 2026-10-04 |
+| timeline        | offline                          | works                                             | run on 2026-11-04 |
 | upload          | offline                          | works                                             | run on 2026-10-04 |
 | visible         | offline                          | works                                             | earlier test      |
 | workers         | offline                          | works                                             | run on 2026-10-04 |

@@ -1,12 +1,12 @@
 # chromedp examples
 
-This repository holds 44 example programs for `chromedp`, a Go package that
+This repository holds 45 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
 proxy and more. The module is `github.com/chromedp/examples`.
 
-The programs use the typed API of `chromedp` v0.21.0 and `cdproto` v0.157.8. See
+The programs use the typed API of `chromedp` v0.22.0 and `cdproto` v0.159.0. See
 `docs/decisions/2026-10-03-the-programs-use-the-new-typed-api.md`.
 
 ## Standing rules
@@ -101,7 +101,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 44 programs |
+| `<name>/main.go` | one example program, for each of the 45 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -150,8 +150,8 @@ Every program except `fast` and `distrust` runs offline. These programs print an
 you can compare with the table that follows: `console`, `cookie`, `dialogs`,
 `dragdrop`, `eventsiter`, `exposefunc`, `frames`, `har`, `headers`, `intercept`,
 `keys`, `multi`, `pdfoptions`, `pdfstream`, `popups`, `proxy`, `rawcall`,
-`screencast`, `selectors`, `session`, `structeval`, `subtree`, `upload`,
-`visible` and `workers`. Run one with the command above and a time limit, for
+`screencast`, `selectors`, `session`, `structeval`, `subtree`, `timeline`,
+`upload`, `visible` and `workers`. Run one with the command above and a time limit, for
 example `timeout 90 go run ./cookie`. It must finish with exit code 0. Compare
 the output with the table that follows. Timestamps, ports and the paths of
 temporary files differ on each run. Do not run `-visible` in a session
@@ -181,6 +181,7 @@ that has no display.
 | `session` | the login line, `saved the state in <file> (N bytes)` with the cookie `session, HttpOnly: true`, then `second browser before the restore: please log in` and `second browser after the restore: hello ada, theme dark, cart 3 items`. It writes the state in a temporary file, or in the file of `-state` |
 | `structeval` | one line for each Go type (`struct: Ada, 36, [go javascript], lives in London`, `slice of structs: 3 items`, `map:`, `number: 3, decimal number: 43.75, boolean: true`), then the errors (`exception: Uncaught, description: TypeError: ...`, `ErrJSUndefined: true`, `a string into int`), and `a promise with AwaitPromise: "slow answer"` |
 | `subtree` | the tree of the element `h1`, with its attributes and its children `a`, `span` and a text |
+| `timeline` | the heading `the timeline of the page load, in the order of arrival:` and 13 numbered lines. They are `request GET /`, `response 200 /`, `frame navigated: /`, the requests for `/dot.gif` and `/app.js`, `console.log: inline script`, the two responses, `console.warning: external script`, `DOMContentLoaded`, `load`, then `request GET /api/data` and `response 200 /api/data`. The order of the image and the script can differ. The last line is `the command returned, and the timeline already had "console.log: from the command"` |
 | `upload` | it logs `original size: N, upload size: N` with the same number twice |
 | `visible` | the log lines `waiting 3s for box to become visible`, `BOX1 IS VISIBLE` and `BOX2 IS VISIBLE`, after about 4 seconds |
 | `workers` | one line for each of the 8 jobs (7 with a title and a value, and `job 8, delay 5s: timed out after 2s`), `8 jobs, 4 workers, 7 finished, 1 failed`, the sum of the delays and of the times of the jobs, and the total time with a speedup of about 2 times |
@@ -251,8 +252,8 @@ night at 05:17 UTC against the newest `main` of `chromedp` and of `chromedp/remo
 and the newest `cdproto`. Neither runs a program, because `fast` reads a live
 website and a site can change. Do not add a test that runs a program in CI.
 
-The tags follow `chromedp`. The tag `v0.21.x` holds programs that use `chromedp`
-v0.21.x, and the patch number counts the changes of this repository. See
+The tags follow `chromedp`. The tag `v0.22.x` holds programs that use `chromedp`
+v0.22.x, and the patch number counts the changes of this repository. See
 `docs/decisions/2026-10-04-the-examples-follow-the-chromedp-version.md`. Do not
 create a tag. The maintainer does.
 

@@ -2,7 +2,9 @@
 // from the network events of a page. It loads a local page that has an image, a
 // script and a fetch request. Then it builds a HAR 1.2 document from the events
 // of the network domain, writes it to the file named by -out and prints a
-// summary. It starts a local server and needs no internet. A full HAR also
+// summary. It reads the events with chromedp.Listen, which gives the events of
+// every type in the order in which Chrome sent them. It starts a local server
+// and needs no internet. A full HAR also
 // needs the cookies, the request bodies, the redirect chains, the cache data,
 // the DNS, connect and TLS timings, the sizes of the headers and the text of
 // each response. This program leaves them out. Use -v to print the protocol
@@ -87,23 +89,17 @@ func run(ctx context.Context, pageURL, out string) error {
 		return fmt.Errorf("opening the tab: %w", err)
 	}
 
-	// Start the listeners before the navigation. The iterator of
-	// chromedp.Events subscribes when Events returns, so no event is lost,
-	// even if the goroutine that reads it starts later.
-	rec := newRecorder()
+	// Start the listener before the navigation. chromedp.Listen calls the func
+	// for each event of the tab in the order in which Chrome sent it, so one
+	// func sees the events of every type in order. It sees an event before the
+	// command that follows the event returns, so the page timings are in the
+	// recorder when the navigation returns.
+	rec := newRecorder(requestCount)
 	listenCtx, stop := context.WithCancel(ctx)
 	defer stop()
-	var wg sync.WaitGroup
-	listen(listenCtx, &wg, network.RequestWillBeSent, rec.requestSent)
-	listen(listenCtx, &wg, network.ResponseReceived, rec.responseReceived)
-	listen(listenCtx, &wg, network.LoadingFinished, rec.loadingFinished)
-	listen(listenCtx, &wg, network.LoadingFailed, rec.loadingFailed)
-	listen(listenCtx, &wg, page.DomContentEventFired, func(ev page.EventDomContentEventFired) {
-		rec.setPageTiming(ev.Timestamp, false)
-	})
-	listen(listenCtx, &wg, page.LoadEventFired, func(ev page.EventLoadEventFired) {
-		rec.setPageTiming(ev.Timestamp, true)
-	})
+	if err := chromedp.Listen(listenCtx, rec.handle); err != nil {
+		return fmt.Errorf("listening to the events: %w", err)
+	}
 
 	if err := chromedp.Do(ctx, chromedp.Navigate(pageURL)); err != nil {
 		return fmt.Errorf("loading %s: %w", pageURL, err)
@@ -114,13 +110,13 @@ func run(ctx context.Context, pageURL, out string) error {
 	}
 
 	// The load event fires before the script of the page sends its fetch
-	// request, and the events arrive in goroutines. Wait until every request
-	// has finished, then stop the listeners.
-	if err := rec.waitFinished(ctx, requestCount); err != nil {
-		return err
+	// request. Wait until every request has ended, then stop the listener.
+	select {
+	case <-rec.ended:
+	case <-ctx.Done():
+		return fmt.Errorf("waiting for %d requests: %w", requestCount, ctx.Err())
 	}
 	stop()
-	wg.Wait()
 
 	doc, err := rec.build(ctx, title, ver.Product)
 	if err != nil {
@@ -140,23 +136,8 @@ func run(ctx context.Context, pageURL, out string) error {
 	return nil
 }
 
-// listen starts a goroutine that calls handle for each event, until the
-// context ends. Events subscribes before listen returns.
-func listen[E any](ctx context.Context, wg *sync.WaitGroup, ev cdp.Event[E], handle func(E)) {
-	events := chromedp.Events(ctx, ev)
-	wg.Go(func() {
-		for e, err := range events {
-			if err != nil {
-				return
-			}
-			handle(e)
-		}
-	})
-}
-
 // call holds the events of one request. The events of one request arrive in
-// order, but the goroutines of the listeners do not run in order. Each field
-// can be nil until its event arrives.
+// order, so a field is nil only until its event arrives.
 type call struct {
 	sent     *network.EventRequestWillBeSent
 	received *network.EventResponseReceived
@@ -169,18 +150,65 @@ func (c *call) done() bool {
 	return c.sent != nil && (c.finished != nil || c.failed != nil)
 }
 
-// recorder collects the events of the listeners. It has a mutex because the
-// listeners run in separate goroutines.
+// recorder collects the events of the listener. The listener runs in the loop
+// that reads the messages of the tab, and the program reads the result from
+// its own goroutine, so the recorder has a mutex.
 type recorder struct {
 	mu    sync.Mutex
 	calls map[network.RequestID]*call
 
 	// The times of the events of the page, in monotonic seconds.
 	domContent, load cdp.MonotonicTime
+
+	// ended closes when want requests have ended.
+	want  int
+	ended chan struct{}
 }
 
-func newRecorder() *recorder {
-	return &recorder{calls: make(map[network.RequestID]*call)}
+func newRecorder(want int) *recorder {
+	return &recorder{calls: make(map[network.RequestID]*call), want: want, ended: make(chan struct{})}
+}
+
+// handle records an event. It runs in the loop that reads the messages of the
+// tab, so it only stores the event and returns. It runs no command.
+func (r *recorder) handle(ev any) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	switch ev := ev.(type) {
+	case *network.EventRequestWillBeSent:
+		r.get(ev.RequestID).sent = ev
+	case *network.EventResponseReceived:
+		r.get(ev.RequestID).received = ev
+	case *network.EventLoadingFinished:
+		r.get(ev.RequestID).finished = ev
+		r.checkEnded()
+	case *network.EventLoadingFailed:
+		r.get(ev.RequestID).failed = ev
+		r.checkEnded()
+	case *page.EventDomContentEventFired:
+		r.domContent = ev.Timestamp
+	case *page.EventLoadEventFired:
+		r.load = ev.Timestamp
+	}
+}
+
+// checkEnded closes the channel ended when enough requests have ended. The
+// caller must hold the mutex.
+func (r *recorder) checkEnded() {
+	select {
+	case <-r.ended:
+		return
+	default:
+	}
+	n := 0
+	for _, c := range r.calls {
+		if c.done() {
+			n++
+		}
+	}
+	if n >= r.want {
+		close(r.ended)
+	}
 }
 
 // get returns the call of a request, and makes it when it is new. The caller
@@ -194,66 +222,12 @@ func (r *recorder) get(id network.RequestID) *call {
 	return c
 }
 
-func (r *recorder) requestSent(ev network.EventRequestWillBeSent) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.get(ev.RequestID).sent = &ev
-}
-
-func (r *recorder) responseReceived(ev network.EventResponseReceived) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.get(ev.RequestID).received = &ev
-}
-
-func (r *recorder) loadingFinished(ev network.EventLoadingFinished) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.get(ev.RequestID).finished = &ev
-}
-
-func (r *recorder) loadingFailed(ev network.EventLoadingFailed) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.get(ev.RequestID).failed = &ev
-}
-
-func (r *recorder) setPageTiming(t cdp.MonotonicTime, isLoad bool) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if isLoad {
-		r.load = t
-	} else {
-		r.domContent = t
-	}
-}
-
-// waitFinished waits until n requests have ended.
-func (r *recorder) waitFinished(ctx context.Context, n int) error {
-	ticker := time.NewTicker(50 * time.Millisecond)
-	defer ticker.Stop()
-	for {
-		r.mu.Lock()
-		ended := 0
-		for _, c := range r.calls {
-			if c.done() {
-				ended++
-			}
-		}
-		r.mu.Unlock()
-		if ended >= n {
-			return nil
-		}
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("waiting for %d requests, %d ended: %w", n, ended, ctx.Err())
-		case <-ticker.C:
-		}
-	}
-}
-
-// build makes the HAR document from the calls. The listeners must have stopped.
+// build makes the HAR document from the calls. The listener can still run, so
+// build holds the mutex while it reads the calls. It runs commands, but only
+// from the goroutine of the program.
 func (r *recorder) build(ctx context.Context, title, product string) (*har.HAR, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	// Sort the calls by the time of the request.
 	var ids []network.RequestID
 	for id, c := range r.calls {
