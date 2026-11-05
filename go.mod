@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/chromedp/cdproto v0.159.0
-	github.com/chromedp/chromedp v0.22.0
+	github.com/chromedp/chromedp v0.23.0
 	github.com/chromedp/termcast v0.2.2
 	github.com/kenshaw/rasterm v0.1.21
 	github.com/oschwald/geoip2-golang v1.13.0

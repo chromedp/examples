@@ -1,12 +1,12 @@
 # chromedp examples
 
-This repository holds 45 example programs for `chromedp`, a Go package that
+This repository holds 46 example programs for `chromedp`, a Go package that
 drives Chrome through the Chrome DevTools Protocol. The programs are larger
 than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
 proxy and more. The module is `github.com/chromedp/examples`.
 
-The programs use the typed API of `chromedp` v0.22.0 and `cdproto` v0.159.0. See
+The programs use the typed API of `chromedp` v0.23.0 and `cdproto` v0.159.0. See
 `docs/decisions/2026-10-03-the-programs-use-the-new-typed-api.md`.
 
 ## Standing rules
@@ -101,7 +101,7 @@ you trust it, because a later decision can amend or replace it.
 
 | Path | Holds |
 | --- | --- |
-| `<name>/main.go` | one example program, for each of the 45 programs |
+| `<name>/main.go` | one example program, for each of the 46 programs |
 | `forecast/hl.json` | the language codes that `forecast` embeds |
 | `geoip/GeoLite2-City.mmdb` | the IP database that `geoip` embeds |
 | `geoip/README.md`, `multi/README.md`, `remote/README.md` | the usage notes of the program |
@@ -147,7 +147,7 @@ PATH=$TMP:$PATH go run ./<name>
 ## Verify an offline program
 
 Every program except `fast` and `distrust` runs offline. These programs print an output that
-you can compare with the table that follows: `console`, `cookie`, `dialogs`,
+you can compare with the table that follows: `console`, `contexts`, `cookie`, `dialogs`,
 `dragdrop`, `eventsiter`, `exposefunc`, `frames`, `har`, `headers`, `intercept`,
 `keys`, `multi`, `pdfoptions`, `pdfstream`, `popups`, `proxy`, `rawcall`,
 `screencast`, `selectors`, `session`, `structeval`, `subtree`, `timeline`,
@@ -160,6 +160,7 @@ that has no display.
 | Program | Expected output |
 | --- | --- |
 | `console` | the heading `all the messages:` with the messages in order. Each one has a line with its type and text and a line with its place. They are `log page loaded version 3`, `log user {name: "Ada", age: 36}`, a `warning`, an `error` with `code 7`, the `error` of the missing image with `[network]`, the exception `Uncaught Error: boom` with two `stack:` lines, the exception `Uncaught (in promise) Error: nobody handles this` and `log end of the run`. Then the heading `only the errors and the exceptions:` with the missing image and the two exceptions again, then `stopped: context deadline exceeded` |
+| `contexts` | `WithListener saw 3 JavaScript contexts of the tab:` and three numbered lines, the default context of the top frame and two of an iframe, then `Listen after the attach saw 0 of them` and `the browser detached the tab, and Detached closed` |
 | `cookie` | the log lines `server received cookie 0: cookie1=value1` and `cookie 1: cookie2=value2`, each one twice, then two `chrome cookie` lines and `chrome received cookies` |
 | `dialogs` | four dialogs: `alert dialog, message "Hello from the page": accepted`, `confirm gave false`, `prompt gave Ada` and a `beforeunload` dialog with an empty message, then `the browser is now on the page that says "the next page"` |
 | `dragdrop` | three lines for the slider (`value 75`, `value 34` and `value 100`, with the handle at 277, 127 and 370 px), the list order after two drags (`beta, gamma, alpha, delta`, then `delta, beta, gamma, alpha`), two lines for the HTML5 drops (`"buy milk"` on `done` and `"call Ann"` on `later`, with the data type `text/plain`), and the card count of each zone |
@@ -252,8 +253,8 @@ night at 05:17 UTC against the newest `main` of `chromedp` and of `chromedp/remo
 and the newest `cdproto`. Neither runs a program, because `fast` reads a live
 website and a site can change. Do not add a test that runs a program in CI.
 
-The tags follow `chromedp`. The tag `v0.22.x` holds programs that use `chromedp`
-v0.22.x, and the patch number counts the changes of this repository. See
+The tags follow `chromedp`. The tag `v0.23.x` holds programs that use `chromedp`
+v0.23.x, and the patch number counts the changes of this repository. See
 `docs/decisions/2026-10-04-the-examples-follow-the-chromedp-version.md`. Do not
 create a tag. The maintainer does.
 

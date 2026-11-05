@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/chromedp/logo/main/chromedp.svg" alt="chromedp logo" width="160">
 </p>
 
-This repository holds 45 example programs for [`chromedp`][1], a Go package that
+This repository holds 46 example programs for [`chromedp`][1], a Go package that
 drives Chrome through the Chrome DevTools Protocol. The package documentation
 has small examples that are self-contained. These programs are larger. Only the
 program `fast` needs the internet. The program `extension` needs the files of
@@ -16,7 +16,7 @@ port, unless you use its flag `-start`.
 [![Releases][release-status]][releases]
 [![Discord Discussion][discord-status]][discord]
 
-The programs use the typed API of `chromedp` v0.22.0 and `cdproto` v0.159.0.
+The programs use the typed API of `chromedp` v0.23.0 and `cdproto` v0.159.0.
 The file `docs/API.md` in the `chromedp` repository shows the old code and the
 new code side by side. The file `docs/MIGRATION.md` in the same folder lists
 every name that changed. See
@@ -31,8 +31,8 @@ programs use the package `chromedp/remote`, which is part of `chromedp`, for the
 flag `-visible`, which keeps the browser open, and for the `remote` program.
 They use `termcast` for the flag `-visible-on-terminal`.
 
-The tags of this repository follow the tags of `chromedp`. The tag `v0.22.0` holds
-programs that use `chromedp` v0.22, and a tag such as `v0.22.1` is a later change in
+The tags of this repository follow the tags of `chromedp`. The tag `v0.23.0` holds
+programs that use `chromedp` v0.23, and a tag such as `v0.23.1` is a later change in
 this repository.
 
 `chromedp` starts the browser. It finds Chrome or Chromium on the `PATH`. If
@@ -95,6 +95,7 @@ directory of their flag `-out`.
 |-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
 | [click](/click)                   | use a selector to click on an element                                                                                                    |
 | [console](/console)               | read the console of a page and its uncaught exceptions with chromedp                                                                     |
+| [contexts](/contexts)             | see the JavaScript contexts that a tab already has, with chromedp                                                                        |
 | [cookie](/cookie)                 | set an HTTP cookie on requests                                                                                                           |
 | [dialogs](/dialogs)               | handle the JavaScript dialogs of a page                                                                                                  |
 | [distrust](/distrust)             | check that a browser rejects the certificates of a compromised certificate authority                                                     |
@@ -186,6 +187,7 @@ because they need a live site that can change. No program was run with the flag
 |-----------------|----------------------------------|---------------------------------------------------|-------------------|
 | click           | offline                          | works                                             | run on 2026-10-04 |
 | console         | offline                          | works                                             | run on 2026-10-04 |
+| contexts        | offline                          | works                                             | run on 2026-11-06 |
 | cookie          | offline                          | works                                             | run on 2026-10-04 |
 | dialogs         | offline                          | works                                             | run on 2026-10-04 |
 | distrust        | internet, Podman                 | works, the browser connected to 7 of 14 hosts     | run on 2026-10-26 |
