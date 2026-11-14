@@ -31,9 +31,8 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
-	"github.com/kenshaw/rasterm"
 )
 
 // widgetSel selects the header with the search form and the data block of the
@@ -70,7 +69,6 @@ const summaryJS = `(function(day) {
 })(%d)`
 
 func main() {
-	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open (no effect with -remote)")
 	timeout := flag.Duration("timeout", 30*time.Second, "time limit of the program")
@@ -84,9 +82,9 @@ func main() {
 	padding := flag.Int("padding", 20, "white space around the image, in pixels")
 	remoteURL := flag.String("remote", "", "WebSocket URL of a running browser to use")
 	out := flag.String("out", "", "file to write the screenshot to")
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
-	if err := run(context.Background(), &tc, *verbose, *visible, *timeout, *urlstr, *query, *lang, *unit, *typ, *day, *scale, *padding, *remoteURL, *out); err != nil {
+	if err := run(context.Background(), tc, *verbose, *visible, *timeout, *urlstr, *query, *lang, *unit, *typ, *day, *scale, *padding, *remoteURL, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		if strings.HasPrefix(err.Error(), "invalid lang ") {
 			fmt.Fprint(os.Stderr, "\nvalid languages:\n")
@@ -98,7 +96,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout time.Duration, urlstr, query, lang, unit, typ string, day int, scale float64, padding int, remoteURL, out string) error {
+func run(ctx context.Context, tc *termstream.Flags, verbose, visible bool, timeout time.Duration, urlstr, query, lang, unit, typ string, day int, scale float64, padding int, remoteURL, out string) error {
 	// make sure that the flag values are valid
 	lang = strings.ToLower(lang)
 	if _, ok := langs[lang]; !ok && lang != "" {
@@ -268,7 +266,7 @@ func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout
 
 	// show the image in the terminal, after the stream has stopped
 	s.Stop()
-	return rasterm.Encode(os.Stdout, img)
+	return termstream.Draw(ctx, os.Stdout, s, img)
 }
 
 var langs map[string]string

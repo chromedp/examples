@@ -31,8 +31,8 @@ import (
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
 )
 
 func main() {
@@ -40,8 +40,7 @@ func main() {
 	out := flag.String("out", ".", "directory for the downloaded file")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// choose the page. Without -url, the program starts the local site
@@ -87,10 +86,10 @@ func main() {
 
 	path, err := download(ctx, stdout, *urlstr, *out)
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := list(stdout, path); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 }
 

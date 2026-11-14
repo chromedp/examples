@@ -25,7 +25,7 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
-	"github.com/chromedp/termcast"
+	"github.com/chromedp/examples/internal/termstream"
 )
 
 // state is what the page records. The page keeps it in the variable state.
@@ -54,8 +54,7 @@ type point struct {
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -93,16 +92,16 @@ func main() {
 	}
 
 	if err := chromedp.Do(ctx, chromedp.Navigate(srv.URL+"/")); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := slider(ctx, out); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := list(ctx, out); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := cards(ctx, out); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 }
 

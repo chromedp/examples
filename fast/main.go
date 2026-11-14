@@ -42,8 +42,7 @@ import (
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
-	"github.com/chromedp/termcast"
-	"github.com/kenshaw/rasterm"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/vbauerster/mpb/v8"
 	"github.com/vbauerster/mpb/v8/decor"
 )
@@ -325,22 +324,21 @@ func (r *summary) print(w io.Writer, took time.Duration) {
 }
 
 func main() {
-	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	timeout := flag.Duration("timeout", 2*time.Minute, "time limit of the program")
 	scale := flag.Float64("scale", 1.5, "scale of the screenshot")
 	padding := flag.Int("padding", 0, "white space around the image, in pixels")
 	out := flag.String("out", "", "file to write the screenshot to")
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
-	if err := run(context.Background(), &tc, *verbose, *visible, *timeout, *scale, *padding, *out); err != nil {
+	if err := run(context.Background(), tc, *verbose, *visible, *timeout, *scale, *padding, *out); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout time.Duration, scale float64, padding int, out string) error {
+func run(ctx context.Context, tc *termstream.Flags, verbose, visible bool, timeout time.Duration, scale float64, padding int, out string) error {
 	// create context
 	var opts []chromedp.ContextOption
 	if verbose {
@@ -480,7 +478,7 @@ func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout
 
 	// show the image in the terminal, after the stream has stopped
 	s.Stop()
-	if err := rasterm.Encode(os.Stdout, img); err != nil {
+	if err := termstream.Draw(ctx, os.Stdout, s, img); err != nil {
 		return err
 	}
 

@@ -21,16 +21,15 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
 )
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	urlstr := flag.String("url", "", "full URL of the page to read, for example a live site (the selectors are written for the local site and a live site can differ); when empty, the program starts the local test site and reads /docs/time")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the local test site, unless the user gives a page to read
@@ -76,7 +75,7 @@ func main() {
 		chromedp.WaitVisible(`.Documentation-overview`),
 	)
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 
 	// Text returns the visible text of the element, as a person reads it. The
@@ -84,7 +83,7 @@ func main() {
 	// and the style sheet applies
 	overview, err := chromedp.Run(ctx, chromedp.Text(`.Documentation-overview`, chromedp.NodeVisible))
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	overview = strings.TrimSpace(overview)
 	var lines []string
@@ -101,11 +100,11 @@ func main() {
 	// the first heading and the first paragraph, each with one selector
 	title, err := chromedp.Run(ctx, chromedp.Text(`.Documentation-overview > h2`))
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	first, err := chromedp.Run(ctx, chromedp.Text(`.Documentation-overview > p`))
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	log.Printf("the heading is %q and the first paragraph has %d words", title, len(strings.Fields(first)))
 
@@ -113,12 +112,12 @@ func main() {
 	// the text of one element. The selector with an index chooses the element
 	headings, err := chromedp.Run(ctx, chromedp.Nodes(`.Documentation-overview h3`))
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	for i := range headings {
 		name, err := chromedp.Run(ctx, chromedp.Text(fmt.Sprintf(`.Documentation-overview h3:nth-of-type(%d)`, i+1)))
 		if err != nil {
-			s.Fatal(err)
+			termstream.Fatal(s, err)
 		}
 		log.Printf("section %d of the overview: %s", i+1, name)
 	}
@@ -130,11 +129,11 @@ func main() {
 	code := `.Documentation-overview pre`
 	shown, err := chromedp.Run(ctx, chromedp.Text(code))
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	raw, err := chromedp.Run(ctx, chromedp.TextContent(code))
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	log.Printf("the first program of the overview has %d lines", strings.Count(raw, "\n")+1)
 	log.Printf("Text and TextContent are the same for the program: %t", shown == raw)
@@ -142,7 +141,7 @@ func main() {
 	// the difference is clear for the whole overview
 	content, err := chromedp.Run(ctx, chromedp.TextContent(`.Documentation-overview`))
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	log.Printf("Text of the overview has %d characters and TextContent has %d", len(overview), len(content))
 }

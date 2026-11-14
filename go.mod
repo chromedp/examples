@@ -3,10 +3,10 @@ module github.com/chromedp/examples
 go 1.27
 
 require (
-	github.com/chromedp/cdproto v0.159.0
-	github.com/chromedp/chromedp v0.23.0
-	github.com/chromedp/termcast v0.2.2
-	github.com/kenshaw/rasterm v0.1.21
+	github.com/chromedp/cdproto v0.160.1
+	github.com/chromedp/chromedp v0.23.1
+	github.com/chromedp/termcast v0.3.0
+	github.com/kenshaw/rasterm v0.3.1
 	github.com/oschwald/geoip2-golang v1.13.0
 	github.com/vbauerster/mpb/v8 v8.16.3
 	github.com/yookoala/realpath v1.0.0

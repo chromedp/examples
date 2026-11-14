@@ -30,8 +30,8 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
 )
 
 // header has the title of the page, which the browser reads from the title
@@ -97,12 +97,11 @@ var variants = []variant{
 }
 
 func main() {
-	var tc termcast.Flags
 	urlstr := flag.String("url", "", "full URL of the page to print, for example a live site. The local test site starts when it is empty. The page of the local site has its own print rules and a live site can differ")
 	out := flag.String("out", ".", "directory for the PDF files")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// choose the pages. Without -url, the program starts the local site. A
@@ -149,7 +148,7 @@ func main() {
 	defer cancel()
 
 	if err := run(ctx, *urlstr, cssURL, *out, stdout); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 }
 

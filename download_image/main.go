@@ -35,8 +35,8 @@ import (
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
 )
 
 // wanted is the name of the picture that the program downloads. On the local
@@ -48,8 +48,7 @@ func main() {
 	out := flag.String("out", "download.jpg", "name of the image file to write")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// choose the page. Without -url, the program starts the local site
@@ -96,7 +95,7 @@ func main() {
 	// read the addresses of the pictures from the gallery page
 	urls, err := imageURLs(ctx, *urlstr)
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	fmt.Fprintf(stdout, "the page lists %d pictures, for example:\n", len(urls))
 	for _, u := range urls[:min(3, len(urls))] {
@@ -111,13 +110,13 @@ func main() {
 		}
 	}
 	if imageURL == "" {
-		s.Fatal(fmt.Errorf("the page has no picture named %s", wanted))
+		termstream.Fatal(s, fmt.Errorf("the page has no picture named %s", wanted))
 	}
 
 	// download it through the network response
 	buf, err := download(ctx, stdout, imageURL)
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 
 	// check what the bytes are. image.DecodeConfig reads the type and the size
@@ -125,11 +124,11 @@ func main() {
 	// file that is cut or damaged
 	cfg, format, err := image.DecodeConfig(bytes.NewReader(buf))
 	if err != nil {
-		s.Fatal(fmt.Errorf("the downloaded file is not an image: %w", err))
+		termstream.Fatal(s, fmt.Errorf("the downloaded file is not an image: %w", err))
 	}
 	img, _, err := image.Decode(bytes.NewReader(buf))
 	if err != nil {
-		s.Fatal(fmt.Errorf("decoding the downloaded image: %w", err))
+		termstream.Fatal(s, fmt.Errorf("decoding the downloaded image: %w", err))
 	}
 	fmt.Fprintf(stdout, "downloaded %s: %s, %d x %d px, %d bytes, decoded size %v\n",
 		wanted, format, cfg.Width, cfg.Height, len(buf), img.Bounds().Size())
@@ -137,7 +136,7 @@ func main() {
 	// write the file to disk. The program holds the bytes, so it chooses the
 	// name and the location
 	if err := os.WriteFile(*out, buf, 0o644); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	fmt.Fprintf(stdout, "wrote %s\n", *out)
 }

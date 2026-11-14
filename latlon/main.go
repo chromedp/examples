@@ -24,8 +24,8 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/kb"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
 )
 
 // latlonRE extracts the latitude, the longitude and the zoom from the part of
@@ -42,20 +42,19 @@ func (p position) String() string {
 }
 
 func main() {
-	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	timeout := flag.Duration("timeout", 30*time.Second, "time limit of the program")
 	urlstr := flag.String("url", "", "full URL of the map page to read, for example a live site (default: the map of the local test site, and the selectors are written for it)")
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
-	if err := run(context.Background(), &tc, *verbose, *visible, *timeout, *urlstr); err != nil {
+	if err := run(context.Background(), tc, *verbose, *visible, *timeout, *urlstr); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout time.Duration, urlstr string) error {
+func run(ctx context.Context, tc *termstream.Flags, verbose, visible bool, timeout time.Duration, urlstr string) error {
 	// start the local test site, unless the flag -url names a page
 	if urlstr == "" {
 		site := testsite.New()

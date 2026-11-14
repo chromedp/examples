@@ -27,7 +27,7 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
-	"github.com/chromedp/termcast"
+	"github.com/chromedp/examples/internal/termstream"
 )
 
 // endMarker is the text of the last message that the page writes. The program
@@ -37,8 +37,7 @@ const endMarker = "end of the run"
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -76,7 +75,7 @@ func main() {
 	}
 
 	if err := run(ctx, out, srv.URL); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 }
 

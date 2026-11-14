@@ -20,16 +20,15 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
 )
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	urlstr := flag.String("url", "", "full URL of the page with the search form, for example a live site (the selectors are written for the local site and a live site can differ); when empty, the program starts the local test site and reads /wiki/")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the local test site, unless the user gives a page to read
@@ -72,7 +71,7 @@ func main() {
 	// run the actions
 	res, err := submit(ctx, *urlstr, `#searchInput`, `railway`)
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 
 	log.Printf("the search for %q found %s", res.Query, res.Summary)

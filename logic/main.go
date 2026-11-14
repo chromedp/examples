@@ -21,16 +21,15 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
 )
 
 func main() {
-	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	urlstr := flag.String("url", "", "full URL of the page to read, for example a live site (the selectors are written for the local site and a live site can differ); when empty, the program starts the local test site and reads /repo/")
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the local test site, unless the user gives a page to read
@@ -75,13 +74,13 @@ func main() {
 		chromedp.WaitVisible(`div > h3`),
 	)
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 
 	// the names of the sections. Each one is the text of an h3 element
 	headings, err := chromedp.Run(ctx, chromedp.Nodes(`//div/h3/text()`))
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 
 	// a Go loop that runs actions: read the projects of each section
@@ -91,7 +90,7 @@ func main() {
 		sect := strings.TrimSpace(h.NodeValue)
 		projects, err := listProjects(ctx, sect)
 		if err != nil {
-			s.Fatal(fmt.Sprintf("could not list the projects of %q: %v", sect, err))
+			termstream.Fatal(s, fmt.Sprintf("could not list the projects of %q: %v", sect, err))
 		}
 		log.Printf("section %d, %s: %d projects", i+1, sect, len(projects))
 		total += len(projects)

@@ -36,8 +36,8 @@ import (
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
 )
 
 // maxTexture is the largest side of a texture that the graphics code of Chrome
@@ -65,8 +65,7 @@ func main() {
 	outDir := flag.String("out", ".", "directory for the image files")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// choose the pages. Without -url, the program starts the local site
@@ -117,7 +116,7 @@ func main() {
 	defer cancel()
 
 	if err := run(ctx, targets, *outDir); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 }
 

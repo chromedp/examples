@@ -30,9 +30,8 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
-	"github.com/kenshaw/rasterm"
 	"github.com/oschwald/geoip2-golang"
 )
 
@@ -45,7 +44,6 @@ const defaultIP = "8.8.8.8"
 var geoLite2CityMmdb []byte
 
 func main() {
-	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
 	timeout := flag.Duration("timeout", 30*time.Second, "time limit of the program")
@@ -53,15 +51,15 @@ func main() {
 	lang := flag.String("l", "en", "language code of the place names, for example de, es, fr, ja, pt-BR, ru or zh-CN")
 	zoom := flag.Float64("zoom", 12.5, "zoom level of the map")
 	scale := flag.Float64("scale", 1.5, "scale of the map image")
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
-	if err := run(context.Background(), &tc, *verbose, *visible, *timeout, *urlstr, *lang, *zoom, *scale, flag.Args()); err != nil {
+	if err := run(context.Background(), tc, *verbose, *visible, *timeout, *urlstr, *lang, *zoom, *scale, flag.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout time.Duration, urlstr, lang string, zoom, scale float64, args []string) error {
+func run(ctx context.Context, tc *termstream.Flags, verbose, visible bool, timeout time.Duration, urlstr, lang string, zoom, scale float64, args []string) error {
 	// open the embedded database
 	db, err := geoip2.FromBytes(geoLite2CityMmdb)
 	if err != nil {
@@ -144,7 +142,7 @@ func run(ctx context.Context, tc *termcast.Flags, verbose, visible bool, timeout
 		}
 		// show the map after the stream has stopped
 		s.Stop()
-		if err := rasterm.Encode(os.Stdout, img); err != nil {
+		if err := termstream.Draw(ctx, os.Stdout, s, img); err != nil {
 			return fmt.Errorf("showing the map: %w", err)
 		}
 	}

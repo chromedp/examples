@@ -6,7 +6,7 @@ than the examples in the package documentation. They show how to solve a task
 with `chromedp`: click an element, download a file, emulate a device, use a
 proxy and more. The module is `github.com/chromedp/examples`.
 
-The programs use the typed API of `chromedp` v0.23.0 and `cdproto` v0.159.0. See
+The programs use the typed API of `chromedp` v0.23.1 and `cdproto` v0.160.1. See
 `docs/decisions/2026-10-03-the-programs-use-the-new-typed-api.md`.
 
 ## Standing rules
@@ -89,11 +89,11 @@ you trust it, because a later decision can amend or replace it.
     websocket and the extension commands need the pipe. The program `distrust`
     has no `-visible`, because its browser runs in a container.
 13. Every program that has a page to show has the flag `-visible-on-terminal`
-    and the flag `-terminal-fps`. Register them with `termcast.Flags` from
-    `github.com/chromedp/termcast`, and start the stream after the browser
-    starts. After the stream starts, call `s.Fatal` and not `log.Fatal`, and
-    send the results through `s.LogWriter()`. The flag does not work with
-    `-v`. The programs `tabs`, `popups`, `workers`, `multi`, `session`,
+    and the flag `-terminal-fps`. Register them with `termstream.Register`
+    from `internal/termstream`, and start the stream with `Flags.Start` after
+    the browser starts. After the stream starts, call `termstream.Fatal(s, err)`
+    and not `log.Fatal`, and send the results through `s.LogWriter()`. The
+    flag does not work with `-v`. The programs `tabs`, `popups`, `workers`, `multi`, `session`,
     `screencast`, `pdfstream`, `har`, `rawcall` and `termcast` do not
     have the flag.
 
@@ -112,6 +112,7 @@ you trust it, because a later decision can amend or replace it.
 | `docs/docs_test.go` | the test of the documents and the Go comments |
 | `.agents/skills/` and `.claude/skills/` | the two agent skills, as copies |
 | `skills-lock.json` | the source of each skill |
+| `internal/termstream/` | the flags `-visible-on-terminal` and `-terminal-fps`, and the calls that the programs share around the stream of `termcast` |
 | `go.mod`, `go.sum` | the module, which needs Go 1.27. `chromedp`, `cdproto` and `termcast` need only Go 1.25 |
 
 The root of the repository holds `README.md`, `AGENTS.md`, `CLAUDE.md`,
@@ -132,7 +133,7 @@ Add `-v` to any program to print the protocol messages. Add `-visible` to show
 the browser window and leave it open. The variable `CHROMEDP_VISIBLEWINDOW=1`
 shows the window with no flag. A visible window needs a display.
 
-Go downloads `chromedp` v0.21.0, `cdproto` v0.157.8 and `termcast` v0.2.2 when it
+Go downloads `chromedp` v0.23.1, `cdproto` v0.160.1 and `termcast` v0.3.0 when it
 builds a program. The package `chromedp/remote` is part of `chromedp`. Do not edit `go.mod` or `go.sum`
 unless the maintainer asks.
 

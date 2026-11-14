@@ -20,15 +20,14 @@ import (
 	"github.com/chromedp/cdproto/storage"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
-	"github.com/chromedp/termcast"
+	"github.com/chromedp/examples/internal/termstream"
 )
 
 func main() {
 	port := flag.Int("port", 8544, "port of the local web server")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the cookie server
@@ -67,7 +66,7 @@ func main() {
 		"cookie2", "value2",
 	)
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 
 	log.Printf("chrome received cookies: %s", res)

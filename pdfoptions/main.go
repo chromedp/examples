@@ -31,7 +31,7 @@ import (
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
-	"github.com/chromedp/termcast"
+	"github.com/chromedp/examples/internal/termstream"
 )
 
 // variant is one way to print a page.
@@ -110,11 +110,10 @@ var variants = []variant{
 }
 
 func main() {
-	var tc termcast.Flags
 	out := flag.String("out", "", "directory for the PDF files, a new temporary directory by default")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -151,7 +150,7 @@ func main() {
 	}
 
 	if err := run(ctx, srv.URL, *out, stdout); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 }
 

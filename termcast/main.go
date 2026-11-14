@@ -100,7 +100,10 @@ func main() {
 	defer cancel()
 
 	if err := run(ctx, out, pageURL, *d); err != nil {
-		s.Fatal(err)
+		// log.Fatal skips the deferred calls, so stop the stream first. Then
+		// the last frame and the held lines reach the terminal.
+		s.Stop()
+		log.Fatal(err)
 	}
 }
 

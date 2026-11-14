@@ -26,14 +26,13 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
-	"github.com/chromedp/termcast"
+	"github.com/chromedp/examples/internal/termstream"
 )
 
 func main() {
-	var tc termcast.Flags
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// The page comes from 127.0.0.1, and the iframe of the other site comes
@@ -75,16 +74,16 @@ func main() {
 	}
 
 	if err := chromedp.Do(ctx, chromedp.Navigate(srv.URL+"/")); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := sameSite(ctx, stdout); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := shadow(ctx, stdout); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := crossSite(ctx, stdout); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 }
 

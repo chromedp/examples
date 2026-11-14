@@ -19,14 +19,13 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
-	"github.com/chromedp/termcast"
+	"github.com/chromedp/examples/internal/termstream"
 )
 
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// create a test server for the page
@@ -87,7 +86,7 @@ func main() {
 	// run the actions
 	err = travelSubtree(ctx, out, ts.URL, chromedp.ID("title"))
 	if err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 }
 

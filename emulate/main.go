@@ -31,8 +31,8 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/device"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
 )
 
 // facts are the ids of the elements of the page /ua, with the label that the
@@ -54,8 +54,7 @@ func main() {
 	out := flag.String("out", ".", "directory for the screenshots")
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// choose the pages. Without -url, the program starts the local site. The
@@ -103,7 +102,7 @@ func main() {
 	defer cancel()
 
 	if err := os.MkdirAll(*out, 0o755); err != nil {
-		s.Fatal(fmt.Errorf("creating the directory %s: %w", *out, err))
+		termstream.Fatal(s, fmt.Errorf("creating the directory %s: %w", *out, err))
 	}
 
 	// emulate an iPhone. The preset holds the user agent, the size of the
@@ -113,10 +112,10 @@ func main() {
 	fmt.Fprintf(stdout, "emulating %s: %d x %d px, pixel ratio %g, mobile %t, touch %t\n",
 		phone.Name, phone.Width, phone.Height, phone.Scale, phone.Mobile, phone.Touch)
 	if err := chromedp.Do(ctx, chromedp.Emulate(device.IPhone17)); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := inspect(ctx, stdout, "phone", reportURL, layoutURL, *out); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 
 	// reset the emulation. Emulate(device.Reset) sets back the user agent,
@@ -128,10 +127,10 @@ func main() {
 		chromedp.Emulate(device.Reset),
 		chromedp.EmulateViewport(1280, 800),
 	); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := inspect(ctx, stdout, "desktop", reportURL, layoutURL, *out); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 }
 

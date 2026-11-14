@@ -29,9 +29,8 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
+	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/chromedp/termcast"
-	"github.com/kenshaw/rasterm"
 )
 
 // defaultURL is the WebSocket URL that Chrome uses with the flag
@@ -45,8 +44,7 @@ func main() {
 	d := flag.Duration("d", 0, "extra time to wait after the page loads, for a page that builds itself late")
 	start := flag.Bool("start", false, "start a headless Chrome with a debugging port, and connect to it (not with -url)")
 	timeout := flag.Duration("timeout", 30*time.Second, "time limit of the program")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 	urlSet := false
 	flag.Visit(func(f *flag.Flag) { urlSet = urlSet || f.Name == "url" })
@@ -54,13 +52,13 @@ func main() {
 		fmt.Fprintln(os.Stderr, "error: use the flag -start or the flag -url, not both")
 		os.Exit(1)
 	}
-	if err := run(context.Background(), &tc, *verbose, *urlstr, *nav, *d, *start, *timeout); err != nil {
+	if err := run(context.Background(), tc, *verbose, *urlstr, *nav, *d, *start, *timeout); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, tc *termcast.Flags, verbose bool, urlstr, nav string, d time.Duration, start bool, timeout time.Duration) error {
+func run(ctx context.Context, tc *termstream.Flags, verbose bool, urlstr, nav string, d time.Duration, start bool, timeout time.Duration) error {
 	if urlstr == "" {
 		return errors.New("invalid remote devtools url")
 	}
@@ -154,7 +152,7 @@ func run(ctx context.Context, tc *termcast.Flags, verbose bool, urlstr, nav stri
 	}
 	// stop the stream before the image, because the stream clears the terminal
 	s.Stop()
-	return rasterm.Encode(os.Stdout, img)
+	return termstream.Draw(ctx, os.Stdout, s, img)
 }
 
 // startHelp tells a person how to start a browser that the program can use.

@@ -93,7 +93,7 @@ import (
 	"github.com/chromedp/cdproto/fetch"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
-	"github.com/chromedp/termcast"
+	"github.com/chromedp/examples/internal/termstream"
 
 	"github.com/chromedp/examples/internal/testsite"
 )
@@ -130,21 +130,20 @@ func main() {
 	flag.StringVar(&cfg.ext, "ext", "", "unpacked directory or ZIP file of uBlock Origin Lite on disk")
 	flag.StringVar(&cfg.profile, "profile", "", "user data directory of the browser, or empty for a temporary one")
 	flag.StringVar(&cfg.out, "out", "", "directory for the screenshots, or empty for a temporary one")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 	if err := run(cfg, tc); err != nil {
 		log.Fatal(err)
 	}
 }
 
-// run returns an error instead of calling the method Fatal of the stream, so
-// that the deferred calls stop the stream and remove the temporary files.
-func run(cfg config, tc termcast.Flags) error {
+// run returns an error instead of calling termstream.Fatal, so that the
+// deferred calls stop the stream and remove the temporary files.
+func run(cfg config, tc *termstream.Flags) error {
 	// The stream starts after the browser, so check the flags first. The
 	// protocol messages of -v draw over the frames.
-	if tc.Enabled && cfg.verbose {
-		return fmt.Errorf("starting the stream: %w", termcast.ErrVerbose)
+	if tc.On && cfg.verbose {
+		return fmt.Errorf("starting the stream: %w", termstream.ErrVerbose)
 	}
 	dir, cleanup, err := findExtension(cfg.ext)
 	if err != nil {

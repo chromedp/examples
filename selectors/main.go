@@ -27,7 +27,7 @@ import (
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
-	"github.com/chromedp/termcast"
+	"github.com/chromedp/examples/internal/termstream"
 )
 
 // out receives the results that the program prints. It is the standard output,
@@ -38,8 +38,7 @@ var out io.Writer = os.Stdout
 func main() {
 	verbose := flag.Bool("v", false, "print the protocol messages")
 	visible := flag.Bool("visible", false, "show the browser window and leave it open")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
 
 	// start the server
@@ -76,13 +75,13 @@ func main() {
 	}
 
 	if err := chromedp.Do(ctx, chromedp.Navigate(srv.URL+"/")); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := types(ctx); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 	if err := options(ctx); err != nil {
-		s.Fatal(err)
+		termstream.Fatal(s, err)
 	}
 }
 

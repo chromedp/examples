@@ -33,7 +33,7 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
-	"github.com/chromedp/termcast"
+	"github.com/chromedp/examples/internal/termstream"
 )
 
 func main() {
@@ -43,10 +43,9 @@ func main() {
 	pull := flag.String("pull", "newer", "pull policy of the image: always, missing, never or newer (docker has no newer)")
 	urlstr := flag.String("url", "https://emudhra.we-have-a-problem.com/", "test page that lists the hosts")
 	timeout := flag.Duration("timeout", 20*time.Second, "time limit for one host")
-	var tc termcast.Flags
-	tc.Register(flag.CommandLine)
+	tc := termstream.Register(flag.CommandLine)
 	flag.Parse()
-	ok, err := run(context.Background(), &tc, *verbose, *image, *podman, *pull, *urlstr, *timeout)
+	ok, err := run(context.Background(), tc, *verbose, *image, *podman, *pull, *urlstr, *timeout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(2)
@@ -58,7 +57,7 @@ func main() {
 
 // run starts the browser, checks every host of the test page, and reports
 // whether the browser rejected all of them.
-func run(ctx context.Context, tc *termcast.Flags, verbose bool, image, podman, pull, urlstr string, timeout time.Duration) (bool, error) {
+func run(ctx context.Context, tc *termstream.Flags, verbose bool, image, podman, pull, urlstr string, timeout time.Duration) (bool, error) {
 	// start the browser in a container. The container publishes the port of
 	// the protocol on a free port of this host, for this host only
 	port, err := freePort()
