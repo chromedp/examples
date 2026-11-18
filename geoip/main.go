@@ -22,7 +22,7 @@ import (
 	"image/png"
 	"io"
 	"log"
-	"net"
+	"net/netip"
 	"net/url"
 	"os"
 	"strings"
@@ -32,7 +32,7 @@ import (
 	"github.com/chromedp/chromedp/remote"
 	"github.com/chromedp/examples/internal/termstream"
 	"github.com/chromedp/examples/internal/testsite"
-	"github.com/oschwald/geoip2-golang"
+	"github.com/oschwald/geoip2-golang/v2"
 )
 
 // defaultIP is the address that the program looks up when it has no argument.
@@ -61,7 +61,7 @@ func main() {
 
 func run(ctx context.Context, tc *termstream.Flags, verbose, visible bool, timeout time.Duration, urlstr, lang string, zoom, scale float64, args []string) error {
 	// open the embedded database
-	db, err := geoip2.FromBytes(geoLite2CityMmdb)
+	db, err := geoip2.OpenBytes(geoLite2CityMmdb)
 	if err != nil {
 		return fmt.Errorf("opening the database: %w", err)
 	}
@@ -117,8 +117,8 @@ func run(ctx context.Context, tc *termstream.Flags, verbose, visible bool, timeo
 		if i != 0 {
 			fmt.Fprintln(stdout)
 		}
-		ip := net.ParseIP(ipstr)
-		if ip == nil {
+		ip, err := netip.ParseAddr(ipstr)
+		if err != nil {
 			fmt.Fprintf(stdout, "%s: unable to lookup: not an IP address\n", ipstr)
 			continue
 		}
@@ -128,14 +128,15 @@ func run(ctx context.Context, tc *termstream.Flags, verbose, visible bool, timeo
 			continue
 		}
 		loc := record.Location
-		if loc.Latitude == 0 && loc.Longitude == 0 {
+		if loc.Latitude == nil || loc.Longitude == nil {
 			fmt.Fprintf(stdout, "%s: unable to lookup: the database has no location for it\n", ipstr)
 			continue
 		}
+		lat, lon := *loc.Latitude, *loc.Longitude
 		fmt.Fprintf(stdout, "%s: %s\n", ipstr, describe(record, lang))
 
 		// show the map of the place
-		img, err := getMap(ctx, base, lang, loc.Latitude, loc.Longitude, zoom, scale)
+		img, err := getMap(ctx, base, lang, lat, lon, zoom, scale)
 		if err != nil {
 			fmt.Fprintf(stdout, "unable to get map: %v\n", err)
 			continue
@@ -170,30 +171,49 @@ func describe(record *geoip2.City, lang string) string {
 		parts = append(parts, country)
 	}
 	s := strings.Join(parts, ", ")
-	if code := record.Country.IsoCode; code != "" {
+	if code := record.Country.ISOCode; code != "" {
 		s += " (" + code
 		if tz := record.Location.TimeZone; tz != "" {
 			s += " " + tz
 		}
 		s += ")"
 	}
-	s += fmt.Sprintf(" @ %f,%f", record.Location.Latitude, record.Location.Longitude)
+	if loc := record.Location; loc.Latitude != nil && loc.Longitude != nil {
+		s += fmt.Sprintf(" @ %f,%f", *loc.Latitude, *loc.Longitude)
+	}
 	if r := record.Location.AccuracyRadius; r != 0 {
 		s += fmt.Sprintf(", accurate to %d km", r)
 	}
-	if emoji := emojiFlag(record.Country.IsoCode); emoji != "" {
+	if emoji := emojiFlag(record.Country.ISOCode); emoji != "" {
 		s += " " + emoji
 	}
 	return s
 }
 
 // localName returns the name for the language lang, or the English name if
-// there is none.
-func localName(names map[string]string, lang string) string {
-	if name, ok := names[lang]; ok {
-		return name
+// there is none. The database has names in the languages of the flag -l.
+func localName(names geoip2.Names, lang string) string {
+	var name string
+	switch lang {
+	case "de":
+		name = names.German
+	case "es":
+		name = names.Spanish
+	case "fr":
+		name = names.French
+	case "ja":
+		name = names.Japanese
+	case "pt-BR":
+		name = names.BrazilianPortuguese
+	case "ru":
+		name = names.Russian
+	case "zh-CN":
+		name = names.SimplifiedChinese
 	}
-	return names["en"]
+	if name == "" {
+		return names.English
+	}
+	return name
 }
 
 // getMap opens the map of a place, waits until the map has its tiles, and
