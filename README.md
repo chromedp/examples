@@ -16,7 +16,7 @@ port, unless you use its flag `-start`.
 [![Releases][release-status]][releases]
 [![Discord Discussion][discord-status]][discord]
 
-The programs use the typed API of `chromedp` v0.23.1 and `cdproto` v0.160.1.
+The programs use the typed API of `chromedp` v0.24.0 and `cdproto` v0.160.1.
 The file `docs/API.md` in the `chromedp` repository shows the old code and the
 new code side by side. The file `docs/MIGRATION.md` in the same folder lists
 every name that changed. See
@@ -25,14 +25,14 @@ every name that changed. See
 ## Build and run
 
 The module needs Go 1.27. The packages `chromedp`, `cdproto` and `termcast` need
-only Go 1.25 or later. The module requires `chromedp` v0.23.1, `cdproto` v0.160.1
+only Go 1.25 or later. The module requires `chromedp` v0.24.0, `cdproto` v0.160.1
 and `termcast` v0.3.0, and Go downloads them when you build a program. The
 programs use the package `chromedp/remote`, which is part of `chromedp`, for the
 flag `-visible`, which keeps the browser open, and for the `remote` program.
 They use `termcast` for the flag `-visible-on-terminal`.
 
-The tags of this repository follow the tags of `chromedp`. The tag `v0.23.0` holds
-programs that use `chromedp` v0.23, and a tag such as `v0.23.1` is a later change in
+The tags of this repository follow the tags of `chromedp`. The tag `v0.24.0` holds
+programs that use `chromedp` v0.24, and a tag such as `v0.24.1` is a later change in
 this repository.
 
 `chromedp` starts the browser. It finds Chrome or Chromium on the `PATH`. If
